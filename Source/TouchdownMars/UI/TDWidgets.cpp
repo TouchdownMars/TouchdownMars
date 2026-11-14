@@ -790,8 +790,7 @@ void UTDSettingsWidget::RefreshTexts()
 	Button(ResumeButton, ResumeLabel, Txt(TEXT("UI_Resume")));
 	Button(RestartButton, RestartLabel, Txt(TEXT("UI_RestartSame")));
 	Button(NewMissionButton, NewMissionLabel, Txt(TEXT("UI_NewMission")));
-	Button(BandButton, BandLabel, FText::Format(FText::FromString(TEXT("{0}: {1}")), Txt(TEXT("UI_AgeBand")),
-		Txt(Mission->GetPreferredBand() == ETDAgeBand::Cadet ? TEXT("Band_Cadet") : TEXT("Band_Commander"))));
+	if (BandButton) { BandButton->SetVisibility(ESlateVisibility::Collapsed); }
 	Button(LanguageButton, LanguageLabel, FText::FromString(Mission->GetLanguage() == ETDLanguage::EN ? TEXT("Language: English") : TEXT("Dil: Türkçe")));
 	Button(SoundButton, SoundLabel, OnOff(TEXT("UI_Sound"), Mission->IsSoundOn()));
 	Button(MotionButton, MotionLabel, OnOff(TEXT("UI_ReduceMotion"), Mission->IsReduceMotion()));

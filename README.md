@@ -1,8 +1,10 @@
 # Touchdown Mars: The Manifest
 
+**Pack the cargo. Live the mission. Trace every problem.**
+
 A Mars mission design game with a first-person mission simulation, made for the **NASA Space Apps Challenge 2026** (challenge: *Space Mission Design Game*) by **Team Touchdown**, İstanbul. For students who are new to space engineering and for anyone curious about how a mission is put together. One player, or a team of up to four on one screen.
 
-A crew of four will live 31 sols at Jezero crater. You design the cargo mission that lands before them: rockets and launches, surface power, radiation shelter, greenhouse, spare parts, science instruments and the link to Earth, under mass, power, budget and data limits. Then you fly it and live it in first person, and a debrief traces every problem back to the design decision that caused it. Then you redesign and fly the same mission again.
+A crew of four will live 31 sols at Jezero crater. You design the cargo mission that lands before them: rockets and launches, surface power, radiation shelter, greenhouse, spare parts, science instruments and the link to Earth, under mass, power, budget and data limits. Then you launch it and live the mission in first person, and a debrief traces every problem back to the design decision that caused it. Then you redesign and fly the same mission again.
 
 **Scope.** The game covers cargo planning and surface operations. Crew transport and return are assumed to be provided. Transfer orbits are not computed.
 

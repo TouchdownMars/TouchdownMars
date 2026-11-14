@@ -14,8 +14,8 @@ Level_1,Danger,Tehlike
 Level_2,Low,Düşük
 Level_3,Good,İyi
 Level_4,Good,İyi
-Band_Cadet,Cadet (7-9),Aday (7-9)
-Band_Commander,Commander (10-12),Komutan (10-12)
+Band_Cadet,Cadet,Aday
+Band_Commander,Commander,Komutan
 UI_NextPhase,Next phase,Sonraki evre
 UI_CallHome,Call home,Dünya'yı ara
 UI_PriorityRule,"Crew first, then base, then science.","Önce ekip, sonra üs, sonra bilim."
@@ -63,12 +63,12 @@ Sun_LiveStatus,LIVE · fetched {0} UTC from NASA DONKI,CANLI · NASA DONKI'den {
 Sun_ArchiveStatus,ARCHIVE · 4-15 September 2017 (no connection now),ARŞİV · 4-15 Eylül 2017 (şu an bağlantı yok)
 Sun_SummaryLive,"Last 30 days: {0} solar flares (strongest {1}), {2} CMEs, {3} geomagnetic storms.","Son 30 gün: {0} güneş patlaması (en güçlüsü {1}), {2} koronal kütle atımı, {3} jeomanyetik fırtına."
 Sun_SummaryArchive,"September 2017: {0} big flares (strongest {1}), {2} fast CMEs, {3} geomagnetic storms.","Eylül 2017: {0} büyük patlama (en güçlüsü {1}), {2} hızlı koronal kütle atımı, {3} jeomanyetik fırtına."
-UI_NasaMeasurement,NASA measurement,NASA ölçümü
+UI_NasaMeasurement,Sourced value,Kaynaklı değer
 UI_Retrieved,checked {0},kontrol: {0}
 UI_Settings,Settings,Ayarlar
 UI_Resume,Resume,Devam et
 UI_RestartSame,Restart same mission,Aynı görevi yeniden başlat
-UI_AgeBand,Age band,Yaş grubu
+UI_AgeBand,Crew level,Ekip düzeyi
 UI_Sound,Sound,Ses
 UI_ReduceMotion,Reduce motion,Hareketi azalt
 UI_On,on,açık
@@ -221,7 +221,7 @@ Inspect_Dish,Antenna to Earth · messages take minutes to arrive,Dünya anteni �
 Inspect_Cargo,Cargo from the supply lander,İkmal aracından gelen kargo
 UI_ConsoleHintCard,New event! TAB / Y: open the mission console,Yeni olay! TAB / Y: görev konsolunu aç
 Design_Title,Mission Design Room,Görev Tasarım Odası
-Obj_Intro,"Choose the mission. The cargo you design lands before the crew: power, shelter, greenhouse, spares, instruments and the radio link. Then you fly it and live it.","Görevi seç. Tasarladığın kargo ekipten önce iner: güç, sığınak, sera, yedek parça, cihazlar ve telsiz bağlantısı. Sonra onu uçurur ve içinde yaşarsın."
+Obj_Intro,"Choose the mission. The cargo you design lands before the crew: power, shelter, greenhouse, spares, instruments and the radio link. Crew transport and return are assumed to be provided. Then you launch it, live the mission and trace every problem back to the design.","Görevi seç. Tasarladığın kargo ekipten önce iner: güç, sığınak, sera, yedek parça, cihazlar ve telsiz bağlantısı. Ekibin ulaşımı ve dönüşü sağlanmış kabul edilir. Sonra onu fırlatır, görevi yaşar ve her sorunun izini tasarıma kadar sürersin."
 Obj_Requirements,REQUIREMENTS,GEREKSİNİMLER
 Obj_Budget,Budget: {0} million USD (game value),Bütçe: {0} milyon USD (oyun değeri)
 Obj_NoBudget,No budget limit (sandbox),Bütçe sınırı yok (serbest mod)
@@ -284,7 +284,7 @@ Opt_Falcon9_Info,"Cheaper per launch, but each one sends only about 4 t toward M
 Opt_Falcon9_Why,Many small launches add cost and more chances for something to go wrong.,Çok sayıda küçük fırlatma maliyeti ve aksilik ihtimalini artırır.
 Opt_FalconHeavy,Falcon Heavy,Falcon Heavy
 Opt_FalconHeavy_Info,Sends 16.8 t toward Mars per launch. NASA paid about 178 million USD for the Europa Clipper launch.,"Fırlatma başına Mars'a 16,8 t gönderir. NASA, Europa Clipper fırlatması için yaklaşık 178 milyon USD ödedi."
-Opt_FalconHeavy_Why,Landing on Mars is heavy: in the realistic model the landing system weighs more than the cargo.,Mars'a inmek ağırdır: gerçekçi modelde iniş sistemi kargodan daha ağırdır.
+Opt_FalconHeavy_Why,Landing on Mars is heavy: in the Advanced model the landing system weighs more than the cargo.,Mars'a inmek ağırdır: Gelişmiş modelde iniş sistemi kargodan daha ağırdır.
 Opt_Kilopower,Fission power unit,Fisyon güç ünitesi
 Opt_Kilopower_Info,Up to 10 kWe day and night for at least 10 years (NASA Kilopower). Four units can power an outpost.,"Gece gündüz 10 kWe'ye kadar, en az 10 yıl (NASA Kilopower). Dört ünite bir üssü besleyebilir."
 Opt_Kilopower_Why,"Dust storms do not touch it, but it is heavy and costly.",Toz fırtınası ona dokunmaz ama ağır ve pahalıdır.
@@ -477,7 +477,7 @@ Debrief_Pass,PASS,GEÇTİ
 Debrief_Fail,FAIL,KALDI
 Debrief_Compare,THIS FLIGHT vs THE ONE BEFORE,BU UÇUŞ ve BİR ÖNCEKİ
 Debrief_CompareSame,Same seed and the same event list: only the design changed.,Aynı tohum ve aynı olay listesi: yalnızca tasarım değişti.
-Debrief_CompareDiff,"Different seed or objective: events differ, compare with care.","Farklı tohum ya da hedef: olaylar farklı, dikkatle karşılaştır."
+Debrief_CompareDiff,"Different seed, objective or model: the events may differ, so compare with care.","Farklı tohum, hedef ya da model: olaylar farklı olabilir, dikkatle karşılaştır."
 Debrief_Changed,What you changed: {0},Neyi değiştirdin: {0}
 Debrief_NoChange,Nothing in the design changed.,Tasarımda hiçbir şey değişmedi.
 Cmp_Row_Score,Score,Puan
