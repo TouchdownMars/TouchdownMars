@@ -894,6 +894,7 @@ void UTDHudWidget::NativeConstruct()
 	}
 	RefreshCorner();
 	RefreshNow();
+	ApplyConsoleMode();
 }
 
 void UTDHudWidget::NativeDestruct()
@@ -1033,12 +1034,13 @@ void UTDHudWidget::ShowPanelOf(UTextBlock* Text, bool bShown)
 
 void UTDHudWidget::SayCapcom(FName Key)
 {
-	if (UTDMissionSubsystem* Mission = GetMission()) { Mission->LastCapcomKey = Key; }
+	if (UTDMissionSubsystem* Mission = GetMission()) { Mission->LastCapcomKey = Key; Mission->PushComms(Txt(Key)); }
 	if (Capcom) { Capcom->SetLine(Txt(Key)); }
 }
 
 void UTDHudWidget::HandleMessage(const FText& Message)
 {
+	if (UTDMissionSubsystem* Mission = GetMission()) { Mission->PushComms(Message); }
 	if (Capcom)
 	{
 		Capcom->SetLine(Message);
@@ -1112,13 +1114,22 @@ void UTDHudWidget::SetConsoleMode(bool bOpen)
 
 void UTDHudWidget::ApplyConsoleMode()
 {
-	const ESlateVisibility Shown = ESlateVisibility::SelfHitTestInvisible;
-	if (PowerPanel) { PowerPanel->SetVisibility(bConsoleMode ? Shown : ESlateVisibility::Collapsed); }
-	if (EventCard && EventCard->IsOpen()) { EventCard->SetVisibility(bConsoleMode ? Shown : ESlateVisibility::Hidden); }
+	// The decision UI moved to the Mission Control console (STDBaseComputer) and the helmet HUD (STDSurfaceHud).
+	// The card stays "open" but invisible so the outcome shot still plays after a choice.
+	if (PowerPanel) { PowerPanel->SetVisibility(ESlateVisibility::Collapsed); }
+	if (EventCard && EventCard->IsOpen()) { EventCard->SetVisibility(ESlateVisibility::Hidden); }
 	for (UWidget* Corner : TArray<UWidget*>{ SettingsButton, LanguageButton, MuteButton, SourcesButton, CallHomeButton })
 	{
-		if (Corner) { Corner->SetVisibility(bConsoleMode ? ESlateVisibility::Visible : ESlateVisibility::Collapsed); }
+		if (Corner) { Corner->SetVisibility(ESlateVisibility::Collapsed); }
 	}
+	for (UWidget* Old : TArray<UWidget*>{ PhaseStrip, Capcom, MessageTrack, SunToday })
+	{
+		if (Old) { Old->SetVisibility(ESlateVisibility::Collapsed); }
+	}
+	// Their backdrop panels too (StripPanel, CapcomPanel in WBP_TD_HUD).
+	if (PhaseStrip && PhaseStrip->GetParent()) { PhaseStrip->GetParent()->SetVisibility(ESlateVisibility::Collapsed); }
+	if (Capcom && Capcom->GetParent() && Capcom->GetParent()->GetParent()) { Capcom->GetParent()->GetParent()->SetVisibility(ESlateVisibility::Collapsed); }
+	if (DoseText) { ShowPanelOf(DoseText, false); }
 }
 
 void UTDHudWidget::RequestOutcomeShot(const FTDMissionState& State)
@@ -1191,6 +1202,7 @@ void UTDHudWidget::HandleWeather(const FTDSpaceWeather& Weather)
 	{
 		SunToday->ShowWeather(Weather);
 	}
+	ApplyConsoleMode();
 }
 
 void UTDHudWidget::HandleSettingsChanged()
@@ -1373,6 +1385,7 @@ void UTDHudWidget::RefreshFromState(const FTDMissionState& State)
 		ShowPanelOf(DoseText, bCommanderRadiation);
 	}
 
+	ApplyConsoleMode();
 	if (DebugText)
 	{
 		DebugText->SetText(FText::FromString(Mission->GetDebugString()));

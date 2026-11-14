@@ -297,6 +297,38 @@ void UTDMissionSubsystem::PlaySfx(FName Token)
 	}
 }
 
+void UTDMissionSubsystem::PlaySfxPitched(FName Token, float Pitch, float Volume)
+{
+	if (!IsSoundOn() || !GetWorld() || !GetWorld()->IsGameWorld())
+	{
+		return;
+	}
+	TObjectPtr<USoundBase>& Sound = SoundCache.FindOrAdd(Token);
+	if (!Sound)
+	{
+		const FString Name = TEXT("SFX_TD_") + Token.ToString();
+		Sound = LoadObject<USoundBase>(nullptr, *FString::Printf(TEXT("/Game/TouchdownMars/Audio/%s.%s"), *Name, *Name));
+	}
+	if (Sound)
+	{
+		UGameplayStatics::PlaySound2D(GetWorld(), Sound, Volume, Pitch);
+	}
+}
+
+void UTDMissionSubsystem::PushComms(const FText& Line)
+{
+	if (Line.IsEmpty() || (Comms.Num() > 0 && Comms.Last().EqualTo(Line)))
+	{
+		return;
+	}
+	Comms.Add(Line);
+	if (Comms.Num() > 30)
+	{
+		Comms.RemoveAt(0);
+	}
+	LastCommsTime = FPlatformTime::Seconds();
+}
+
 bool UTDMissionSubsystem::CanCallHome() const
 {
 	return IsMissionRunning() && !State.bCalledHomeThisPhase && Config.Phases.IsValidIndex(State.PhaseIndex)

@@ -82,11 +82,14 @@ private:
 	void RunPadTest(int32 Step);
 	FTimerHandle PadTestTimer;
 	FVector PadTestStart;
+	FName WorkTestTask;
 #endif
 
 	UPROPERTY(Transient)
 	TObjectPtr<UInputMappingContext> PadContext;
 	TSharedPtr<STDBaseComputer> BaseComputer;
+	/** Helmet HUD (Slate, design-room style): objective, life support, comms, hold ring. */
+	TSharedPtr<class STDSurfaceHud> SurfaceHud;
 	FTimerHandle OpsDemoTimer;
 	bool bBaseOpen = false;
 

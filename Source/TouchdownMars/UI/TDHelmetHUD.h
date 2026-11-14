@@ -18,4 +18,5 @@ public:
 
 private:
 	void DrawOps(const class UTDMissionSubsystem* Mission, const class ATDAstronautCharacter* Astronaut, class UFont* Font, float Scale);
+	void DrawObjectiveMarker(const class UTDMissionSubsystem* Mission, const class ATDAstronautCharacter* Astronaut, class UFont* Font, float Scale);
 };

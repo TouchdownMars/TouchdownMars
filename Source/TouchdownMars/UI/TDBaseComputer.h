@@ -27,6 +27,9 @@ public:
 	void Construct(const FArguments& InArgs);
 	virtual ~STDBaseComputer() override;
 	void Rebuild();
+	/** Mission Control opens on the tab that needs the player (decision, then power, then crew). */
+	void PickTab();
+	enum class ETab : uint8 { Power, Crew, Decision };
 	virtual bool SupportsKeyboardFocus() const override { return true; }
 	virtual FReply OnKeyDown(const FGeometry& MyGeometry, const FKeyEvent& InKeyEvent) override;
 
@@ -36,6 +39,10 @@ private:
 	TSharedRef<SWidget> BuildBoard();
 	TSharedRef<SWidget> BuildSide();
 	TSharedRef<SWidget> BuildFooter();
+	TSharedRef<SWidget> BuildTabs();
+	TSharedRef<SWidget> BuildPower();
+	TSharedRef<SWidget> BuildDecision();
+	ETab Tab = ETab::Power;
 	FText Txt(const TCHAR* Key) const;
 	FText Txt(FName Key) const;
 

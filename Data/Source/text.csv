@@ -686,7 +686,7 @@ Effect_CleanSolar,Arrays clean: full cells again.,Paneller temiz: hücreler tam.
 Effect_Maintain,Weakest system +1.,En zayıf sistem +1.
 Effect_Weather,Storm warnings on.,Fırtına uyarıları açık.
 Effect_LinkCheck,Link checked.,Bağlantı kontrol edildi.
-Ops_Title,BASE COMPUTER,ÜS BİLGİSAYARI
+Ops_Title,MISSION CONTROL,GÖREV MERKEZİ
 Ops_Sols,SOL {0}-{1} · {2},SOL {0}-{1} · {2}
 Ops_Auto,Crew choose tasks,Ekip görev seçsin
 Ops_Clear,Clear plan,Planı temizle
@@ -695,7 +695,7 @@ Ops_RemoveTip,Click to take this task off the plan.,Bu görevi plandan çıkarma
 Ops_WorkHours,WORK HOURS,ÇALIŞMA SAATİ
 Ops_EvaHours,SPACEWALK HOURS,UZAY YÜRÜYÜŞÜ SAATİ
 Ops_Hours,{0} / {1} h,{0} / {1} sa
-Ops_YouHint,"Your tasks: walk to the site and press E, or they are done in the time-lapse.",Senin görevlerin: alana yürü ve E'ye bas; yoksa hızlandırılmış zamanda yapılır.
+Ops_YouHint,"You: give yourself a task, then do it by hand outside (else it is done in the time-lapse).","Sen: kendine bir görev ver, sonra dışarıda elinle yap (yoksa hızlandırılmış zamanda yapılır)."
 Ops_FreeHint,"Free. Pick this crew member, then a task.","Boşta. Bu ekip üyesini seç, sonra bir görev."
 Ops_TaskMeta,{0} h · {1} crew,{0} sa · {1} kişi
 Ops_Eva,SPACEWALK,UZAY YÜRÜYÜŞÜ
@@ -726,7 +726,7 @@ Ops_WeatherOff,No weather mast: storms come without warning.,Hava direği yok: f
 Ops_EvaRule,NASA rule: 8.5 work hours per sol; a rest sol between spacewalks; never alone outside.,"NASA kuralı: solda 8,5 çalışma saati; uzay yürüyüşleri arasında dinlenme solu; dışarıda asla yalnız değil."
 Ops_Report,LAST PHASE,SON EVRE
 Ops_RunHint,Plan ready. Run the sols and watch the crew work.,Plan hazır. Solleri çalıştır ve ekibi izle.
-Ops_RunBlocked,Place every power cell and answer the event first (TAB).,Önce tüm güç hücrelerini yerleştir ve olayı yanıtla (TAB).
+Ops_RunBlocked,Place every power cell and answer the event first.,Önce tüm güç hücrelerini yerleştir ve olayı yanıtla.
 Ops_Run,Run sols {0}-{1},{0}-{1}. solleri çalıştır
 Ops_Prompt,E / X: {0},E / X: {0}
 Ops_Marker,YOUR TASK · {0} · {1} m,GÖREVİN · {0} · {1} m
@@ -753,3 +753,73 @@ Callout_Berm,Soil on the shelter blocks radiation in a solar storm.,Sığınağ�
 Callout_Solar1,Solar arrays. One dust storm and they give a tenth.,Güneş panelleri. Bir toz fırtınasında onda birini verirler.
 Callout_Meda,Weather mast. It warns us before the dust comes.,Hava direği. Toz gelmeden bizi uyarır.
 Broke_RestRule,The crew broke the rest-sol rule {0} time(s): tired crew got less done.,Ekip dinlenme solu kuralını {0} kez çiğnedi: yorgun ekip daha az iş çıkardı.
+Work_Prompt,HOLD  E / X  ·  {0},BASILI TUT  E / X  ·  {0}
+Work_Hammer,hammer stake {0}/{1},kazık çak {0}/{1}
+Work_Plug,plug in cable {0}/{1},kabloyu tak {0}/{1}
+Work_Wrench,release lock {0}/{1},kilidi çöz {0}/{1}
+Work_Latch,open crate latch {0}/{1},sandık mandalını aç {0}/{1}
+Work_Brush,brush the dust off panel {0}/{1},panel {0}/{1} tozunu fırçala
+Work_Drill,drill rock core {0}/{1},kaya karotu del {0}/{1}
+Work_Scan,scan label {0}/{1},etiketi tara {0}/{1}
+Work_Scoop,shovel regolith {0}/{1},regolit kürekle {0}/{1}
+Work_Switch,check item {0}/{1},kontrol maddesi {0}/{1}
+Bark_WorkDone,Nice work. That one is done.,Güzel iş. O tamam.
+Inspect_MissionControl,Mission Control console,Görev Merkezi konsolu
+Track_Header,CURRENT OBJECTIVE,GÜNCEL HEDEF
+Track_WalkTo,"{0} · walk {1} m, follow the red marker","{0} · {1} m yürü, kırmızı işareti izle"
+Track_HoldHere,You are there: {0},Oradasın: {0}
+Track_Decision,A decision is waiting,Bir karar bekliyor
+Track_DecisionStep,Answer it at Mission Control (DECISION),Görev Merkezi'nde yanıtla (KARAR)
+Track_Power,Route the power,Gücü dağıt
+Track_PowerStep,Place {0} more of {1} power cells at Mission Control (POWER),Görev Merkezi'nde {1} güç hücresinden {0} tanesini daha yerleştir (GÜÇ)
+Track_Plan,Plan the crew's work,Ekibin işini planla
+Track_PlanStep,Give tasks to the crew at Mission Control (CREW PLAN),Görev Merkezi'nde ekibe görev ver (EKİP PLANI)
+Track_Run,Plan ready,Plan hazır
+Track_RunStep,Run sols {0}-{1} at Mission Control,Görev Merkezi'nde {0}-{1}. solleri çalıştır
+Track_Running,The crew is at work,Ekip çalışıyor
+HUD_LifeSupport,LIFE SUPPORT,YAŞAM DESTEĞİ
+HUD_Cells,POWER CELLS {0}/{1},GÜÇ HÜCRELERİ {0}/{1}
+HUD_Comms,COMMS,TELSİZ
+HUD_Controls,WASD / L-stick walk · hold E / X work · TAB / Y Mission Control · Esc menu,WASD / sol çubuk yürü · E / X basılı tut çalış · TAB / Y Görev Merkezi · Esc menü
+MC_Use,E / X  ·  Use Mission Control,E / X  ·  Görev Merkezi'ni kullan
+MC_Far,Mission Control is the console beside the habitat. Follow the red marker.,"Görev Merkezi, habitatın yanındaki konsol. Kırmızı işareti izle."
+MC_TabPower,POWER,GÜÇ
+MC_TabCrew,CREW PLAN,EKİP PLANI
+MC_TabDecision,DECISION,KARAR
+MC_Source,POWER SOURCE,GÜÇ KAYNAĞI
+MC_CellsPlaced,{0} / {1} CELLS PLACED,{0} / {1} HÜCRE YERLEŞTİ
+MC_PowerHow,"Each cell powers one system for these sols. A system with fewer cells than it needs drops a level; more than it needs, it rises.",Her hücre bu sollerde bir sisteme güç verir. İhtiyacından az hücre alan sistem bir seviye düşer; fazlasını alan yükselir.
+MC_Bus,POWER BUS,GÜÇ HATTI
+MC_BusHint,+ CELL / - CELL moves a cell,+ HÜCRE / - HÜCRE bir hücreyi taşır
+MC_NeedHas,NEEDS {0} · HAS {1},İHTİYAÇ {0} · VAR {1}
+MC_Rises,rises next sols,sonraki sollerde yükselir
+MC_Drops,drops next sols,sonraki sollerde düşer
+MC_Holds,holds steady,sabit kalır
+MC_Add,+ CELL,+ HÜCRE
+MC_Remove,- CELL,- HÜCRE
+MC_Incoming,INCOMING EVENT,GELEN OLAY
+MC_NoEvent,No event this phase. All quiet at Jezero.,Bu evrede olay yok. Jezero'da her şey sakin.
+MC_CostTitle,EXTRA POWER IT NEEDS,GEREKTİRDİĞİ EK GÜÇ
+MC_CostChip,{0} {1},{0} {1}
+MC_NoCost,no extra power,ek güç yok
+MC_Choose,CHOOSE,SEÇ
+MC_Chosen,YOUR CHOICE,SEÇİMİN
+MC_Go,GO,GO
+MC_NoGo,NO-GO,NO-GO
+MC_Caution,CHECK,KONTROL
+MC_Fix,FIX,DÜZELT
+MC_CheckPower,power cells {0}/{1},güç hücreleri {0}/{1}
+MC_CheckDecision,event answered,olay yanıtlandı
+MC_CheckPlan,crew work planned,ekip işi planlandı
+MC_CheckOwn,your {0} hands-on task(s) wait outside,dışarıda {0} el işi görevin bekliyor
+MC_RunNoGo,NO-GO: {0} to fix,NO-GO: {0} eksik
+Check_Title,PRE-LAUNCH CHECKLIST,FIRLATMA ÖNCESİ LİSTE
+Check_RoleBadge,{0} NO-GO,{0} NO-GO
+Check_Slots,every slot filled,tüm yuvalar dolu
+Check_SlotsMissing,{0} empty slot(s),{0} boş yuva
+Check_Red,red lines clear,kırmızı çizgiler temiz
+Check_RedOpen,{0} red line(s) open (list on the right),{0} kırmızı çizgi açık (liste sağda)
+Check_Guided,finish the guided step first,önce rehberli adımı bitir
+Check_Poll,consoles GO {0}/{1},konsollar GO {0}/{1}
+Check_Ready,READY: press LAUNCH,HAZIR: FIRLAT'a bas
+Check_NotReady,{0} NO-GO before LAUNCH,FIRLATMA öncesi {0} NO-GO

@@ -58,6 +58,8 @@ private:
 	TSharedRef<SWidget> BuildIssues(const FTDDesignBudget& Budget);
 	TSharedRef<SWidget> BuildForecast();
 	TSharedRef<SWidget> BuildPoll(const FTDDesignBudget& Budget);
+	/** GO / NO-GO launch checklist: what still blocks LAUNCH, each row with a FIX that takes you to the console. */
+	TSharedRef<SWidget> BuildLaunchChecklist(const FTDDesignBudget& Budget);
 	TSharedRef<SWidget> BuildMeter(const FText& Label, double Value, double Max, const FText& ValueText, bool bOverIsBad, const FText& Detail,
 		FName BarId = NAME_None, bool bHighlight = false);
 

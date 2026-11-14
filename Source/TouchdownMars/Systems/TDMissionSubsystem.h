@@ -225,6 +225,8 @@ public:
 
 	/** The player did one of their own tasks in person (pressed E at the site). */
 	bool CompleteOwnTask(FName TaskId);
+	/** Dev (-TDWorkTask=Id): give a task to you without its prerequisites, to test its hands-on work. */
+	void DevGiveOwnTask(FName TaskId) { if (Ops.Crew.Num() > 0) { Ops.Crew[0].Tasks.AddUnique(TaskId); OnOpsChanged.Broadcast(); } }
 
 	/** Lines of the last phase's work ("Deniz and Mira unpacked the science payload."). */
 	const TArray<FText>& GetOpsReport() const { return OpsReport; }
@@ -374,6 +376,13 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Touchdown Mars|Sound")
 	void PlaySfx(FName Token);
+	/** Same with a pitch (hands-on work: each hammer hit a little higher). */
+	void PlaySfxPitched(FName Token, float Pitch, float Volume = 1.f);
+
+	/** Comms log for the helmet HUD (Capcom lines and crew/base messages), newest last. */
+	void PushComms(const FText& Line);
+	const TArray<FText>& GetComms() const { return Comms; }
+	double GetLastCommsTime() const { return LastCommsTime; }
 
 	// Debug
 
@@ -504,4 +513,6 @@ private:
 	int32 DesignSeed = 0;
 	bool bDesigning = false;
 	bool bHasFlownDesign = false;
+	TArray<FText> Comms;
+	double LastCommsTime = -100.0;
 };

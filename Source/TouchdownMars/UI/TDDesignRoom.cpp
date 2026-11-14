@@ -845,6 +845,19 @@ TSharedRef<SWidget> STDDesignRoom::BuildHeader(const FTDDesignBudget& Budget)
 		], Panel(), 12.f);
 }
 
+namespace
+{
+	int32 RoleBlockers(const FTDDesignBudget& Budget, ETDRole Role)
+	{
+		int32 Count = 0;
+		for (const FTDDesignIssueLine& Line : Budget.Issues)
+		{
+			Count += Line.bBlocking && Line.Role == Role ? 1 : 0;
+		}
+		return Count;
+	}
+}
+
 TSharedRef<SWidget> STDDesignRoom::BuildRoleBar(const FTDDesignBudget& Budget)
 {
 	const TArray<bool>& Go = Mission->GetDesign().SignedOff;
@@ -879,6 +892,12 @@ TSharedRef<SWidget> STDDesignRoom::BuildRoleBar(const FTDDesignBudget& Budget)
 						SNew(SBox).WidthOverride(10.f).HeightOverride(18.f)[SNew(SBorder).BorderImage(White()).BorderBackgroundColor(bActive ? Pal::Ink() : RoleColor(Role))]
 					]
 					+ SHorizontalBox::Slot().FillWidth(1.f)[Label(RoleName(Role), 17, Pal::Ink(), true, false)]
+					+ SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)
+					[
+						RoleBlockers(Budget, Role) > 0
+							? Box(Label(FText::Format(Txt(TEXT("Check_RoleBadge")), RoleBlockers(Budget, Role)), 12, Pal::White(), true, false), Pal::NoGo(), 4.f)
+							: SNullWidget::NullWidget
+					]
 				]
 				+ SVerticalBox::Slot().AutoHeight()[Label(Txt(FName(*FString::Printf(TEXT("Goal_%s"), *StaticEnum<ETDRole>()->GetNameStringByValue(RoleIndex)))), 12,
 					bActive ? Pal::Ink() : Pal::Text2())]
@@ -1311,6 +1330,7 @@ TSharedRef<SWidget> STDDesignRoom::BuildPoll(const FTDDesignBudget& Budget)
 	bool bAllGo = Go.Num() == TD::NumRoles;
 	for (bool bOne : Go) { bAllGo &= bOne; }
 	return Box(SNew(SVerticalBox)
+		+ SVerticalBox::Slot().AutoHeight().Padding(0.f, 0.f, 0.f, 8.f)[BuildLaunchChecklist(Budget)]
 		+ SVerticalBox::Slot().AutoHeight()[Poll]
 		+ SVerticalBox::Slot().AutoHeight().Padding(0.f, 6.f, 0.f, 0.f)
 		[
@@ -2722,4 +2742,90 @@ TSharedRef<SWidget> STDDesignRoom::BuildDebrief()
 			]
 			+ SHorizontalBox::Slot().FillWidth(0.33f)[Box(SNew(SScrollBox) + SScrollBox::Slot()[Compare], Panel(), 16.f)]
 		];
+}
+
+TSharedRef<SWidget> STDDesignRoom::BuildLaunchChecklist(const FTDDesignBudget& Budget)
+{
+	// NASA launch poll as the model (research note §5.6): hard NO-GO rows in red, each with its number and a FIX
+	// that opens the console that owns it; the panel is always visible and re-evaluates on every change.
+	const TArray<bool>& Go = Mission->GetDesign().SignedOff;
+	int32 GoCount = 0;
+	ETDRole FirstWaiting = ETDRole::Planner;
+	bool bFoundWaiting = false;
+	for (int32 RoleIndex = 0; RoleIndex < TD::NumRoles; ++RoleIndex)
+	{
+		const bool bGo = Go.IsValidIndex(RoleIndex) && Go[RoleIndex];
+		GoCount += bGo ? 1 : 0;
+		if (!bGo && !bFoundWaiting)
+		{
+			bFoundWaiting = true;
+			FirstWaiting = static_cast<ETDRole>(RoleIndex);
+		}
+	}
+	const FTDDesignIssueLine* Missing = Budget.Issues.FindByPredicate([](const FTDDesignIssueLine& L) { return L.Issue == ETDDesignIssue::MissingSlot; });
+	int32 MissingCount = 0;
+	int32 RedCount = 0;
+	const FTDDesignIssueLine* FirstRed = nullptr;
+	for (const FTDDesignIssueLine& L : Budget.Issues)
+	{
+		if (L.Issue == ETDDesignIssue::MissingSlot)
+		{
+			++MissingCount;
+		}
+		else if (L.bBlocking)
+		{
+			++RedCount;
+			FirstRed = FirstRed ? FirstRed : &L;
+		}
+	}
+	const bool bPollOpen = !IsFirstFlight() || static_cast<int32>(GetBeat()) >= static_cast<int32>(EBeat::Poll);
+
+	TSharedRef<SHorizontalBox> Rows = SNew(SHorizontalBox)
+		+ SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(0.f, 0.f, 16.f, 0.f)
+		[
+			SNew(STextBlock).Text(Txt(TEXT("Check_Title"))).Font(HeadFont(14)).ColorAndOpacity(Pal::Text())
+		];
+	int32 Number = 0;
+	auto Row = [this, &Rows, &Number](bool bGo, const FText& Text, TFunction<void()> Fix)
+	{
+		++Number;
+		TSharedRef<SHorizontalBox> Line = SNew(SHorizontalBox)
+			+ SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(0.f, 0.f, 6.f, 0.f)
+			[
+				Box(SNew(STextBlock).Text(FText::Format(FText::FromString(TEXT("{0} {1}")), FText::AsNumber(Number), bGo ? Txt(TEXT("MC_Go")) : Txt(TEXT("MC_NoGo"))))
+					.Font(NumFont(12)).ColorAndOpacity(Pal::White()), bGo ? Pal::Go() : Pal::NoGo(), 4.f)
+			]
+			+ SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)
+			[
+				Label(Text, 13, bGo ? Pal::Text2() : Pal::Text(), !bGo, false)
+			];
+		if (!bGo && Fix)
+		{
+			Line->AddSlot().AutoWidth().VAlign(VAlign_Center).Padding(6.f, 0.f, 0.f, 0.f)
+			[
+				Button(Txt(TEXT("MC_Fix")), FOnClicked::CreateLambda([this, Fix]() { Fix(); Rebuild(); return FReply::Handled(); }), true, Pal::Red(), 12)
+			];
+		}
+		Rows->AddSlot().AutoWidth().VAlign(VAlign_Center).Padding(0.f, 0.f, 18.f, 0.f)[Line];
+	};
+	const ETDRole MissingRole = Missing ? Missing->Role : ETDRole::Planner;
+	Row(MissingCount == 0, MissingCount == 0 ? Txt(TEXT("Check_Slots")) : FText::Format(Txt(TEXT("Check_SlotsMissing")), MissingCount),
+		[this, MissingRole]() { ActiveRole = MissingRole; });
+	const ETDRole RedRole = FirstRed ? FirstRed->Role : ETDRole::Planner;
+	Row(RedCount == 0, RedCount == 0 ? Txt(TEXT("Check_Red")) : FText::Format(Txt(TEXT("Check_RedOpen")), RedCount, FirstRed ? IssueText(*FirstRed) : FText::GetEmpty()),
+		[this, RedRole]() { ActiveRole = RedRole; });
+	if (!bPollOpen)
+	{
+		Row(false, Txt(TEXT("Check_Guided")), nullptr);
+	}
+	Row(GoCount == TD::NumRoles, FText::Format(Txt(TEXT("Check_Poll")), GoCount, TD::NumRoles),
+		Budget.bLaunchable ? TFunction<void()>([this, FirstWaiting]() { ActiveRole = FirstWaiting; }) : TFunction<void()>());
+	const bool bReady = Budget.ConceptMaturity >= 4 && bPollOpen;
+	Rows->AddSlot().FillWidth(1.f)[SNullWidget::NullWidget];
+	Rows->AddSlot().AutoWidth().VAlign(VAlign_Center)
+	[
+		Label(bReady ? Txt(TEXT("Check_Ready")) : FText::Format(Txt(TEXT("Check_NotReady")), (MissingCount > 0 ? 1 : 0) + (RedCount > 0 ? 1 : 0) + (GoCount < TD::NumRoles ? 1 : 0) + (bPollOpen ? 0 : 1)),
+			15, bReady ? Pal::Go() : Pal::NoGo(), true, false)
+	];
+	return Rows;
 }

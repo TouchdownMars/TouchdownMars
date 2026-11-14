@@ -6,7 +6,9 @@
 #include "Fonts/CompositeFont.h"
 #include "Misc/Paths.h"
 #include "Styling/CoreStyle.h"
+#include "Model/TDMissionRules.h"
 #include "Systems/TDMissionSubsystem.h"
+#include "Systems/TDShotDirector.h"
 #include "UI/TDDesignTokens.h"
 #include "Widgets/Input/SButton.h"
 #include "Widgets/Layout/SBorder.h"
@@ -182,6 +184,11 @@ void STDBaseComputer::Construct(const FArguments& InArgs)
 	Mission = InArgs._Mission;
 	OnClose = InArgs._OnClose;
 	OnRun = InArgs._OnRun;
+	SetVisibility(TAttribute<EVisibility>::CreateLambda([this]()
+	{
+		const UTDShotDirector* Director = Mission.IsValid() ? UTDShotDirector::Get(Mission.Get()) : nullptr;
+		return Director && Director->IsPlayingShot() ? EVisibility::Collapsed : EVisibility::Visible;
+	}));
 	ChildSlot
 	[
 		SNew(SBorder).BorderImage(White()).BorderBackgroundColor(Pal::Dim()).Padding(0.f)
@@ -212,7 +219,8 @@ STDBaseComputer::~STDBaseComputer()
 
 FReply STDBaseComputer::OnKeyDown(const FGeometry& MyGeometry, const FKeyEvent& InKeyEvent)
 {
-	if (InKeyEvent.GetKey() == EKeys::B || InKeyEvent.GetKey() == EKeys::Escape)
+	if (InKeyEvent.GetKey() == EKeys::B || InKeyEvent.GetKey() == EKeys::Escape || InKeyEvent.GetKey() == EKeys::Tab
+		|| InKeyEvent.GetKey() == EKeys::Gamepad_FaceButton_Top || InKeyEvent.GetKey() == EKeys::Gamepad_Special_Left)
 	{
 		OnClose.ExecuteIfBound();
 		return FReply::Handled();
@@ -236,16 +244,24 @@ void STDBaseComputer::Rebuild()
 	{
 		return;
 	}
-	Root->SetContent(SNew(SVerticalBox)
-		+ SVerticalBox::Slot().AutoHeight()[BuildHeader()]
-		+ SVerticalBox::Slot().AutoHeight().Padding(0.f, 12.f)[BuildCrew()]
-		+ SVerticalBox::Slot().FillHeight(1.f)
+	TSharedRef<SVerticalBox> Page = SNew(SVerticalBox)
+		+ SVerticalBox::Slot().AutoHeight()[BuildHeader()];
+	if (Tab == ETab::Crew)
+	{
+		Page->AddSlot().AutoHeight().Padding(0.f, 12.f)[BuildCrew()];
+		Page->AddSlot().FillHeight(1.f)
 		[
 			SNew(SHorizontalBox)
 			+ SHorizontalBox::Slot().FillWidth(0.72f).Padding(0.f, 0.f, 12.f, 0.f)[BuildBoard()]
 			+ SHorizontalBox::Slot().FillWidth(0.28f)[BuildSide()]
-		]
-		+ SVerticalBox::Slot().AutoHeight().Padding(0.f, 12.f, 0.f, 0.f)[BuildFooter()]);
+		];
+	}
+	else
+	{
+		Page->AddSlot().FillHeight(1.f).Padding(0.f, 12.f, 0.f, 0.f)[Tab == ETab::Power ? BuildPower() : BuildDecision()];
+	}
+	Page->AddSlot().AutoHeight().Padding(0.f, 12.f, 0.f, 0.f)[BuildFooter()];
+	Root->SetContent(Page);
 }
 
 TSharedRef<SWidget> STDBaseComputer::BuildHeader()
@@ -266,15 +282,27 @@ TSharedRef<SWidget> STDBaseComputer::BuildHeader()
 					.Font(NumFont(16)).ColorAndOpacity(Pal::Red())
 			]
 		]
+		+ SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(16.f, 0.f)[BuildTabs()]
 		+ SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(6.f, 0.f)
 		[
+			Tab != ETab::Crew ? SNullWidget::NullWidget :
 			Button(Txt(TEXT("Ops_Auto")), FOnClicked::CreateLambda([this]() { if (Mission.IsValid()) { Mission->AutoPlanTasks(); } return FReply::Handled(); }),
 				!M->IsRunningPhase(), Pal::Accent())
 		]
 		+ SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(6.f, 0.f)
 		[
+			Tab != ETab::Crew ? SNullWidget::NullWidget :
 			Button(Txt(TEXT("Ops_Clear")), FOnClicked::CreateLambda([this]() { if (Mission.IsValid()) { Mission->ClearPlan(); } return FReply::Handled(); }),
 				!M->IsRunningPhase(), Pal::Line())
+		]
+		+ SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(6.f, 0.f)
+		[
+			Button(Txt(TEXT("UI_CallHome")), FOnClicked::CreateLambda([this]()
+			{
+				if (Mission.IsValid()) { Mission->CallHome(); }
+				Rebuild();
+				return FReply::Handled();
+			}), M->CanCallHome(), TDTokens::Hex(TEXT("3A8DDE")))
 		]
 		+ SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(6.f, 0.f, 0.f, 0.f)
 		[
@@ -532,21 +560,448 @@ TSharedRef<SWidget> STDBaseComputer::BuildSide()
 TSharedRef<SWidget> STDBaseComputer::BuildFooter()
 {
 	UTDMissionSubsystem* M = Mission.Get();
+	const FTDMissionState& S = M->GetState();
 	int32 SolStart = 0;
 	int32 SolEnd = 0;
-	M->GetPhaseSols(M->GetState().PhaseIndex, SolStart, SolEnd);
+	M->GetPhaseSols(S.PhaseIndex, SolStart, SolEnd);
+	const int32 Placed = UTDMissionRules::GetCellsPlaced(S);
+	const bool bPower = Placed >= S.CellsTotal;
+	const bool bDecision = S.CurrentEventId.IsNone() || S.EventChoice >= 0;
+	bool bPlanned = false;
+	for (const FTDCrewPlan& Crew : M->GetOps().Crew)
+	{
+		bPlanned |= Crew.Tasks.Num() > 0;
+	}
+	const int32 OwnLeft = M->GetOps().Crew.Num() > 0 ? M->GetOps().Crew[0].Tasks.Num() : 0;
 	const bool bReady = M->CanEndPhase() && !M->IsRunningPhase();
-	return Box(SNew(SHorizontalBox)
-		+ SHorizontalBox::Slot().FillWidth(1.f).VAlign(VAlign_Center)
+
+	TSharedRef<SHorizontalBox> Rows = SNew(SHorizontalBox);
+	auto Row = [this, &Rows](const FText& Text, int32 State, ETab Fix)
+	{
+		// State: 0 GO, 1 caution (optional), 2 NO-GO.
+		const FLinearColor Lamp = State == 0 ? Pal::Go() : State == 1 ? Pal::Caution() : Pal::NoGo();
+		Rows->AddSlot().AutoWidth().Padding(0.f, 0.f, 18.f, 0.f).VAlign(VAlign_Center)
 		[
-			Label(bReady ? Txt(TEXT("Ops_RunHint")) : Txt(TEXT("Ops_RunBlocked")), 15, bReady ? Pal::Text() : Pal::Caution(), true)
-		]
+			SNew(SHorizontalBox)
+			+ SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(0.f, 0.f, 8.f, 0.f)
+			[
+				SNew(SBox).WidthOverride(16.f).HeightOverride(16.f)[SNew(SBorder).BorderImage(White()).BorderBackgroundColor(Lamp)]
+			]
+			+ SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)
+			[
+				SNew(STextBlock).Text(FText::Format(FText::FromString(TEXT("{0}  {1}")), State == 0 ? Txt(TEXT("MC_Go")) : State == 1 ? Txt(TEXT("MC_Caution")) : Txt(TEXT("MC_NoGo")), Text))
+					.Font(Font(15, true)).ColorAndOpacity(State == 2 ? Pal::NoGo() : Pal::Text())
+			]
+			+ SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(8.f, 0.f, 0.f, 0.f)
+			[
+				State == 0 || Tab == Fix ? SNullWidget::NullWidget
+					: Button(Txt(TEXT("MC_Fix")), FOnClicked::CreateLambda([this, Fix]() { Tab = Fix; Rebuild(); return FReply::Handled(); }), true, Pal::Accent(), 12)
+			]
+		];
+	};
+	Row(FText::Format(Txt(TEXT("MC_CheckPower")), Placed, S.CellsTotal), bPower ? 0 : 2, ETab::Power);
+	Row(Txt(TEXT("MC_CheckDecision")), bDecision ? 0 : 2, ETab::Decision);
+	Row(Txt(TEXT("MC_CheckPlan")), bPlanned ? 0 : 1, ETab::Crew);
+	if (OwnLeft > 0)
+	{
+		Row(FText::Format(Txt(TEXT("MC_CheckOwn")), OwnLeft), 1, ETab::Crew);
+	}
+	const int32 Blockers = (bPower ? 0 : 1) + (bDecision ? 0 : 1);
+	const ETab FirstBlocker = !bDecision ? ETab::Decision : ETab::Power;
+	return Box(SNew(SHorizontalBox)
+		+ SHorizontalBox::Slot().FillWidth(1.f).VAlign(VAlign_Center)[Rows]
 		+ SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)
 		[
-			Button(FText::Format(Txt(TEXT("Ops_Run")), SolStart, SolEnd), FOnClicked::CreateLambda([this]()
-			{
-				OnRun.ExecuteIfBound();
-				return FReply::Handled();
-			}), bReady, Pal::Red(), 20)
+			Button(bReady ? FText::Format(Txt(TEXT("Ops_Run")), SolStart, SolEnd) : FText::Format(Txt(TEXT("MC_RunNoGo")), Blockers),
+				FOnClicked::CreateLambda([this, bReady, FirstBlocker]()
+				{
+					if (bReady)
+					{
+						OnRun.ExecuteIfBound();
+					}
+					else
+					{
+						// The run button is the checklist: it takes you to the first NO-GO.
+						Tab = FirstBlocker;
+						if (Mission.IsValid()) { Mission->PlaySfx(TEXT("UI_Locked")); }
+						Rebuild();
+					}
+					return FReply::Handled();
+				}), !M->IsRunningPhase(), bReady ? Pal::Red() : Pal::Caution(), 20)
 		], Pal::Panel(), 14.f);
+}
+
+// Mission Control: tabs, power grid, decision, GO / NO-GO -----------------------------------------------------------
+
+void STDBaseComputer::PickTab()
+{
+	// Open on what needs you (NMS Beyond: hints highlight the relevant menu item).
+	const UTDMissionSubsystem* M = Mission.Get();
+	if (!M)
+	{
+		return;
+	}
+	const FTDMissionState& S = M->GetState();
+	if (!S.CurrentEventId.IsNone() && S.EventChoice < 0)
+	{
+		Tab = ETab::Decision;
+	}
+	else if (UTDMissionRules::GetCellsPlaced(S) < S.CellsTotal)
+	{
+		Tab = ETab::Power;
+	}
+	else
+	{
+		Tab = ETab::Crew;
+	}
+}
+
+TSharedRef<SWidget> STDBaseComputer::BuildTabs()
+{
+	UTDMissionSubsystem* M = Mission.Get();
+	const FTDMissionState& S = M->GetState();
+	const bool bPowerNeeds = UTDMissionRules::GetCellsPlaced(S) < S.CellsTotal;
+	const bool bDecisionNeeds = !S.CurrentEventId.IsNone() && S.EventChoice < 0;
+	TSharedRef<SHorizontalBox> Row = SNew(SHorizontalBox);
+	auto Add = [this, &Row](ETab Which, const TCHAR* Key, bool bNeeds)
+	{
+		const bool bOn = Tab == Which;
+		Row->AddSlot().AutoWidth().Padding(0.f, 0.f, 6.f, 0.f)
+		[
+			SNew(SButton).ButtonStyle(FlatStyle()).ButtonColorAndOpacity(bOn ? Pal::Accent() : Pal::Raised()).ContentPadding(FMargin(18.f, 10.f))
+			.OnClicked(FOnClicked::CreateLambda([this, Which]()
+			{
+				Tab = Which;
+				if (Mission.IsValid()) { Mission->PlaySfx(TEXT("UI_Hover")); }
+				Rebuild();
+				return FReply::Handled();
+			}))
+			[
+				SNew(SHorizontalBox)
+				+ SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)[SNew(STextBlock).Text(Txt(Key)).Font(HeadFont(16)).ColorAndOpacity(bOn ? Pal::White() : Pal::Text())]
+				+ SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(8.f, 0.f, 0.f, 0.f)
+				[
+					// "Needs you" badge, blinking.
+					bNeeds ? StaticCastSharedRef<SWidget>(SNew(SBox).WidthOverride(12.f).HeightOverride(12.f)
+					[
+						SNew(SBorder).BorderImage(White()).BorderBackgroundColor_Lambda([]()
+						{
+							const float B = 0.5f + 0.5f * FMath::Sin(float(FPlatformTime::Seconds()) * 6.f);
+							return FSlateColor(FLinearColor::LerpUsingHSV(Pal::Red(), TDTokens::Hex(TEXT("FFB199")), B));
+						})
+					]) : SNullWidget::NullWidget
+				]
+			]
+		];
+	};
+	Add(ETab::Power, TEXT("MC_TabPower"), bPowerNeeds);
+	Add(ETab::Crew, TEXT("MC_TabCrew"), false);
+	Add(ETab::Decision, TEXT("MC_TabDecision"), bDecisionNeeds);
+	return Row;
+}
+
+namespace
+{
+	/** Moving current: dots run along the line, faster with more cells (Astroneer power glow). */
+	TSharedRef<SWidget> FlowLine(int32 Cells, const FLinearColor& Color)
+	{
+		TSharedRef<SHorizontalBox> Line = SNew(SHorizontalBox);
+		for (int32 Dot = 0; Dot < 10; ++Dot)
+		{
+			Line->AddSlot().FillWidth(1.f).VAlign(VAlign_Center).Padding(3.f, 0.f)
+			[
+				SNew(SBox).HeightOverride(Cells > 0 ? 8.f : 4.f)
+				[
+					SNew(SBorder).BorderImage(White()).BorderBackgroundColor_Lambda([Dot, Cells, Color]()
+					{
+						if (Cells <= 0)
+						{
+							return FSlateColor(Pal::Track());
+						}
+						const float T = float(FPlatformTime::Seconds()) * (1.2f + 0.6f * Cells);
+						const float Wave = FMath::Frac(T - Dot * 0.1f);
+						FLinearColor C = Color;
+						C.A = 0.25f + 0.75f * FMath::Pow(Wave, 3.f);
+						return FSlateColor(C);
+					})
+				]
+			];
+		}
+		return Line;
+	}
+}
+
+TSharedRef<SWidget> STDBaseComputer::BuildPower()
+{
+	UTDMissionSubsystem* M = Mission.Get();
+	const FTDMissionState& S = M->GetState();
+	const int32 Placed = UTDMissionRules::GetCellsPlaced(S);
+	const TArray<int32> Demand = M->GetDemand();
+	const bool bCanEdit = M->IsMissionRunning() && !M->IsRunningPhase();
+
+	// Source: every cell as a big token; free ones pulse.
+	TSharedRef<SWrapBox> Tokens = SNew(SWrapBox).UseAllottedSize(true).InnerSlotPadding(FVector2D(10.f, 10.f));
+	for (int32 Cell = 0; Cell < S.CellsTotal; ++Cell)
+	{
+		const bool bUsed = Cell < Placed;
+		Tokens->AddSlot()
+		[
+			SNew(SBox).WidthOverride(58.f).HeightOverride(58.f)
+			[
+				SNew(SBorder).BorderImage(White()).BorderBackgroundColor(Pal::Accent()).Padding(4.f)
+				[
+					SNew(SBorder).BorderImage(White()).Padding(0.f).BorderBackgroundColor_Lambda([bUsed, Cell]()
+					{
+						if (bUsed) { return FSlateColor(Pal::Line()); }
+						const float B = 0.5f + 0.5f * FMath::Sin(float(FPlatformTime::Seconds()) * 4.f + Cell * 0.7f);
+						return FSlateColor(FLinearColor::LerpUsingHSV(TDTokens::Hex(TEXT("F07F2E")), TDTokens::Hex(TEXT("FFC07A")), B));
+					})
+					.HAlign(HAlign_Center).VAlign(VAlign_Center)
+					[
+						SNew(STextBlock).Text(FText::FromString(bUsed ? TEXT("") : TEXT("+"))).Font(Font(24, true)).ColorAndOpacity(Pal::Text())
+					]
+				]
+			]
+		];
+	}
+	const FTDOpsState& Ops = M->GetOps();
+	TSharedRef<SVerticalBox> Source = SNew(SVerticalBox)
+		+ SVerticalBox::Slot().AutoHeight()[SNew(STextBlock).Text(Txt(TEXT("MC_Source"))).Font(HeadFont(18)).ColorAndOpacity(Pal::Text())]
+		+ SVerticalBox::Slot().AutoHeight().Padding(0.f, 10.f)
+		[
+			SNew(STextBlock).Text(FText::Format(Txt(TEXT("MC_CellsPlaced")), Placed, S.CellsTotal)).Font(NumFont(30))
+				.ColorAndOpacity(Placed < S.CellsTotal ? Pal::Red() : Pal::Go())
+		]
+		+ SVerticalBox::Slot().AutoHeight().Padding(0.f, 6.f)[Tokens]
+		+ SVerticalBox::Slot().AutoHeight().Padding(0.f, 14.f, 0.f, 4.f)[Label(Txt(TEXT("MC_PowerHow")), 15, Pal::Text())]
+		+ SVerticalBox::Slot().AutoHeight().Padding(0.f, 4.f)[Label(Txt(TEXT("UI_PriorityRule")), 15, Pal::Text2(), true)];
+	if (Ops.SolarDustCells > 0)
+	{
+		Source->AddSlot().AutoHeight().Padding(0.f, 8.f)[Label(FText::Format(Txt(TEXT("Ops_Dust")), Ops.SolarDustCells), 14, Pal::Caution(), true)];
+	}
+	if (S.bDustPhase)
+	{
+		Source->AddSlot().AutoHeight().Padding(0.f, 4.f)[Label(Txt(TEXT("Ops_StormNow")), 14, Pal::NoGo(), true)];
+	}
+
+	// Loads: one card per system with its gauge, demand slots, the forecast and +/- breakers.
+	TSharedRef<SVerticalBox> Loads = SNew(SVerticalBox);
+	for (ETDSystem System : { ETDSystem::Air, ETDSystem::Greenhouse, ETDSystem::Shelter })
+	{
+		const int32 Index = static_cast<int32>(System);
+		const int32 Level = S.Levels.IsValidIndex(Index) ? S.Levels[Index] : 0;
+		const int32 Has = S.Allocation.IsValidIndex(Index) ? S.Allocation[Index] : 0;
+		const int32 Need = Demand.IsValidIndex(Index) ? Demand[Index] : 0;
+		const bool bLocked = M->IsSystemLocked(System);
+		const FLinearColor SysColor = TDTokens::System(System);
+		const int32 Change = UTDMissionRules::GetLevelChange(Has, Need);
+
+		TSharedRef<SHorizontalBox> Gauge = SNew(SHorizontalBox);
+		for (int32 Seg = 0; Seg < 4; ++Seg)
+		{
+			const bool bOn = Seg < Level;
+			const bool bNext = !bLocked && ((Change > 0 && Seg == Level) || (Change < 0 && Seg == Level - 1));
+			Gauge->AddSlot().AutoWidth().Padding(0.f, 0.f, 5.f, 0.f)
+			[
+				SNew(SBox).WidthOverride(46.f).HeightOverride(22.f)
+				[
+					SNew(SBorder).BorderImage(White()).BorderBackgroundColor_Lambda([bOn, bNext, Change, System, Level]()
+					{
+						FLinearColor C = bOn ? TDTokens::LevelColor(System, Level) : Pal::Track();
+						if (bNext)
+						{
+							// Forecast segment blinks: green where it will rise, red where it will drop.
+							const float B = 0.5f + 0.5f * FMath::Sin(float(FPlatformTime::Seconds()) * 5.f);
+							C = FMath::Lerp(C, Change > 0 ? Pal::Go() : Pal::NoGo(), B);
+						}
+						return FSlateColor(C);
+					})
+				]
+			];
+		}
+		TSharedRef<SHorizontalBox> Slots = SNew(SHorizontalBox);
+		for (int32 Cell = 0; Cell < FMath::Max(Has, Need); ++Cell)
+		{
+			const bool bFilled = Cell < Has;
+			Slots->AddSlot().AutoWidth().Padding(0.f, 0.f, 6.f, 0.f)
+			[
+				SNew(SBox).WidthOverride(40.f).HeightOverride(40.f)
+				[
+					SNew(SBorder).BorderImage(White()).BorderBackgroundColor(bFilled ? SysColor : (Cell < Need ? Pal::NoGo() : Pal::Line())).Padding(bFilled ? 0.f : 3.f)
+					[
+						SNew(SBorder).BorderImage(White()).BorderBackgroundColor(bFilled ? SysColor : Pal::Raised())
+					]
+				]
+			];
+		}
+		const FText Forecast = bLocked ? Txt(TEXT("UI_LockedGood"))
+			: Change > 0 ? Txt(TEXT("MC_Rises")) : Change < 0 ? Txt(TEXT("MC_Drops")) : Txt(TEXT("MC_Holds"));
+		const FLinearColor ForecastColor = bLocked ? Pal::Text2() : Change > 0 ? Pal::Go() : Change < 0 ? Pal::NoGo() : Pal::Text2();
+		const bool bGrows = System == ETDSystem::Greenhouse && Has > 0 && !bLocked;
+
+		Loads->AddSlot().AutoHeight().Padding(0.f, 0.f, 0.f, 12.f)
+		[
+			SNew(SHorizontalBox)
+			+ SHorizontalBox::Slot().FillWidth(0.28f).VAlign(VAlign_Center).Padding(0.f, 0.f, 10.f, 0.f)[FlowLine(Has, SysColor)]
+			+ SHorizontalBox::Slot().FillWidth(0.72f)
+			[
+				SNew(SBorder).BorderImage(White()).BorderBackgroundColor(SysColor).Padding(FMargin(8.f, 0.f, 0.f, 0.f))
+				[
+					Box(SNew(SHorizontalBox)
+						+ SHorizontalBox::Slot().FillWidth(1.f)
+						[
+							SNew(SVerticalBox)
+							+ SVerticalBox::Slot().AutoHeight()
+							[
+								SNew(SHorizontalBox)
+								+ SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)[SNew(STextBlock).Text(Txt(TDTokens::SystemTextKey(System))).Font(HeadFont(22)).ColorAndOpacity(Pal::Text())]
+								+ SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(14.f, 0.f)[Gauge]
+								+ SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)[Label(Txt(FName(*FString::Printf(TEXT("Level_%d"), Level))), 15, Pal::Text2(), true, false)]
+							]
+							+ SVerticalBox::Slot().AutoHeight().Padding(0.f, 10.f, 0.f, 6.f)[Slots]
+							+ SVerticalBox::Slot().AutoHeight()
+							[
+								SNew(SHorizontalBox)
+								+ SHorizontalBox::Slot().AutoWidth()[SNew(STextBlock).Text(FText::Format(Txt(TEXT("MC_NeedHas")), Need, Has)).Font(NumFont(15)).ColorAndOpacity(Pal::Text())]
+								+ SHorizontalBox::Slot().AutoWidth().Padding(16.f, 0.f)[Label(Forecast, 15, ForecastColor, true, false)]
+								+ SHorizontalBox::Slot().AutoWidth()[Label(bGrows ? Txt(TEXT("UI_GrowsNextPhase")) : FText::GetEmpty(), 14, Pal::Text2(), false, false)]
+							]
+						]
+						+ SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(8.f, 0.f)
+						[
+							Button(Txt(TEXT("MC_Remove")), FOnClicked::CreateLambda([this, System]()
+							{
+								if (Mission.IsValid() && Mission->RemoveCell(System)) { Mission->PlaySfxPitched(TEXT("SystemDown"), 1.3f, 0.6f); }
+								Rebuild();
+								return FReply::Handled();
+							}), bCanEdit && Has > 0, Pal::Line(), 18)
+						]
+						+ SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)
+						[
+							Button(Txt(TEXT("MC_Add")), FOnClicked::CreateLambda([this, System]()
+							{
+								if (Mission.IsValid() && Mission->PlaceCell(System)) { Mission->PlaySfxPitched(TEXT("SystemUp"), 1.4f, 0.7f); }
+								Rebuild();
+								return FReply::Handled();
+							}), bCanEdit && !bLocked && Placed < S.CellsTotal, Pal::Red(), 18)
+						], Pal::Raised(), 16.f)
+				]
+			]
+		];
+	}
+
+	return SNew(SHorizontalBox)
+		+ SHorizontalBox::Slot().FillWidth(0.3f).Padding(0.f, 0.f, 12.f, 0.f)[Box(Source, Pal::Panel(), 20.f)]
+		+ SHorizontalBox::Slot().FillWidth(0.7f)
+		[
+			Box(SNew(SVerticalBox)
+				+ SVerticalBox::Slot().AutoHeight().Padding(0.f, 0.f, 0.f, 12.f)
+				[
+					SNew(SHorizontalBox)
+					+ SHorizontalBox::Slot().FillWidth(1.f)[SNew(STextBlock).Text(Txt(TEXT("MC_Bus"))).Font(HeadFont(18)).ColorAndOpacity(Pal::Text())]
+					+ SHorizontalBox::Slot().AutoWidth()[Label(Txt(TEXT("MC_BusHint")), 14, Pal::Text2(), false, false)]
+				]
+				+ SVerticalBox::Slot().FillHeight(1.f)[SNew(SScrollBox) + SScrollBox::Slot()[Loads]], Pal::Panel(), 20.f)
+		];
+}
+
+TSharedRef<SWidget> STDBaseComputer::BuildDecision()
+{
+	UTDMissionSubsystem* M = Mission.Get();
+	const FTDMissionState& S = M->GetState();
+	const FTDEventRow* Row = M->GetCurrentEvent();
+	if (!Row)
+	{
+		return Box(SNew(SVerticalBox)
+			+ SVerticalBox::Slot().AutoHeight()[SNew(STextBlock).Text(Txt(TEXT("MC_TabDecision"))).Font(HeadFont(18)).ColorAndOpacity(Pal::Text())]
+			+ SVerticalBox::Slot().AutoHeight().Padding(0.f, 20.f)[Label(Txt(TEXT("MC_NoEvent")), 22, Pal::Text2(), true)], Pal::Panel(), 24.f);
+	}
+	const bool bChosen = S.EventChoice >= 0;
+	auto Costs = [this](int32 Air, int32 Green, int32 Shelter)
+	{
+		TSharedRef<SHorizontalBox> Chips = SNew(SHorizontalBox);
+		const int32 Values[3] = { Air, Green, Shelter };
+		const ETDSystem Systems[3] = { ETDSystem::Air, ETDSystem::Greenhouse, ETDSystem::Shelter };
+		bool bAny = false;
+		for (int32 I = 0; I < 3; ++I)
+		{
+			if (Values[I] == 0)
+			{
+				continue;
+			}
+			bAny = true;
+			Chips->AddSlot().AutoWidth().Padding(0.f, 0.f, 8.f, 0.f)
+			[
+				Box(SNew(STextBlock).Text(FText::Format(Txt(TEXT("MC_CostChip")), FText::FromString(Values[I] > 0 ? FString::Printf(TEXT("+%d"), Values[I]) : FString::FromInt(Values[I])),
+					Txt(TDTokens::SystemTextKey(Systems[I])))).Font(NumFont(15)).ColorAndOpacity(Pal::Text()), TDTokens::System(Systems[I]), 6.f)
+			];
+		}
+		if (!bAny)
+		{
+			Chips->AddSlot().AutoWidth()[Label(Txt(TEXT("MC_NoCost")), 15, Pal::Text2(), true, false)];
+		}
+		return Chips;
+	};
+	auto Option = [&](bool bA)
+	{
+		const bool bThis = bChosen && (S.EventChoice == 0) == bA;
+		const FName Key = bA ? Row->ChoiceAKey : Row->ChoiceBKey;
+		return SNew(SBorder).BorderImage(White()).BorderBackgroundColor(bThis ? Pal::Go() : Pal::Line()).Padding(3.f)
+		[
+			Box(SNew(SVerticalBox)
+				+ SVerticalBox::Slot().AutoHeight()[SNew(STextBlock).Text(FText::FromString(bA ? TEXT("A") : TEXT("B"))).Font(HeadFont(28)).ColorAndOpacity(bThis ? Pal::Go() : Pal::Red())]
+				+ SVerticalBox::Slot().AutoHeight().Padding(0.f, 6.f)[Label(Txt(Key), 20, bChosen && !bThis ? Pal::Text2() : Pal::Text(), true)]
+				+ SVerticalBox::Slot().AutoHeight().Padding(0.f, 8.f)[Label(Txt(TEXT("MC_CostTitle")), 13, Pal::Text2(), true, false)]
+				+ SVerticalBox::Slot().AutoHeight()[bA ? Costs(Row->ChoiceADemandAir, Row->ChoiceADemandGreenhouse, Row->ChoiceADemandShelter)
+					: Costs(Row->ChoiceBDemandAir, Row->ChoiceBDemandGreenhouse, Row->ChoiceBDemandShelter)]
+				+ SVerticalBox::Slot().AutoHeight().Padding(0.f, 14.f, 0.f, 0.f).HAlign(HAlign_Left)
+				[
+					bChosen ? StaticCastSharedRef<SWidget>(Label(bThis ? Txt(TEXT("MC_Chosen")) : FText::GetEmpty(), 16, Pal::Go(), true, false))
+						: Button(Txt(TEXT("MC_Choose")), FOnClicked::CreateLambda([this, bA]()
+						{
+							if (Mission.IsValid()) { Mission->ChooseEventOption(bA); }
+							Rebuild();
+							return FReply::Handled();
+						}), true, Pal::Red(), 18)
+				], Pal::Raised(), 18.f)
+		];
+	};
+
+	TSharedRef<SVerticalBox> Body = SNew(SVerticalBox)
+		+ SVerticalBox::Slot().AutoHeight()
+		[
+			SNew(SHorizontalBox)
+			+ SHorizontalBox::Slot().FillWidth(1.f)[SNew(STextBlock).Text(Txt(TEXT("MC_Incoming"))).Font(HeadFont(18)).ColorAndOpacity(Pal::Red())]
+			+ SHorizontalBox::Slot().AutoWidth()[Label(Txt(TEXT("UI_PriorityRule")), 15, Pal::Text2(), true, false)]
+		]
+		+ SVerticalBox::Slot().AutoHeight().Padding(0.f, 12.f, 0.f, 18.f)[Label(M->GetBandText(Row->QuestionKey), 26, Pal::Text(), true)]
+		+ SVerticalBox::Slot().AutoHeight()
+		[
+			SNew(SHorizontalBox)
+			+ SHorizontalBox::Slot().FillWidth(1.f).Padding(0.f, 0.f, 8.f, 0.f)[Option(true)]
+			+ SHorizontalBox::Slot().FillWidth(1.f).Padding(8.f, 0.f, 0.f, 0.f)[Option(false)]
+		];
+	if (bChosen)
+	{
+		// The back of the card: what really happened, with its date, instrument, label and source.
+		TArray<FString> Sources;
+		for (const FName& SourceId : Row->SourceIds)
+		{
+			const FTDSourceRow* Source = M->GetSource(SourceId);
+			Sources.Add(Source ? Source->Title : SourceId.ToString());
+		}
+		const FText LabelText = Txt(FName(TEXT("Label_") + StaticEnum<ETDCardLabel>()->GetNameStringByValue(static_cast<int64>(Row->Label))));
+		Body->AddSlot().AutoHeight().Padding(0.f, 18.f, 0.f, 0.f)
+		[
+			Box(SNew(SVerticalBox)
+				+ SVerticalBox::Slot().AutoHeight()[SNew(STextBlock).Text(Txt(TEXT("UI_WhatReallyHappened"))).Font(HeadFont(16)).ColorAndOpacity(Pal::Red())]
+				+ SVerticalBox::Slot().AutoHeight().Padding(0.f, 8.f)[Label(M->GetBandText(Row->RevealKey), 18, Pal::Text())]
+				+ SVerticalBox::Slot().AutoHeight()[SNew(STextBlock).Text(FText::Format(FText::FromString(TEXT("{0} · {1} · {2}")), FText::FromString(Row->EventDate),
+					FText::FromString(Row->Instrument), LabelText)).Font(NumFont(13)).ColorAndOpacity(Pal::Text2())]
+				+ SVerticalBox::Slot().AutoHeight().Padding(0.f, 4.f)[Label(Txt(Row->MeasurementKey), 14, Pal::Text2())]
+				+ SVerticalBox::Slot().AutoHeight()[Label(FText::Format(Txt(TEXT("UI_SourceLine")), FText::FromString(FString::Join(Sources, TEXT("; ")))), 13, Pal::Text2())],
+				Pal::Raised(), 18.f)
+		];
+	}
+	return Box(SNew(SScrollBox) + SScrollBox::Slot()[Body], Pal::Panel(), 24.f);
 }

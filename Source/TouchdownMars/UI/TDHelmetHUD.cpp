@@ -13,6 +13,7 @@
 #include "GameFramework/PlayerController.h"
 #include "Systems/TDMissionSubsystem.h"
 #include "Systems/TDShotDirector.h"
+#include "UI/TDObjective.h"
 
 void ATDHelmetHUD::DrawHUD()
 {
@@ -23,12 +24,12 @@ void ATDHelmetHUD::DrawHUD()
 	const UTDShotDirector* Director = UTDShotDirector::Get(this);
 	const ATDPlayerController* DesignPC = Cast<ATDPlayerController>(PC);
 	if (!Canvas || !Astronaut || !Mission || (Director && Director->IsPlayingShot()) || Astronaut->IsConsoleOpen()
-		|| (DesignPC && DesignPC->IsDesignScreenOpen()) || !Mission->HasMission())
+		|| (DesignPC && (DesignPC->IsDesignScreenOpen() || DesignPC->IsBaseComputerOpen())) || !Mission->HasMission())
 	{
 		return;
 	}
 	UFont* Font = GEngine ? GEngine->GetLargeFont() : nullptr;
-	const float Scale = FMath::Max(0.6f, Canvas->ClipY / 1080.f) * 1.6f;
+	const float Scale = FMath::Max(0.6f, Canvas->ClipY / 1080.f) * 1.25f;
 	const FVector2D Centre(Canvas->ClipX * 0.5f, Canvas->ClipY * 0.5f);
 
 	// Centre dot (the view centre sits above the 2D panel).
@@ -40,30 +41,10 @@ void ATDHelmetHUD::DrawHUD()
 	{
 		float Width = 0.f, Height = 0.f;
 		GetTextSize(Focus.ToString(), Width, Height, Font, Scale);
-		DrawRect(FLinearColor(0.05f, 0.08f, 0.13f, 0.75f), Centre.X - Width * 0.5f - 12.f, Centre.Y + 18.f, Width + 24.f, Height + 10.f);
-		DrawText(Focus.ToString(), FLinearColor(0.96f, 0.95f, 0.92f), Centre.X - Width * 0.5f, Centre.Y + 23.f, Font, Scale);
-	}
-
-	// Jezero weather of the phase's first sol (Perseverance MEDA archive; labelled ARCHIVE, never live).
-	if (Font)
-	{
-		const FTDPhaseRow* PhaseRow = Mission->GetPhaseRow(Mission->GetState().PhaseIndex);
-		if (const FTDWeatherRow* Weather = PhaseRow ? Mission->GetWeather(PhaseRow->SolStart) : nullptr)
-		{
-			FNumberFormattingOptions NoGroup;
-			NoGroup.UseGrouping = false;
-			NoGroup.MaximumFractionalDigits = 0;
-			const FString Line = FText::Format(Mission->GetText(TEXT("Weather_Line")), FText::AsNumber(Weather->MedaSol, &NoGroup),
-				FText::FromString(Weather->EarthDate), FText::AsNumber(FMath::RoundToInt(Weather->AirMinC)),
-				FText::AsNumber(FMath::RoundToInt(Weather->AirMaxC)), FText::AsNumber(FMath::RoundToInt(Weather->PressureMeanPa), &NoGroup)).ToString();
-			const float Small = Scale * 0.62f;
-			float Width = 0.f, Height = 0.f;
-			GetTextSize(Line, Width, Height, Font, Small);
-			const float X = 24.f; // under the phase strip and the Sun badge, clear of the CAPCOM panel
-			const float Y = Canvas->ClipY * 0.19f;
-			DrawRect(FLinearColor(0.05f, 0.08f, 0.13f, 0.7f), X - 10.f, Y - 5.f, Width + 20.f, Height + 10.f);
-			DrawText(Line, FLinearColor(0.80f, 0.86f, 0.95f), X, Y, Font, Small);
-		}
+		// Above the centre: the hold ring and prompt sit below it.
+		const float Top = Centre.Y - 74.f - Height;
+		DrawRect(FLinearColor(0.08f, 0.09f, 0.11f, 0.72f), Centre.X - Width * 0.5f - 12.f, Top - 5.f, Width + 24.f, Height + 10.f);
+		DrawText(Focus.ToString(), FLinearColor(0.96f, 0.95f, 0.92f), Centre.X - Width * 0.5f, Top, Font, Scale);
 	}
 
 	// Base operations: crew labels over their heads, your own task sites, the time-lapse banner.
@@ -72,17 +53,10 @@ void ATDHelmetHUD::DrawHUD()
 		DrawOps(Mission, Astronaut, Font, Scale);
 	}
 
-	// Console hint; a waiting event card makes it urgent.
+	// Tracked objective: one world marker with the distance, held on the screen edge when off view.
 	if (Font)
 	{
-		const FTDMissionState& State = Mission->GetState();
-		const bool bCardWaiting = !State.CurrentEventId.IsNone() && State.EventChoice < 0 && Mission->IsMissionRunning();
-		const FString Hint = Mission->GetText(bCardWaiting ? TEXT("UI_ConsoleHintCard") : TEXT("UI_ConsoleHint")).ToString();
-		float Width = 0.f, Height = 0.f;
-		GetTextSize(Hint, Width, Height, Font, Scale);
-		const float Y = Canvas->ClipY * 0.86f;
-		DrawRect(FLinearColor(0.05f, 0.08f, 0.13f, 0.8f), Canvas->ClipX * 0.5f - Width * 0.5f - 16.f, Y - 6.f, Width + 32.f, Height + 12.f);
-		DrawText(Hint, FLinearColor(0.97f, 0.82f, 0.27f), Canvas->ClipX * 0.5f - Width * 0.5f, Y, Font, Scale);
+		DrawObjectiveMarker(Mission, Astronaut, Font, Scale);
 	}
 }
 
@@ -137,55 +111,54 @@ void ATDHelmetHUD::DrawOps(const UTDMissionSubsystem* Mission, const ATDAstronau
 		}
 	}
 
-	if (!Mission->HasOps())
+}
+
+void ATDHelmetHUD::DrawObjectiveMarker(const UTDMissionSubsystem* Mission, const ATDAstronautCharacter* Astronaut, UFont* Font, float Scale)
+{
+	const FTDObjective O = TDObjective::Compute(Mission, Astronaut);
+	if (!O.bHasTarget || O.Distance < 250.f)
 	{
 		return;
 	}
-	// Your own planned tasks: a marker at each site, E when you are there.
-	const FTDOpsState& Ops = Mission->GetOps();
-	if (Ops.Crew.Num() > 0 && !Mission->IsRunningPhase())
+	FVector Screen = Project(O.Target);
+	const FVector2D Centre(Canvas->ClipX * 0.5f, Canvas->ClipY * 0.5f);
+	const float Margin = 70.f;
+	bool bOff = Screen.Z <= 0.f || Screen.X < Margin || Screen.Y < Margin || Screen.X > Canvas->ClipX - Margin || Screen.Y > Canvas->ClipY - Margin;
+	FVector2D P(Screen.X, Screen.Y);
+	if (bOff)
 	{
-		for (const FName& Id : Ops.Crew[0].Tasks)
+		// Behind or outside the view: put the marker on the screen edge in the target's direction.
+		FVector2D Dir = P - Centre;
+		if (Screen.Z <= 0.f)
 		{
-			const FTDTaskRow* Row = Mission->GetTasksTable()->FindRow<FTDTaskRow>(Id, TEXT("TDHelmetHUD"), false);
-			if (!Row)
-			{
-				continue;
-			}
-			const FVector Site = Mission->GetSitePosition(Row->Site) + FVector(0.f, 0.f, Eye.Z + 80.f);
-			const FVector Screen = Project(Site);
-			if (Screen.Z <= 0.f)
-			{
-				continue;
-			}
-			const FString Line = FText::Format(Mission->GetText(TEXT("Ops_Marker")), Mission->GetText(Row->NameKey),
-				FText::AsNumber(FMath::RoundToInt(FVector2D::Distance(FVector2D(Eye), FVector2D(Site)) / 100.f))).ToString();
-			float W = 0.f, H = 0.f;
-			GetTextSize(Line, W, H, Font, Small);
-			const float X = FMath::Clamp(Screen.X, 20.f, Canvas->ClipX - W - 20.f);
-			const float Y = FMath::Clamp(Screen.Y, 80.f, Canvas->ClipY * 0.8f);
-			DrawRect(FLinearColor(0.88f, 0.24f, 0.19f, 0.9f), X - 8.f, Y - 4.f, W + 16.f, H + 8.f);
-			DrawText(Line, FLinearColor::White, X, Y, Font, Small);
+			Dir = -Dir;
 		}
+		if (Dir.IsNearlyZero())
+		{
+			Dir = FVector2D(0.f, 1.f);
+		}
+		Dir.Normalize();
+		const float Sx = (Canvas->ClipX * 0.5f - Margin) / FMath::Max(0.001f, FMath::Abs(Dir.X));
+		const float Sy = (Canvas->ClipY * 0.5f - Margin) / FMath::Max(0.001f, FMath::Abs(Dir.Y));
+		P = Centre + Dir * FMath::Min(Sx, Sy);
 	}
-	const FText Prompt = Astronaut->GetInteractPrompt();
-	if (!Prompt.IsEmpty())
+	const float Pulse = 0.5f + 0.5f * FMath::Sin(GetWorld()->GetRealTimeSeconds() * 4.f);
+	const FLinearColor Red(0.88f, 0.24f, 0.19f, 1.f);
+	const FLinearColor Ink(0.98f, 0.97f, 0.95f, 1.f);
+	const float R = 13.f * FMath::Max(0.8f, Canvas->ClipY / 1080.f) * (1.f + 0.15f * Pulse);
+	// Diamond.
+	const FVector2D Pts[4] = { P + FVector2D(0.f, -R), P + FVector2D(R, 0.f), P + FVector2D(0.f, R), P + FVector2D(-R, 0.f) };
+	for (int32 I = 0; I < 4; ++I)
 	{
-		float W = 0.f, H = 0.f;
-		GetTextSize(Prompt.ToString(), W, H, Font, Scale * 0.8f);
-		const float Y = Canvas->ClipY * 0.62f;
-		DrawRect(FLinearColor(0.88f, 0.24f, 0.19f, 0.92f), Canvas->ClipX * 0.5f - W * 0.5f - 14.f, Y - 6.f, W + 28.f, H + 12.f);
-		DrawText(Prompt.ToString(), FLinearColor::White, Canvas->ClipX * 0.5f - W * 0.5f, Y, Font, Scale * 0.8f);
+		DrawLine(Pts[I].X, Pts[I].Y, Pts[(I + 1) % 4].X, Pts[(I + 1) % 4].Y, Red, 4.f);
 	}
-	if (Mission->IsRunningPhase())
-	{
-		int32 SolStart = 0;
-		int32 SolEnd = 0;
-		Mission->GetPhaseSols(Mission->GetState().PhaseIndex, SolStart, SolEnd);
-		const FString Banner = FText::Format(Mission->GetText(TEXT("Ops_RunBanner")), SolStart, SolEnd).ToString();
-		float W = 0.f, H = 0.f;
-		GetTextSize(Banner, W, H, Font, Scale * 0.8f);
-		DrawRect(FLinearColor(0.88f, 0.24f, 0.19f, 0.92f), Canvas->ClipX * 0.5f - W * 0.5f - 18.f, 18.f, W + 36.f, H + 14.f);
-		DrawText(Banner, FLinearColor::White, Canvas->ClipX * 0.5f - W * 0.5f, 25.f, Font, Scale * 0.8f);
-	}
+	DrawRect(Red, P.X - R * 0.35f, P.Y - R * 0.35f, R * 0.7f, R * 0.7f);
+	const FString Line = FString::Printf(TEXT("%s  %d m"), *O.Title.ToString(), FMath::RoundToInt(O.Distance / 100.f));
+	const float Small = Scale * 0.5f;
+	float W = 0.f, H = 0.f;
+	GetTextSize(Line, W, H, Font, Small);
+	const float X = FMath::Clamp(P.X - W * 0.5f, 12.f, Canvas->ClipX - W - 12.f);
+	const float Y = FMath::Clamp(P.Y + R + 8.f, 12.f, Canvas->ClipY - H - 12.f);
+	DrawRect(FLinearColor(0.08f, 0.09f, 0.11f, 0.78f), X - 8.f, Y - 3.f, W + 16.f, H + 6.f);
+	DrawText(Line, Ink, X, Y, Font, Small);
 }

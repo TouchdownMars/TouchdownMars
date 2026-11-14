@@ -9,9 +9,31 @@
 #include "TDAstronautCharacter.generated.h"
 
 class UCameraComponent;
+class UStaticMeshComponent;
+class ATDWorkSpot;
+class ATDMissionControlStation;
 class UInputAction;
 class UInputMappingContext;
 struct FInputActionValue;
+
+/** What the helmet HUD shows for hands-on work and the Mission Control console. */
+struct FTDWorkUi
+{
+	bool bShow = false;
+	bool bStation = false;  // the prompt is "use Mission Control"
+	bool bHolding = false;
+	FText Prompt;           // "Hold E / X: hammer stake 2/4"
+	float Ring = 0.f;       // progress of the spot in reach, 0-1, in beat steps
+	float BeatPulse = 0.f;  // 1 at a hit, fades (ring flash)
+};
+
+/** One task's work spots in the world (spawned while the task is yours). */
+struct FTDWorkSet
+{
+	FName Task;
+	TArray<TWeakObjectPtr<ATDWorkSpot>> Spots;
+	double FinishedAt = -1.0;
+};
 
 UCLASS()
 class TOUCHDOWNMARS_API ATDAstronautCharacter : public ACharacter
@@ -57,6 +79,18 @@ public:
 	/** Prompt for the HUD when one of your own tasks is in reach ("E: Off-load the rover"). */
 	FText GetInteractPrompt() const;
 
+	/** Hands-on work state for the HUD (prompt, hold ring). */
+	FTDWorkUi GetWorkUi() const;
+	/** The next unfinished spot of a task you own (nearest first) and the count done; false if none. */
+	bool GetTaskWork(FName Task, int32& OutDoneSpots, int32& OutSpots, FVector& OutNext) const;
+	bool IsNearStation() const;
+	/** Seconds since the player last pressed TAB/Y away from Mission Control (HUD shows the way). */
+	double GetStationPingTime() const { return StationPingTime; }
+	/** Dev (-TDWorkTest / -TDSurface): stand in front of the next work spot of a task, or of Mission Control. */
+	void DevGoToNextSpot(FName Task);
+	void DevGoToStation();
+	void DevSetHold(bool bHold) { bInteractHeld = bHold; }
+
 	virtual void Tick(float DeltaSeconds) override;
 
 protected:
@@ -84,6 +118,32 @@ private:
 	UPROPERTY(Transient) TObjectPtr<UInputAction> InteractAction;
 	void ToggleOps();
 	void Interact();
+	void InteractReleased();
+	void UseStation();
+
+	// Hands-on work
+	void SyncWorkSets();
+	void SpawnWorkSet(FName Task);
+	ATDWorkSpot* SpotInReach() const;
+	void TickWork(float DeltaSeconds);
+	void BuildTool(int32 VerbIndex);
+	void PoseTool(float DeltaSeconds, bool bNear);
+	void LandBeat(ATDWorkSpot* Spot);
+	TArray<FTDWorkSet> WorkSets;
+	UPROPERTY(Transient) TArray<TObjectPtr<ATDWorkSpot>> SpotRefs;
+	UPROPERTY(Transient) TObjectPtr<USceneComponent> ToolRoot;
+	UPROPERTY(Transient) TObjectPtr<UStaticMeshComponent> ToolA;
+	UPROPERTY(Transient) TObjectPtr<UStaticMeshComponent> ToolB;
+	int32 ToolVerb = -1;
+	bool bInteractHeld = false;
+	bool bWorking = false;
+	float WorkAccum = 0.f;
+	float WorkBeatSeconds = 0.5f;
+	float ToolOut = 0.f;      // 0 lowered, 1 raised
+	float Kick = 0.f;         // camera kick after a hit
+	float BeatPulse = 0.f;
+	float SyncTimer = 0.f;
+	double StationPingTime = -100.0;
 	/** Your planned task whose site is within reach (none if far). */
 	FName NearbyOwnTask() const;
 

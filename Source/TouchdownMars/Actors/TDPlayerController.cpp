@@ -4,6 +4,7 @@
 
 #include "UI/TDDesignRoom.h"
 #include "UI/TDBaseComputer.h"
+#include "UI/TDSurfaceHud.h"
 #include "UI/TDGamepadCursor.h"
 #include "GenericPlatform/GenericApplicationMessageHandler.h"
 #include "GenericPlatform/IInputInterface.h"
@@ -93,6 +94,11 @@ void ATDPlayerController::BeginPlay()
 		Hud = CreateWidget<UTDHudWidget>(this, HudWidgetClass);
 		Hud->AddToViewport();
 	}
+	if (GEngine && GEngine->GameViewport)
+	{
+		SAssignNew(SurfaceHud, STDSurfaceHud).Mission(GetWorld()->GetSubsystem<UTDMissionSubsystem>()).Controller(this);
+		GEngine->GameViewport->AddViewportWidgetContent(SurfaceHud.ToSharedRef(), 20);
+	}
 	else
 	{
 		UE_LOG(LogTouchdownMars, Warning, TEXT("PC_TD has no HudWidgetClass"));
@@ -139,6 +145,11 @@ void ATDPlayerController::EndPlay(const EEndPlayReason::Type EndPlayReason)
 		GEngine->GameViewport->RemoveViewportWidgetContent(DesignRoom.ToSharedRef());
 	}
 	DesignRoom.Reset();
+	if (SurfaceHud.IsValid() && GEngine && GEngine->GameViewport)
+	{
+		GEngine->GameViewport->RemoveViewportWidgetContent(SurfaceHud.ToSharedRef());
+	}
+	SurfaceHud.Reset();
 	if (BaseComputer.IsValid() && bBaseOpen && GEngine && GEngine->GameViewport)
 	{
 		GEngine->GameViewport->RemoveViewportWidgetContent(BaseComputer.ToSharedRef());
@@ -254,6 +265,22 @@ void ATDPlayerController::OpenDesignRoom()
 			}
 		}
 	}
+	// -TDSurface: fly the reference design and land at once (first-person test of the surface).
+	if (FParse::Param(FCommandLine::Get(), TEXT("TDSurface")) || FParse::Param(FCommandLine::Get(), TEXT("TDWorkTest")))
+	{
+		UTDMissionSubsystem* Mission = GetWorld()->GetSubsystem<UTDMissionSubsystem>();
+		if (Mission && Mission->BeginDesign(TEXT("FirstLight"), false))
+		{
+			Mission->FirstFlight.bSkipped = true;
+			Mission->UseRecommendedDesign();
+			Mission->SetAllRolesGo();
+			if (Mission->LaunchDesign())
+			{
+				HandleTransitDone();
+				return;
+			}
+		}
+	}
 #endif
 
 	ShowDesignScreen();
@@ -284,6 +311,44 @@ void ATDPlayerController::HandleTransitDone()
 	HideDesignScreen();
 	UE_LOG(LogTouchdownMars, Display, TEXT("Design: landed, surface mission running"));
 #if !UE_BUILD_SHIPPING
+	if (FParse::Param(FCommandLine::Get(), TEXT("TDWorkTest")))
+	{
+		// Plan "Inspect the cargo" for you and stand at its first spot; the harness holds E.
+		GetWorldTimerManager().SetTimer(PadTestTimer, FTimerDelegate::CreateWeakLambda(this, [this]()
+		{
+			UTDMissionSubsystem* Mission = GetWorld()->GetSubsystem<UTDMissionSubsystem>();
+			FString TaskName = TEXT("InspectCargo");
+			FParse::Value(FCommandLine::Get(), TEXT("TDWorkTask="), TaskName);
+			WorkTestTask = FName(*TaskName);
+			bool bPlanned = Mission && Mission->PlanTask(WorkTestTask, 0);
+			if (Mission && !bPlanned) { Mission->DevGiveOwnTask(WorkTestTask); bPlanned = true; }
+			UE_LOG(LogTouchdownMars, Display, TEXT("WorkTest: planned %s for you %d"), *TaskName, bPlanned ? 1 : 0);
+			// Every 4 s: go to the next spot and hold for 2.5 s; after the task, walk to Mission Control and open it.
+			GetWorldTimerManager().SetTimer(PadTestTimer, FTimerDelegate::CreateWeakLambda(this, [this]()
+			{
+				ATDAstronautCharacter* A = Cast<ATDAstronautCharacter>(GetPawn());
+				UTDMissionSubsystem* M = GetWorld()->GetSubsystem<UTDMissionSubsystem>();
+				if (!A || !M)
+				{
+					return;
+				}
+				const bool bStillMine = M->GetOps().Crew.Num() > 0 && M->GetOps().Crew[0].Tasks.Contains(WorkTestTask);
+				if (bStillMine)
+				{
+					A->DevGoToNextSpot(WorkTestTask);
+					A->DevSetHold(true);
+					FTimerHandle Release;
+					GetWorldTimerManager().SetTimer(Release, FTimerDelegate::CreateWeakLambda(A, [A]() { A->DevSetHold(false); }), 2.5f, false);
+					return;
+				}
+				UE_LOG(LogTouchdownMars, Display, TEXT("WorkTest: %s done by hand %d"), *WorkTestTask.ToString(), M->GetOps().Done.Contains(WorkTestTask) ? 1 : 0);
+				GetWorldTimerManager().ClearTimer(PadTestTimer);
+				A->DevGoToStation();
+				FTimerHandle Open;
+				GetWorldTimerManager().SetTimer(Open, FTimerDelegate::CreateWeakLambda(this, [this]() { ToggleBaseComputer(); }), 3.f, false);
+			}), 4.f, true, 1.5f);
+		}), 2.f, false);
+	}
 	if (FParse::Param(FCommandLine::Get(), TEXT("TDPadTest")))
 	{
 		GetWorldTimerManager().SetTimer(PadTestTimer, FTimerDelegate::CreateWeakLambda(this, [this]() { RunPadTest(2); }), 3.f, false);
@@ -320,9 +385,9 @@ void ATDPlayerController::HandleNextPhase()
 	{
 		return;
 	}
-	if (const ATDAstronautCharacter* Astronaut = Cast<ATDAstronautCharacter>(GetPawn()); Astronaut && !Astronaut->IsConsoleOpen())
+	if (!bBaseOpen)
 	{
-		return; // Space is jump while walking
+		return; // Space is jump while walking; the phase runs from Mission Control
 	}
 	RunPhase();
 }
@@ -366,8 +431,11 @@ void ATDPlayerController::ToggleBaseComputer()
 			.OnClose(FTDBaseComputerAction::CreateUObject(this, &ATDPlayerController::HideBaseComputer))
 			.OnRun(FTDBaseComputerAction::CreateUObject(this, &ATDPlayerController::RunPhase));
 	}
+	BaseComputer->PickTab();
 	BaseComputer->Rebuild();
 	GEngine->GameViewport->AddViewportWidgetContent(BaseComputer.ToSharedRef(), 45);
+	Mission->PlaySfx(TEXT("RadioIn"));
+	Mission->LogOnboarding(TEXT("MissionControlOpen"));
 	bBaseOpen = true;
 	if (Hud)
 	{
