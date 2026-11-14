@@ -94,7 +94,7 @@ DustStormSolarShare,0.1,share of clear-sky solar output,,True,"Game value for a 
 MassMarginGoal,0.1,share of launch capacity,,True,Planner goal: keep 10 % of launch capacity as margin
 ScienceGoal,60,science points,,True,Science Lead goal
 ScienceWalkValue,15,science points per walk,,True,Value of one completed science walk
-BudgetFirstLight,1500,million USD,,True,"Budget cap, objective First Light"
+BudgetFirstLight,1500,million USD,,True,"Budget cap, objective First Crew"
 BudgetScience,1800,million USD,,True,"Budget cap, objective Science First"
 BudgetLastingBase,1600,million USD,,True,"Budget cap, objective Lasting Base"
 Falcon9LaunchCost,70,million USD,,True,Game price for one Falcon 9 launch (no NASA contract value found for a Mars launch)
@@ -149,7 +149,7 @@ RadDose20170911,443.4,"microgray per day (absorbed, silicon)",MSL_RAD_L2,False,"
 MarsquakeS1222aMw,4.6,moment magnitude,MQS_CAT_V14,False,"Marsquake Service catalogue V14, event S1222a, 2022-05-04T23:23Z (Kawamura et al. 2023 give 4.7)"
 MarsquakeS1222aDistanceKm,2189,km,MQS_CAT_V14,False,"Epicentral distance 37.01 degrees in the catalogue, converted with the Mars mean radius (NSSDC)"
 MarsquakeCatalogueEvents,2715,events,MQS_CAT_V14,False,Number of events in the Marsquake Service catalogue V14
-LandingHardwarePerPayloadKg,2.67,kg of cruise and landing hardware per kg of landed payload,,True,"Game assumption (Advanced model) for each landed package; not a NASA landing efficiency. For scale only: MSL sent about 3,839 kg of which 899 kg was the rover"
+LandingHardwarePerPayloadKg,2.67,kg of cruise and landing hardware per kg of landed payload,,True,"Game assumption (Advanced model) for each landed package; not a NASA landing efficiency. Scale: MSL entry, descent and landing system 2,401 kg / rover 899 kg = 2.67 (MslLandingKit p. 6, opened 2026-11-14); the 539 kg cruise stage is not counted. Sub-items sum to 3,839 kg while the kit prints 3,893 kg; its pound total 8,463 lb is 3,839 kg (team inference: digit swap)"
 DataStorageMb,4000,Mb,,True,Game value: data storage on the surface; data waits here for an open link
 ConjunctionSolStart,21,sol,,True,Game scenario: solar conjunction during the hard week (phases.csv)
 ConjunctionSolEnd,27,sol,,True,Game scenario: solar conjunction during the hard week (phases.csv)
