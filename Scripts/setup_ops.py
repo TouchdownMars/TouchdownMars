@@ -81,7 +81,7 @@ RIB = unreal.load_asset(f"{ROOT}/Materials/MI_TD_Base_Rib")
 ACCENT = unreal.load_asset(f"{ROOT}/Materials/MI_TD_Base_Accent")
 
 # Existing parts that the crew must deploy first.
-tag("TD_Rover", "OpsShow_OffloadRover")
+tag("TD_Prop_SEV", "OpsShow_OffloadRover")   # the NASA SEV appears at the off-load (setup_models2.py deletes the old TD_Rover box)
 tag("TD_Base_MEDA_Mast", "OpsShow_DeployMeda")
 tag("TD_Base_MEDA_Boom", "OpsShow_DeployMeda")
 

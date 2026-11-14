@@ -8,6 +8,7 @@
 #include "UI/TDWidgets.h"
 #include "Actors/TDSystemModule.h"
 #include "Actors/TDWorkSpot.h"
+#include "Actors/TDToolMeshes.h"
 #include "Components/StaticMeshComponent.h"
 #include "Engine/StaticMesh.h"
 #include "EngineUtils.h"
@@ -683,8 +684,29 @@ void ATDAstronautCharacter::BuildTool(int32 VerbIndex)
 		C->SetRelativeLocation(Loc);
 		C->SetRelativeScale3D(Scale);
 		C->SetRelativeRotation(Rot);
+		C->EmptyOverrideMaterials();
 		C->SetMaterial(0, Mt);
 	};
+	// NASA 3D Resources tools where we have them (TDToolMeshes.h); the procedural shapes stay as the fallback.
+	TDTools::FMeshPlacement Nasa;
+	if (TDTools::NasaTool(static_cast<ETDWorkVerb>(VerbIndex), false, Nasa))
+	{
+		ToolA->SetStaticMesh(Nasa.Mesh);
+		ToolA->EmptyOverrideMaterials();
+		ToolA->SetRelativeLocation(Nasa.Location);
+		ToolA->SetRelativeRotation(Nasa.Rotation);
+		ToolA->SetRelativeScale3D(FVector(Nasa.Scale));
+		if (static_cast<ETDWorkVerb>(VerbIndex) == ETDWorkVerb::Drill)
+		{
+			// A thin bit past the tool's own chuck, so the spin reads while drilling.
+			Set(ToolB, Cyl, TDTools::DrillBitTip() + FVector(4.f, 0.f, 0.f), FVector(0.01f, 0.01f, 0.08f), FRotator(90.f, 0.f, 0.f), Rib);
+		}
+		else
+		{
+			ToolB->SetStaticMesh(nullptr);
+		}
+		return;
+	}
 	switch (static_cast<ETDWorkVerb>(VerbIndex))
 	{
 	case ETDWorkVerb::Hammer: // sledge: handle up from the grip, head on top

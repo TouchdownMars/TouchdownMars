@@ -3,6 +3,7 @@
 #include "Actors/TDSceneActors.h"
 #include "Animation/AnimSingleNodeInstance.h"
 #include "Actors/TDWorkSpot.h"
+#include "Actors/TDToolMeshes.h"
 #include "Components/StaticMeshComponent.h"
 #include "Engine/StaticMesh.h"
 #include "Kismet/GameplayStatics.h"
@@ -626,9 +627,23 @@ void ATDCrewMember::ShowHandTool(int32 VerbIndex)
 		C->SetRelativeLocation(Loc * Undo);
 		C->SetRelativeRotation(Rot);
 		C->SetRelativeScale3D(Scale * Undo);
+		C->EmptyOverrideMaterials();
 		C->SetMaterial(0, Mt);
 		C->SetVisibility(true);
 	};
+	// NASA 3D Resources tools where we have them (TDToolMeshes.h); the procedural shapes stay as the fallback.
+	TDTools::FMeshPlacement Nasa;
+	if (TDTools::NasaTool(static_cast<ETDWorkVerb>(VerbIndex), true, Nasa))
+	{
+		HandToolA->SetStaticMesh(Nasa.Mesh);
+		HandToolA->EmptyOverrideMaterials();
+		HandToolA->SetRelativeLocation(Nasa.Location * Undo);
+		HandToolA->SetRelativeRotation(Nasa.Rotation);
+		HandToolA->SetRelativeScale3D(FVector(Nasa.Scale * Undo));
+		HandToolA->SetVisibility(true);
+		HandToolB->SetVisibility(false);
+		return;
+	}
 	UStaticMesh* Cube = Mesh(TEXT("Cube"));
 	UStaticMesh* Cyl = Mesh(TEXT("Cylinder"));
 	UMaterialInterface* Dark = Mat(TEXT("MI_TD_Base_Dark"));

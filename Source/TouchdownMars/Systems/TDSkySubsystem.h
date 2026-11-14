@@ -15,7 +15,7 @@ class USkyLightComponent;
  * from the Earth date of the phase's first sol (mars_weather.csv), the sun's declination and position from the
  * NASA GISS Mars24 algorithm (Allison and McEwen 2000), at the base latitude (constants.csv). Local solar time
  * runs from DayStartHour to DayEndHour while a surface phase is played (designer values: time is compressed).
- * A dust-storm phase thickens the dust: more haze, a dimmer sun and softer shadows (look values, no NASA number).
+ * Near sunset a blue glow grows around the sun (MPC_TD_Sky), as Curiosity saw it. A dust-storm phase thickens the dust: more haze, a dimmer sun and softer shadows (look values, no NASA number).
  * The clear-sky look itself lives in the level (Scripts/setup_environment.py); this only moves it.
  */
 UCLASS()
@@ -52,6 +52,9 @@ private:
 	TWeakObjectPtr<USkyAtmosphereComponent> Sky;
 	TWeakObjectPtr<UExponentialHeightFogComponent> Fog;
 	TWeakObjectPtr<USkyLightComponent> SkyLight;
+
+	UPROPERTY()
+	TObjectPtr<class UMaterialParameterCollection> SkyParams;
 
 	// Clear-sky values read from the level at start.
 	float BaseSunIntensity = 0.f;

@@ -17,7 +17,15 @@ PROPS = {
     "SEV": ["Space Exploration Vehicle.glb"],
     "RASSOR": ["Regolith Advanced Surface Systems Operations Robot (RASSOR).glb"],
     "TallDish": ["Tall Dish (dish).glb", "Tall Dish (post).glb", "Tall Dish (turntable).glb"],
+    # Hand tools and the relay radome (15 Nov 2026), each downloaded into its own folder; *_static.glb is the
+    # same file without its armature (Scripts/glb_strip_skin.py).
+    "Hammer": ["Hammer/Hammer_static.glb"],
+    "Wrench": ["Wrench/Wrench_static.glb"],
+    "PistolGripTool": ["PistolGripTool/PistolGripTool.glb"],
+    "Radome": ["Radome/Radome_static.glb"],
 }
+# Plain colour per model (default white). Hand tools read as steel; NASA's EVA power tool is white.
+COLOURS = {"Hammer": ("MI_TD_Plain_Steel", (0.20, 0.21, 0.22)), "Wrench": ("MI_TD_Plain_Steel", (0.20, 0.21, 0.22))}
 
 
 def plain(name, rgb):
@@ -32,8 +40,8 @@ def plain(name, rgb):
     return mi
 
 
-white = plain("MI_TD_Plain_White", (0.72, 0.72, 0.70))
 name = globals().get("MODEL", "SEV")
+white = plain(*COLOURS.get(name, ("MI_TD_Plain_White", (0.72, 0.72, 0.70))))
 folder = f"{DEST}/{name}"
 if unreal.EditorAssetLibrary.does_directory_exist(folder):
     unreal.EditorAssetLibrary.delete_directory(folder)
@@ -45,6 +53,11 @@ for file_name in PROPS[name]:
     task.automated = True
     task.save = True
     task.replace_existing = True
+    # Some NASA GLBs carry a node hierarchy that Interchange reads as a skeleton: force static meshes.
+    pipeline = unreal.InterchangeGenericAssetsPipeline()
+    common = pipeline.get_editor_property("common_meshes_properties")
+    common.set_editor_property("force_all_mesh_as_type", unreal.InterchangeForceMeshType.IFMT_STATIC_MESH)
+    task.set_editor_property("options", pipeline)
     tasks.append(task)
 unreal.AssetToolsHelpers.get_asset_tools().import_asset_tasks(tasks)
 log = []

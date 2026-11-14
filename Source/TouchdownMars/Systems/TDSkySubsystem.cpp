@@ -8,6 +8,8 @@
 #include "Components/SkyLightComponent.h"
 #include "EngineUtils.h"
 #include "Kismet/GameplayStatics.h"
+#include "Kismet/KismetMaterialLibrary.h"
+#include "Materials/MaterialParameterCollection.h"
 #include "Misc/CommandLine.h"
 #include "Model/TDTypes.h"
 #include "Systems/TDMissionSubsystem.h"
@@ -28,6 +30,12 @@ namespace TDSky
 	constexpr float DustEasePerSecond = 0.12f;
 	constexpr float IdleHours = 15.5f;     // outside a mission: a mid-afternoon sky
 	constexpr float MinElevationDeg = 4.f; // keep the scene lit for play
+	// Blue glow around a low sun (M_TD_SkyGlow, Scripts/make_sky_glow.py): weak by day, full near sunset, mostly
+	// gone in a dust storm (designer values).
+	constexpr float GlowDay = 0.25f;
+	constexpr float GlowSunset = 2.2f;
+	constexpr float GlowFullBelowDeg = 6.f;
+	constexpr float GlowStartBelowDeg = 25.f;
 
 	double Sin(double Deg) { return FMath::Sin(FMath::DegreesToRadians(Deg)); }
 	double Cos(double Deg) { return FMath::Cos(FMath::DegreesToRadians(Deg)); }
@@ -48,6 +56,7 @@ void UTDSkySubsystem::OnWorldBeginPlay(UWorld& InWorld)
 {
 	Super::OnWorldBeginPlay(InWorld);
 	FindSkyActors();
+	SkyParams = LoadObject<UMaterialParameterCollection>(nullptr, TEXT("/Game/TouchdownMars/Materials/MPC_TD_Sky.MPC_TD_Sky"));
 #if !UE_BUILD_SHIPPING
 	FParse::Value(FCommandLine::Get(), TEXT("TDTime="), FixedHours);
 	FParse::Value(FCommandLine::Get(), TEXT("TDDust="), FixedDust);
@@ -243,5 +252,12 @@ void UTDSkySubsystem::Apply()
 	if (SkyLight.IsValid())
 	{
 		SkyLight->SetIntensity(BaseSkyLightIntensity * FMath::Lerp(1.f, TDSky::StormSkyLight, Dust));
+	}
+	if (SkyParams)
+	{
+		const float Low = 1.f - FMath::SmoothStep(TDSky::GlowFullBelowDeg, TDSky::GlowStartBelowDeg, static_cast<float>(E));
+		const float Glow = FMath::Lerp(TDSky::GlowDay, TDSky::GlowSunset, Low) * (1.f - 0.85f * Dust);
+		UKismetMaterialLibrary::SetScalarParameterValue(this, SkyParams, TEXT("BlueGlow"), Glow);
+		UKismetMaterialLibrary::SetVectorParameterValue(this, SkyParams, TEXT("SunDir"), FLinearColor(ToSun.X, ToSun.Y, ToSun.Z, 0.f));
 	}
 }
