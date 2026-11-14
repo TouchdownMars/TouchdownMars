@@ -20,10 +20,7 @@ Only data sources and assets that are actually used will be listed, each with it
 
 ## AI use
 
-- ChatGPT: consolidating the team's planning documents and drafting explanatory text.
-- Claude (Anthropic): repository setup — this README, `.gitattributes` and `.gitignore`.
-
-Further AI-assisted code, models, images, audio or video will be disclosed per item as they are produced.
+ChatGPT and Claude were used only to analyse the challenge documents and to set up this repository (README, `.gitattributes`, `.gitignore`). The game concept and design are the team's own work. Any later AI-generated assets will be disclosed per item.
 
 ## License
 
