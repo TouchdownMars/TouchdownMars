@@ -724,7 +724,8 @@ void UTDSourcePanelWidget::Open()
 		else if (const FTDSourceRow* Source = Mission->GetSource(Row.SourceId))
 		{
 			Line += FString::Printf(TEXT("  -  %s (%s)  %s  [%s, %s]"), *Source->Title, *Row.SourceDetail, *Source->URL,
-				*Txt(TEXT("UI_NasaMeasurement")).ToString(), *FText::Format(Txt(TEXT("UI_Retrieved")), FText::FromString(Source->RetrievedOn)).ToString());
+				*Txt((Source->Kind == ETDSourceKind::Measured ? TEXT("Label_SrcMeasured") : Source->Kind == ETDSourceKind::Manufacturer ? TEXT("Label_SrcManufacturer")
+				: Source->Kind == ETDSourceKind::Plan ? TEXT("Label_SrcPlan") : TEXT("Label_SrcReference"))).ToString(), *FText::Format(Txt(TEXT("UI_Retrieved")), FText::FromString(Source->RetrievedOn)).ToString());
 		}
 		Lines.Add(Line);
 	}

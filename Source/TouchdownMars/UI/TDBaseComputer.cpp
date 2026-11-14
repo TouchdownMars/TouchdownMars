@@ -1125,7 +1125,8 @@ TSharedRef<SWidget> STDBaseComputer::BuildData()
 			{
 				Ink = Pal::Text();
 				Line += FString::Printf(TEXT("  ·  %s (%s)  %s  [%s, %s]"), *Source->Title, *Row.SourceDetail, *Source->URL,
-					*Txt(TEXT("UI_NasaMeasurement")).ToString(), *FText::Format(Txt(TEXT("UI_Retrieved")), FText::FromString(Source->RetrievedOn)).ToString());
+					*Txt((Source->Kind == ETDSourceKind::Measured ? TEXT("Label_SrcMeasured") : Source->Kind == ETDSourceKind::Manufacturer ? TEXT("Label_SrcManufacturer")
+				: Source->Kind == ETDSourceKind::Plan ? TEXT("Label_SrcPlan") : TEXT("Label_SrcReference"))).ToString(), *FText::Format(Txt(TEXT("UI_Retrieved")), FText::FromString(Source->RetrievedOn)).ToString());
 			}
 			Sources->AddSlot().AutoHeight().Padding(0.f, 2.f)[Label(FText::FromString(Line), 13, Ink)];
 		}
