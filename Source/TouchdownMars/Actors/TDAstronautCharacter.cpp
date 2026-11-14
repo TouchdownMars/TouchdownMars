@@ -121,6 +121,30 @@ void ATDAstronautCharacter::CreateInput()
 	Context->MapKey(ConsoleAction, EKeys::RightMouseButton);
 	Context->MapKey(OpsAction, EKeys::B);
 	Context->MapKey(InteractAction, EKeys::E);
+
+	// Gamepad (Xbox layout): left stick walks, right stick looks, A jumps, X does your task, Y opens the mission
+	// console, View opens the base computer. UI screens use the pad cursor (UI/TDGamepadCursor).
+	{
+		FEnhancedActionKeyMapping& PadMove = Context->MapKey(MoveAction, EKeys::Gamepad_Left2D);
+		UInputModifierDeadZone* MoveDead = NewObject<UInputModifierDeadZone>(this);
+		MoveDead->LowerThreshold = 0.2f;
+		PadMove.Modifiers.Add(MoveDead);
+
+		FEnhancedActionKeyMapping& PadLook = Context->MapKey(LookAction, EKeys::Gamepad_Right2D);
+		UInputModifierDeadZone* LookDead = NewObject<UInputModifierDeadZone>(this);
+		LookDead->LowerThreshold = 0.15f;
+		PadLook.Modifiers.Add(LookDead);
+		// About 140 degrees per second at full stick, frame-rate independent (Look multiplies by LookSensitivity 0.5).
+		UInputModifierScalar* LookScale = NewObject<UInputModifierScalar>(this);
+		LookScale->Scalar = FVector(280.0, 200.0, 1.0);
+		PadLook.Modifiers.Add(LookScale);
+		PadLook.Modifiers.Add(NewObject<UInputModifierScaleByDeltaTime>(this));
+
+		Context->MapKey(JumpAction, EKeys::Gamepad_FaceButton_Bottom);
+		Context->MapKey(ConsoleAction, EKeys::Gamepad_FaceButton_Top);
+		Context->MapKey(OpsAction, EKeys::Gamepad_Special_Left);
+		Context->MapKey(InteractAction, EKeys::Gamepad_FaceButton_Left);
+	}
 }
 
 void ATDAstronautCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)

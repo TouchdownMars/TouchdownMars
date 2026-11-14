@@ -192,6 +192,7 @@ All DataTables are imported from `Data/Source/*.csv` by `Scripts/import_data.py`
   - Rover traverse: `ETDTaskEffect::Expedition` (+`ExpeditionScienceWalks`, `FTDOpsState::RoverChargingPhase`), `ETDTaskBlock::RoverCharging`; the rover actor hides during the run.
   - Fatigue: `UTDOps::Plan(..., bOverrideRest)`, `RecomputeRestBroken`, `CrewPhaseHours` (`FatigueWorkShare`), `FTDOpsState::Fatigue/RestBroken/RestBreaks`; debrief line `Broke_RestRule`.
   - Tests: `TD.Ops.RoverRechargesAfterTraverse`, `TD.Ops.BrokenRestRuleTires` (29 tests in all).
+- **Gamepad (15.11.2026):** pad keys mapped in code next to the keyboard (`ATDAstronautCharacter::CreateInput`: Gamepad_Left2D/Right2D with dead zone, scalar and delta-time modifiers; A, X, Y, View), Menu runs the phase (`IMC_TD_Pad` added by `ATDPlayerController`). `UI/TDGamepadCursor` (subclass of `FAnalogCursor`, registered as a Slate input preprocessor) drives the cursor only while a mouse screen is open (`ATDPlayerController::WantsPadCursor`). Dev flag `-TDPadTest` injects real pad events into Slate and logs cursor move, A click, stick walk, View/B. The module builds without unity (`bUseUnity = false`) so each file's anonymous-namespace helpers stay separate.
 
 ---
 

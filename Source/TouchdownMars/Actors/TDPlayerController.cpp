@@ -4,6 +4,13 @@
 
 #include "UI/TDDesignRoom.h"
 #include "UI/TDBaseComputer.h"
+#include "UI/TDGamepadCursor.h"
+#include "GenericPlatform/GenericApplicationMessageHandler.h"
+#include "GenericPlatform/IInputInterface.h"
+#include "Framework/Application/SlateUser.h"
+#include "GameFramework/PlayerInput.h"
+#include "Misc/CoreDelegates.h"
+#include "InputMappingContext.h"
 #include "Misc/CommandLine.h"
 #include "Camera/CameraActor.h"
 #include "Camera/CameraComponent.h"
@@ -54,6 +61,32 @@ void ATDPlayerController::BeginPlay()
 		Navigation->bTabNavigation = false;
 		FSlateApplication::Get().SetNavigationConfig(Navigation);
 	}
+
+	// Gamepad: the Menu button runs the phase (same as Space/Enter); screens get a stick-driven cursor.
+	if (UEnhancedInputLocalPlayerSubsystem* InputSubsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer()))
+	{
+		if (NextPhaseAction)
+		{
+			PadContext = NewObject<UInputMappingContext>(this, TEXT("IMC_TD_Pad"));
+			PadContext->MapKey(NextPhaseAction, EKeys::Gamepad_Special_Right);
+			InputSubsystem->AddMappingContext(PadContext, 1);
+		}
+	}
+	if (FSlateApplication::IsInitialized())
+	{
+		TWeakObjectPtr<ATDPlayerController> WeakThis(this);
+		PadCursor = MakeShared<FTDGamepadCursor>(
+			[WeakThis]() { return WeakThis.IsValid() && WeakThis->WantsPadCursor(); },
+			[WeakThis]() { if (WeakThis.IsValid()) { WeakThis->HandlePadBack(); } });
+		FSlateApplication::Get().RegisterInputPreProcessor(PadCursor);
+	}
+
+#if !UE_BUILD_SHIPPING
+	if (FParse::Param(FCommandLine::Get(), TEXT("TDPadTest")))
+	{
+		GetWorldTimerManager().SetTimer(PadTestTimer, FTimerDelegate::CreateWeakLambda(this, [this]() { RunPadTest(0); }), 8.f, false);
+	}
+#endif
 
 	if (HudWidgetClass)
 	{
@@ -111,6 +144,11 @@ void ATDPlayerController::EndPlay(const EEndPlayReason::Type EndPlayReason)
 		GEngine->GameViewport->RemoveViewportWidgetContent(BaseComputer.ToSharedRef());
 	}
 	BaseComputer.Reset();
+	if (PadCursor.IsValid() && FSlateApplication::IsInitialized())
+	{
+		FSlateApplication::Get().UnregisterInputPreProcessor(PadCursor);
+	}
+	PadCursor.Reset();
 	Super::EndPlay(EndPlayReason);
 }
 
@@ -246,6 +284,10 @@ void ATDPlayerController::HandleTransitDone()
 	HideDesignScreen();
 	UE_LOG(LogTouchdownMars, Display, TEXT("Design: landed, surface mission running"));
 #if !UE_BUILD_SHIPPING
+	if (FParse::Param(FCommandLine::Get(), TEXT("TDPadTest")))
+	{
+		GetWorldTimerManager().SetTimer(PadTestTimer, FTimerDelegate::CreateWeakLambda(this, [this]() { RunPadTest(2); }), 3.f, false);
+	}
 	// Automated test runs (-TDAutoPlay): play the surface mission to the end to reach the debrief.
 	if (FParse::Param(FCommandLine::Get(), TEXT("TDOpsDemo")))
 	{
@@ -375,3 +417,127 @@ void ATDPlayerController::HandleBack()
 		Hud->HandleBack();
 	}
 }
+
+bool ATDPlayerController::WantsPadCursor() const
+{
+	if (bDesignScreenOpen || bBaseOpen)
+	{
+		return true;
+	}
+	if (const ATDAstronautCharacter* Astronaut = Cast<ATDAstronautCharacter>(GetPawn()); Astronaut && Astronaut->IsConsoleOpen())
+	{
+		return true;
+	}
+	// The mission report at the end (no design flow) is a mouse screen too.
+	const UTDMissionSubsystem* Mission = GetWorld() ? GetWorld()->GetSubsystem<UTDMissionSubsystem>() : nullptr;
+	return Mission && Mission->HasMission() && !Mission->IsMissionRunning();
+}
+
+void ATDPlayerController::HandlePadBack()
+{
+	if (bBaseOpen)
+	{
+		HideBaseComputer();
+		return;
+	}
+	if (ATDAstronautCharacter* Astronaut = Cast<ATDAstronautCharacter>(GetPawn()); Astronaut && Astronaut->IsConsoleOpen() && !bDesignScreenOpen)
+	{
+		Astronaut->SetConsoleOpen(false);
+	}
+}
+
+#if !UE_BUILD_SHIPPING
+void ATDPlayerController::RunPadTest(int32 Step)
+{
+	FSlateApplication& Slate = FSlateApplication::Get();
+	const FPlatformUserId User = IPlatformInputDeviceMapper::Get().GetPrimaryPlatformUser();
+	const FInputDeviceId Device = IPlatformInputDeviceMapper::Get().GetDefaultInputDevice();
+	UTDMissionSubsystem* Mission = GetWorld()->GetSubsystem<UTDMissionSubsystem>();
+	auto Next = [this](int32 S, float Delay)
+	{
+		GetWorldTimerManager().SetTimer(PadTestTimer, FTimerDelegate::CreateWeakLambda(this, [this, S]() { RunPadTest(S); }), Delay, false);
+	};
+	switch (Step)
+	{
+	case 0:
+	{
+		// Left stick right for 0.4 s: the pad cursor must move.
+		const FVector2D Before = Slate.GetCursorPos();
+		Slate.OnControllerAnalog(FGamepadKeyNames::LeftAnalogX, User, Device, 1.f);
+		GetWorldTimerManager().SetTimer(PadTestTimer, FTimerDelegate::CreateWeakLambda(this, [this, Before, User, Device]()
+		{
+			FSlateApplication::Get().OnControllerAnalog(FGamepadKeyNames::LeftAnalogX, User, Device, 0.f);
+			const FVector2D After = FSlateApplication::Get().GetCursorPos();
+			UE_LOG(LogTouchdownMars, Display, TEXT("PadTest: cursor moved %.0f px with the left stick (screen open %d)"), (After - Before).Size(), WantsPadCursor() ? 1 : 0);
+			RunPadTest(1);
+		}), 0.4f, false);
+		break;
+	}
+	case 1:
+	{
+		// Put the cursor on "Take the console" (design canvas 322,787) and press A.
+		if (GEngine && GEngine->GameViewport)
+		{
+			const FGeometry& G = GEngine->GameViewport->GetGameViewportWidget()->GetCachedGeometry();
+			const FVector2D Size = G.GetLocalSize();
+			const float Scale = FMath::Min(Size.X / 1920.f, Size.Y / 1080.f);
+			const FVector2D Offset = (Size - FVector2D(1920.f, 1080.f) * Scale) * 0.5f;
+			const FVector2D Screen = G.LocalToAbsolute(Offset + FVector2D(322.f, 787.f) * Scale);
+			if (TSharedPtr<FSlateUser> SlateUser = Slate.GetCursorUser())
+			{
+				// A real stick move sends mouse-move events (hover); the teleport here sends one by hand.
+				const FVector2D Old = SlateUser->GetCursorPosition();
+				SlateUser->SetCursorPosition(Screen);
+				const FPointerEvent Move(SlateUser->GetUserIndex(), FSlateApplication::CursorPointerIndex, Screen, Old, TSet<FKey>(), FKey(), 0.f, FModifierKeysState());
+				Slate.ProcessMouseMoveEvent(Move);
+			}
+		}
+		GetWorldTimerManager().SetTimer(PadTestTimer, FTimerDelegate::CreateWeakLambda(this, [this, Mission, User, Device]()
+		{
+			FSlateApplication::Get().OnControllerButtonPressed(FGamepadKeyNames::FaceButtonBottom, User, Device, false);
+			FSlateApplication::Get().OnControllerButtonReleased(FGamepadKeyNames::FaceButtonBottom, User, Device, false);
+			GetWorldTimerManager().SetTimer(PadTestTimer, FTimerDelegate::CreateWeakLambda(this, [Mission]()
+			{
+				UE_LOG(LogTouchdownMars, Display, TEXT("PadTest: A on 'Take the console' -> cold open closed %d"), Mission && Mission->FirstFlight.bColdOpenSeen ? 1 : 0);
+			}), 1.f, false);
+		}), 0.3f, false);
+		break;
+	}
+	case 2:
+	{
+		// On the surface: left stick forward for 2 s must walk the astronaut.
+		if (APawn* P = GetPawn())
+		{
+			PadTestStart = P->GetActorLocation();
+		}
+		Slate.OnControllerAnalog(FGamepadKeyNames::LeftAnalogY, User, Device, 1.f);
+		Next(3, 2.f);
+		break;
+	}
+	case 3:
+	{
+		Slate.OnControllerAnalog(FGamepadKeyNames::LeftAnalogY, User, Device, 0.f);
+		const float Walked = GetPawn() ? FVector::Dist2D(GetPawn()->GetActorLocation(), PadTestStart) : 0.f;
+		UE_LOG(LogTouchdownMars, Display, TEXT("PadTest: left stick walked %.0f cm in 2 s"), Walked);
+		// View button opens the base computer, B closes it.
+		Slate.OnControllerButtonPressed(FGamepadKeyNames::SpecialLeft, User, Device, false);
+		Slate.OnControllerButtonReleased(FGamepadKeyNames::SpecialLeft, User, Device, false);
+		Next(4, 1.f);
+		break;
+	}
+	case 4:
+	{
+		UE_LOG(LogTouchdownMars, Display, TEXT("PadTest: View -> base computer open %d"), bBaseOpen ? 1 : 0);
+		Slate.OnControllerButtonPressed(FGamepadKeyNames::FaceButtonRight, User, Device, false);
+		Slate.OnControllerButtonReleased(FGamepadKeyNames::FaceButtonRight, User, Device, false);
+		Next(5, 1.f);
+		break;
+	}
+	case 5:
+		UE_LOG(LogTouchdownMars, Display, TEXT("PadTest: B -> base computer open %d"), bBaseOpen ? 1 : 0);
+		break;
+	default:
+		break;
+	}
+}
+#endif

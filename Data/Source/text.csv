@@ -206,7 +206,7 @@ Shot_S04_GREEN,Look at the plants: their color shows how much power the greenhou
 Shot_S05_COMMS,Your message is on its way to Earth. The answer will take a long time.,Mesajın Dünya'ya doğru yolda. Cevap uzun sürecek.
 Shot_S06_FAULT,A crew member works on the broken part at the power unit.,Bir ekip üyesi güç ünitesindeki bozuk parça üzerinde çalışıyor.
 Shot_S07_DEPART,The base is left safe. The crew heads to the ascent vehicle.,Üs güvenli bırakıldı. Ekip dönüş aracına gidiyor.
-UI_ConsoleHint,TAB: mission console · B: base computer,TAB: görev konsolu · B: üs bilgisayarı
+UI_ConsoleHint,TAB / Y: mission console · B / View: base computer,TAB / Y: görev konsolu · B / View: üs bilgisayarı
 Crew_Air,Flight Engineer · AIR,Uçuş Mühendisi · HAVA
 Crew_Greenhouse,Science Officer · GREENHOUSE,Bilim Sorumlusu · SERA
 Crew_Shelter,Health Officer · SHELTER,Sağlık Sorumlusu · SIĞINAK
@@ -219,7 +219,7 @@ Inspect_Rover,Pressurized rover,Basınçlı gezgin araç
 Inspect_Robot,Excavation robot,Kazı robotu
 Inspect_Dish,Antenna to Earth · messages take minutes to arrive,Dünya anteni · mesajlar dakikalar sonra ulaşır
 Inspect_Cargo,Cargo from the supply lander,İkmal aracından gelen kargo
-UI_ConsoleHintCard,New event! TAB or right click: open the mission console,Yeni olay! TAB ya da sağ tık: görev konsolunu aç
+UI_ConsoleHintCard,New event! TAB / Y: open the mission console,Yeni olay! TAB / Y: görev konsolunu aç
 Design_Title,Mission Design Room,Görev Tasarım Odası
 Obj_Intro,"Choose the mission. The cargo you design lands before the crew: power, shelter, greenhouse, spares, instruments and the radio link. Then you fly it and live it.","Görevi seç. Tasarladığın kargo ekipten önce iner: güç, sığınak, sera, yedek parça, cihazlar ve telsiz bağlantısı. Sonra onu uçurur ve içinde yaşarsın."
 Obj_Requirements,REQUIREMENTS,GEREKSİNİMLER
@@ -728,7 +728,7 @@ Ops_Report,LAST PHASE,SON EVRE
 Ops_RunHint,Plan ready. Run the sols and watch the crew work.,Plan hazır. Solleri çalıştır ve ekibi izle.
 Ops_RunBlocked,Place every power cell and answer the event first (TAB).,Önce tüm güç hücrelerini yerleştir ve olayı yanıtla (TAB).
 Ops_Run,Run sols {0}-{1},{0}-{1}. solleri çalıştır
-Ops_Prompt,E: {0},E: {0}
+Ops_Prompt,E / X: {0},E / X: {0}
 Ops_Marker,YOUR TASK · {0} · {1} m,GÖREVİN · {0} · {1} m
 Ops_RunBanner,SOLS {0}-{1} · TIME-LAPSE · CREW AT WORK,SOL {0}-{1} · HIZLANDIRILMIŞ · EKİP ÇALIŞIYOR
 Task_RoverExpedition,Rover traverse (5 sols),Gezgin keşfi (5 sol)

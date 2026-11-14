@@ -1309,7 +1309,7 @@ void UTDMissionSubsystem::TickEscort()
 				}
 			}
 		}
-		UE_LOG(LogTouchdownMars, Display, TEXT("Ops: player %.0f cm from the hub, escort candidate %s"), FromHab, Best ? *Best->GetActorLabel() : TEXT("none"));
+		UE_LOG(LogTouchdownMars, Display, TEXT("Ops: player %.0f cm from the hub, escort candidate %s"), FromHab, Best ? *Best->GetName() : TEXT("none"));
 		if (Best)
 		{
 			Escort = Best;

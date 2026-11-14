@@ -71,6 +71,21 @@ private:
 	bool bDesignScreenOpen = false;
 
 	void HideBaseComputer();
+
+	/** Gamepad: cursor for the mouse screens (registered with Slate), B = back, Menu = run the phase. */
+	bool WantsPadCursor() const;
+	void HandlePadBack();
+	TSharedPtr<class FTDGamepadCursor> PadCursor;
+
+#if !UE_BUILD_SHIPPING
+	/** -TDPadTest: injects real gamepad events into Slate (cursor click on the cold open, then a left-stick walk). */
+	void RunPadTest(int32 Step);
+	FTimerHandle PadTestTimer;
+	FVector PadTestStart;
+#endif
+
+	UPROPERTY(Transient)
+	TObjectPtr<UInputMappingContext> PadContext;
 	TSharedPtr<STDBaseComputer> BaseComputer;
 	FTimerHandle OpsDemoTimer;
 	bool bBaseOpen = false;

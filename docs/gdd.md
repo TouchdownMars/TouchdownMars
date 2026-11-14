@@ -226,18 +226,20 @@ Esc or the gear: resume, restart, new mission, language (EN / TR), sound, screen
 Score by axis, what broke, team debrief, your flights, real missions; Redesign (same seed), New objective.
 
 ### Controls
-> Enhanced Input. Keyboard and mouse.
+> Enhanced Input. Keyboard and mouse, and a gamepad (Xbox layout). The mouse screens (design room, base computer, mission console, debrief) get a gamepad cursor: left stick moves it, A clicks, right stick scrolls, B goes back (`UI/TDGamepadCursor`, built on the engine's analog cursor). While walking, every stick goes to the astronaut.
 
-| Action | Keyboard / Mouse | Notes |
-| :-- | :-- | :-- |
-| Move | W A S D or arrows | suited walk 140 cm/s, Mars gravity 0.38 |
-| Look | Mouse | |
-| Hop | Space | about 1.4 s in the air on Mars gravity |
-| Mission console | Tab or right mouse button | cursor on, decisions in the console |
-| Design room, cards, buttons | Left mouse button | |
-| Next phase | button, or Space/Enter with the console open | |
-| Skip a cinematic | Left mouse button | |
-| Back / pause | Esc | |
+| Action | Keyboard / Mouse | Gamepad | Notes |
+| :-- | :-- | :-- | :-- |
+| Move | W A S D or arrows | Left stick | suited walk 140 cm/s, Mars gravity 0.38 |
+| Look | Mouse | Right stick | about 140°/s at full stick |
+| Hop | Space | A | about 1.4 s in the air on Mars gravity |
+| Your task at its site | E | X | |
+| Mission console | Tab or right mouse button | Y | cursor on, decisions in the console |
+| Base computer | B | View | crew plan and task board |
+| Design room, cards, buttons | Left mouse button | Left stick + A | right stick scrolls |
+| Back / close | Esc | B | closes the base computer or the console |
+| Next phase / run the sols | button, or Space/Enter with the console open | Menu | |
+| Skip a cinematic | Left mouse button | A | |
 
 ### Camera
 - First person: eyes about 1.62 m, FOV 90, no head bob.

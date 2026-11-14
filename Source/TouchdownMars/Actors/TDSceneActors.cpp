@@ -561,7 +561,7 @@ void ATDCrewMember::RunNextStep()
 	}
 	const FTDCrewStep Step = StepQueue[0];
 	StepQueue.RemoveAt(0);
-	UE_LOG(LogTemp, Display, TEXT("Crew %s: step '%s', %d points, from %s to %s, work %.1f s%s"), *GetActorLabel(), *Step.Status.ToString(), Step.Points.Num(),
+	UE_LOG(LogTemp, Display, TEXT("Crew %s: step '%s', %d points, from %s to %s, work %.1f s%s"), *GetName(), *Step.Status.ToString(), Step.Points.Num(),
 		*BaseLocation.ToCompactString(), Step.Points.Num() > 0 ? *Step.Points.Last().ToCompactString() : TEXT("-"), Step.WorkSeconds, Step.bInside ? TEXT(" inside") : TEXT(""));
 	StatusText = Step.Status;
 	StatusProgress = Step.WorkSeconds > 0.f ? 0.f : -1.f;
