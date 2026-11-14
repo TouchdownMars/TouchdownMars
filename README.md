@@ -33,13 +33,13 @@ A crew of four will live 31 sols at Jezero crater. You design the cargo mission 
 
 **Act 1: Mission Design Room**
 - **Four objectives**, each with its own acceptance criteria, budget and score weights: a first-crew baseline, Science First, Lasting Base and a Sandbox with no budget cap.
-- **Seven design slots, 20 options:**
+- **Seven design slots, 21 options:**
   - Launch: Falcon 9 or Falcon Heavy, with the number of launches.
   - Surface power: fission power units and solar fields.
   - Radiation shelter: three types.
   - Greenhouse: two sizes.
   - Spare parts: two kits.
-  - Seven instruments based on flown hardware: Mastcam-Z, SuperCam, PIXL, SHERLOC, MEDA, MOXIE and RAD.
+  - Eight instruments based on flown hardware: Mastcam-Z, SuperCam, PIXL, SHERLOC, MEDA, MOXIE, RAD and the InSight SEIS seismometer (its mass is not counted: no NASA mass figure was found).
   - Link to Earth: direct antenna or relay orbiter.
   - Every option card says what it is, why it matters, the hardware it is based on, and whether its numbers are NASA or manufacturer values or game values.
 - **Live mission dashboard:**
@@ -61,7 +61,7 @@ A crew of four will live 31 sols at Jezero crater. You design the cargo mission 
 - **Six phases, sol 1 to sol 31.** In each phase you use the Mission Control console beside the habitat. An objective tracker and a marker show the way.
   - **DECISION:** answer a dated NASA event card on which both choices cost something.
   - **POWER:** place every power cell your design gave you into AIR, GREENHOUSE and SHELTER. In a dust-storm phase solar power falls; fission does not.
-  - **CREW PLAN:** give the crew their work hours from 15 tasks, for example suit checkout, off-loading the rover, standing up the weather mast, a science traverse to the delta, baking water out of clay, piling regolith on the shelter, cleaning the solar arrays and a 5-sol rover traverse. Crew day length, the first spacewalk sol and spacewalk durations follow a NASA Mars surface operations study.
+  - **CREW PLAN:** give the crew their work hours from 17 tasks, for example suit checkout, off-loading the rover, standing up the weather mast, a science traverse to the delta, baking water out of clay, piling regolith on the shelter, cleaning the solar arrays and a 5-sol rover traverse. Crew day length, the first spacewalk sol and spacewalk durations follow a NASA Mars surface operations study.
   - **GO / NO-GO:** the sols run only when the power is placed, the event is answered and the work is planned.
 - **Hands-on work:** take a task yourself and do it by hand outside (hammer stakes, plug in cables, brush dust off the panels, drill a rock core, shovel regolith), or let the time-lapse do it.
 - **The base changes with the work:** the rover stays on the lander deck until it is off-loaded, the weather mast stands only after it is deployed, a regolith mound grows on the shelter.
