@@ -280,6 +280,16 @@ struct FTDConstantRow : public FTableRowBase
 	FString SourceDetail;
 };
 
+/** What kind of value a source gives (the Source Panel label). Unsure rows stay Reference: the weakest claim. */
+UENUM(BlueprintType)
+enum class ETDSourceKind : uint8
+{
+	Reference,     // published reference
+	Measured,      // NASA measurement or flown hardware
+	Manufacturer,  // manufacturer value
+	Plan           // NASA plan or study, not flown
+};
+
 USTRUCT(BlueprintType)
 struct FTDSourceRow : public FTableRowBase
 {
@@ -304,6 +314,9 @@ struct FTDSourceRow : public FTableRowBase
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Source")
 	bool bIsAIGenerated = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Source")
+	ETDSourceKind Kind = ETDSourceKind::Reference;
 };
 
 USTRUCT(BlueprintType)
@@ -485,6 +498,13 @@ struct FTDPendingMessage
 
 	UPROPERTY(BlueprintReadOnly, Category = "Mission Control")
 	FName TextKey;
+
+	/** The weakest system (ETDSystem index) when the call was made; -1 for old saves (falls back to TextKey). */
+	UPROPERTY(BlueprintReadOnly, Category = "Mission Control")
+	int32 WeakestSystemAtSend = -1;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Mission Control")
+	int32 WeakestLevelAtSend = 0;
 };
 
 USTRUCT(BlueprintType)
@@ -584,6 +604,13 @@ struct FTDMissionState
 	/** InSight catalogue records the crew has studied with the seismometer. */
 	UPROPERTY(BlueprintReadOnly, Category = "Mission|Science")
 	int32 QuakeRecordsStudied = 0;
+
+	/** Mission Control replies delivered, and how many of them were out of date when they arrived. */
+	UPROPERTY(BlueprintReadOnly, Category = "Mission Control")
+	int32 AdviceArrived = 0;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Mission Control")
+	int32 AdviceStale = 0;
 };
 
 USTRUCT(BlueprintType)

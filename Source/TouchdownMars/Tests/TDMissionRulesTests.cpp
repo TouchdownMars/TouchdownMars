@@ -233,6 +233,41 @@ bool FTDModelNoFreeChoiceTest::RunTest(const FString& Parameters)
 	return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDModelAdviceStateTest, "TD.Model.AdviceRemembersTheStateAtSend", TDTest::Flags)
+bool FTDModelAdviceStateTest::RunTest(const FString& Parameters)
+{
+	TArray<FTDDeckEntry> NoDeck;
+	FTDRulesConfig Commander;
+	if (!TDTest::MakeConfig(*this, ETDAgeBand::Commander, Commander)) return false;
+	FTDMissionState State = UTDMissionRules::NewMission(Commander, ETDAgeBand::Commander, 2222);
+	UTDMissionRules::StartPhase(Commander, State, NoDeck);
+	// AIR lowest when the call leaves.
+	State.Levels[static_cast<int32>(ETDSystem::Air)] = 1;
+	State.Levels[static_cast<int32>(ETDSystem::Greenhouse)] = 3;
+	State.Levels[static_cast<int32>(ETDSystem::Shelter)] = 3;
+	TestTrue(TEXT("call home"), UTDMissionRules::CallHome(Commander, State));
+	TestEqual(TEXT("weakest at send is AIR"), State.PendingMessages.Last().WeakestSystemAtSend, static_cast<int32>(ETDSystem::Air));
+	TDTest::PlaceDemand(Commander, State, nullptr);
+	UTDMissionRules::EndPhase(Commander, State, nullptr);
+	UTDMissionRules::AdvancePhase(Commander, State, NoDeck);
+	// The base changed meanwhile: SHELTER is now the weakest.
+	State.Levels[static_cast<int32>(ETDSystem::Air)] = 4;
+	State.Levels[static_cast<int32>(ETDSystem::Shelter)] = 1;
+	const TArray<FTDPendingMessage> Due = UTDMissionRules::TakeDueMessages(Commander, State);
+	TestEqual(TEXT("one reply next phase"), Due.Num(), 1);
+	if (Due.Num() == 1)
+	{
+		TestEqual(TEXT("reply still names AIR"), Due[0].WeakestSystemAtSend, static_cast<int32>(ETDSystem::Air));
+		TestNotEqual(TEXT("now another system is weakest (advice is stale)"), UTDMissionRules::WeakestSystem(State), Due[0].WeakestSystemAtSend);
+	}
+	// Ties: AIR before SHELTER before GREENHOUSE.
+	State.Levels[static_cast<int32>(ETDSystem::Air)] = 2;
+	State.Levels[static_cast<int32>(ETDSystem::Greenhouse)] = 2;
+	State.Levels[static_cast<int32>(ETDSystem::Shelter)] = 2;
+	TestEqual(TEXT("tie goes to AIR"), UTDMissionRules::WeakestSystem(State), static_cast<int32>(ETDSystem::Air));
+	return true;
+}
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDModelDelayTest, "TD.Model.MissionControlDelay", TDTest::Flags)
 bool FTDModelDelayTest::RunTest(const FString& Parameters)
 {

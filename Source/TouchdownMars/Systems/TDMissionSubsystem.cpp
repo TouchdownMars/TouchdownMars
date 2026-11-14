@@ -1,6 +1,7 @@
 // Copyright 2026 Team Touchdown. Licensed under the Apache License, Version 2.0.
 
 #include "Systems/TDMissionSubsystem.h"
+#include "UI/TDDesignTokens.h"
 
 #include "Engine/DataTable.h"
 #include "Actors/TDSceneActors.h"
@@ -20,6 +21,10 @@
 #include "Systems/TDDonkiClient.h"
 #include "Systems/TDSaveGame.h"
 #include "TouchdownMars.h"
+#include "Dom/JsonObject.h"
+#include "Serialization/JsonSerializer.h"
+#include "Serialization/JsonWriter.h"
+#include "Misc/SecureHash.h"
 
 namespace
 {
@@ -84,6 +89,8 @@ bool UTDMissionSubsystem::StartMission(ETDAgeBand Band, int32 Seed)
 	// The game flies one rule set (six phases, Mission Control one phase late, no locked system). The old age bands
 	// stay in the rules and their tests only; Guided and Advanced differ in landing hardware mass alone.
 	Band = ETDAgeBand::Commander;
+	RunPhases.Reset();
+	PhaseFinishedTasks.Reset();
 	FString Error;
 	if (!LoadTables(Error) || !UTDMissionRules::MakeConfig(PhasesTable, AgeBandsTable, ConstantsTable, Band, Config, Error))
 	{
@@ -144,7 +151,32 @@ void UTDMissionSubsystem::DeliverDueMessages()
 	{
 		PlaySfx(TEXT("RadioIn"));
 		LastCapcomKey = Message.TextKey;
-		OnMessageArrived.Broadcast(GetText(Message.TextKey));
+		if (Message.WeakestSystemAtSend < 0)
+		{
+			OnMessageArrived.Broadcast(GetText(Message.TextKey));
+			continue;
+		}
+		// The advice names the system that was weakest when the call left; say if it is out of date now.
+		int32 SolStart = 0;
+		int32 SolEnd = 0;
+		GetPhaseSols(Message.SentPhase, SolStart, SolEnd);
+		const FText Then = GetText(TDTokens::SystemTextKey(static_cast<ETDSystem>(Message.WeakestSystemAtSend)));
+		FText Line = FText::Format(GetText(TEXT("Capcom_Advice")), FText::AsNumber(SolStart), FText::AsNumber(SolEnd), Then);
+		const int32 Now = UTDMissionRules::WeakestSystem(State);
+		++State.AdviceArrived;
+		if (Now != Message.WeakestSystemAtSend)
+		{
+			++State.AdviceStale;
+			Line = FText::Format(FText::FromString(TEXT("{0} {1}")), Line,
+				FText::Format(GetText(TEXT("Capcom_AdviceStale")), GetText(TDTokens::SystemTextKey(static_cast<ETDSystem>(Now)))));
+		}
+		else
+		{
+			Line = FText::Format(FText::FromString(TEXT("{0} {1}")), Line, GetText(TEXT("Capcom_AdviceStillValid")));
+		}
+		UE_LOG(LogTouchdownMars, Display, TEXT("Advice: sent phase %d weakest %d, now %d (%s)"), Message.SentPhase, Message.WeakestSystemAtSend, Now,
+			Now == Message.WeakestSystemAtSend ? TEXT("still valid") : TEXT("stale"));
+		OnMessageArrived.Broadcast(Line);
 	}
 }
 
@@ -198,6 +230,29 @@ bool UTDMissionSubsystem::EndPhase()
 	}
 	const bool bWasDustPhase = State.bDustPhase;
 	const FName EventId = State.CurrentEventId;
+	TSharedPtr<FJsonObject> Entry = MakeShared<FJsonObject>();
+	{
+		int32 SolStart = 0;
+		int32 SolEnd = 0;
+		GetPhaseSols(State.PhaseIndex, SolStart, SolEnd);
+		auto Ints = [](const TArray<int32>& Values)
+		{
+			TArray<TSharedPtr<FJsonValue>> Out;
+			for (int32 V : Values) { Out.Add(MakeShared<FJsonValueNumber>(V)); }
+			return Out;
+		};
+		Entry->SetNumberField(TEXT("phase_index"), State.PhaseIndex);
+		Entry->SetNumberField(TEXT("sol_start"), SolStart);
+		Entry->SetNumberField(TEXT("sol_end"), SolEnd);
+		Entry->SetStringField(TEXT("event_id"), EventId.IsNone() ? FString() : EventId.ToString());
+		Entry->SetStringField(TEXT("choice"), State.EventChoice == 0 ? TEXT("A") : State.EventChoice == 1 ? TEXT("B") : TEXT(""));
+		Entry->SetBoolField(TEXT("dust_phase"), State.bDustPhase);
+		Entry->SetNumberField(TEXT("cells_total"), State.CellsTotal);
+		Entry->SetArrayField(TEXT("allocation_air_greenhouse_shelter"), Ints(State.Allocation));
+		Entry->SetArrayField(TEXT("demand_air_greenhouse_shelter"), Ints(GetDemand()));
+		Entry->SetBoolField(TEXT("called_home"), State.bCalledHomeThisPhase);
+	}
+	const int32 AdviceBefore = State.AdviceArrived;
 	const FTDPhaseOutcome Outcome = UTDMissionRules::EndPhase(Config, State, UTDMissionRules::FindEvent(Deck, EventId));
 
 	TArray<ETDSystem> Changed;
@@ -221,6 +276,23 @@ bool UTDMissionSubsystem::EndPhase()
 	}
 
 	AccumulateDose(EventId, Outcome.bStormExposure);
+	{
+		TArray<TSharedPtr<FJsonValue>> Levels;
+		for (int32 V : State.Levels) { Levels.Add(MakeShared<FJsonValueNumber>(V)); }
+		Entry->SetArrayField(TEXT("levels_after_air_greenhouse_shelter"), Levels);
+		Entry->SetNumberField(TEXT("pending_greenhouse_delta"), State.PendingGreenhouseDelta);
+		Entry->SetStringField(TEXT("cause_key"), Outcome.CauseKey.ToString());
+		Entry->SetBoolField(TEXT("storm_exposure"), Outcome.bStormExposure);
+		TArray<TSharedPtr<FJsonValue>> Tasks;
+		for (const FName& Id : PhaseFinishedTasks) { Tasks.Add(MakeShared<FJsonValueString>(Id.ToString())); }
+		Entry->SetArrayField(TEXT("tasks_finished"), Tasks);
+		TArray<TSharedPtr<FJsonValue>> Dose;
+		for (double V : State.CrewDoseUGy) { Dose.Add(MakeShared<FJsonValueNumber>(FMath::RoundToDouble(V))); }
+		Entry->SetArrayField(TEXT("crew_dose_ugy_total_after"), Dose);
+		Entry->SetNumberField(TEXT("advice_arrived_at_start"), AdviceBefore);
+		RunPhases.Add(Entry);
+		PhaseFinishedTasks.Reset();
+	}
 	if (Outcome.bLost)
 	{
 		HandleMissionEnded();
@@ -264,6 +336,9 @@ void UTDMissionSubsystem::HandleMissionEnded()
 		Flight.ScienceWalks = State.ScienceWalks;
 		Flight.GoodDecisions = State.GoodDecisions;
 		Flight.Decisions = State.Decisions;
+		Flight.EventIds = State.DrawnEventIds;
+		Flight.EventListHash = MakeEventListHash();
+		WriteRunRecord(Flight);
 		UE_LOG(LogTouchdownMars, Display, TEXT("Design: flight %s scored %d (success %d, science %d, efficiency %d, decisions %d)"),
 			*Flight.DesignCode, Flight.Score.Total, Flight.Score.Success, Flight.Score.Science, Flight.Score.Efficiency, Flight.Score.Decisions);
 	}
@@ -1178,6 +1253,7 @@ void UTDMissionSubsystem::FinishRun()
 	}
 	const TArray<int32> Broke = Ops.RestBroken;
 	const TArray<FName> Finished = UTDOps::Finish(Ops, TasksTable);
+	PhaseFinishedTasks.Append(Finished);
 	RefreshOpsScene();
 	OpsReport.Reset();
 	for (int32 Index : Broke)
@@ -1231,6 +1307,7 @@ bool UTDMissionSubsystem::CompleteOwnTask(FName TaskId)
 		Names.Add(GetCrewName(Index).ToString());
 	}
 	AddOwnEvaHours(TaskId);
+	PhaseFinishedTasks.Add(TaskId);
 	UTDOps::Unplan(Ops, TaskId);
 	Ops.Done.FindOrAdd(TaskId) += 1;
 	RefreshOpsScene();
@@ -1690,4 +1767,81 @@ void UTDMissionSubsystem::ApplyMedaHeating()
 	MinCells->Value = FMath::CeilToDouble((Base + Heating) / CellKw);
 	UE_LOG(LogTouchdownMars, Display, TEXT("Heating: MEDA mean air %.1f C -> heater %.2f kW, base %.1f kW, design needs %.0f cells"),
 		MeanAir, Heating, Base, MinCells->Value);
+}
+
+// Run record ---------------------------------------------------------------------------------------------------------
+
+FString UTDMissionSubsystem::MakeEventListHash() const
+{
+	TArray<FString> Parts;
+	Parts.Add(FString::FromInt(State.Seed));
+	Parts.Add(StaticEnum<ETDAgeBand>()->GetNameStringByValue(static_cast<int64>(State.Band)));
+	for (const FName& Id : State.DrawnEventIds)
+	{
+		Parts.Add(Id.ToString());
+	}
+	return FMD5::HashAnsiString(*FString::Join(Parts, TEXT("|")));
+}
+
+void UTDMissionSubsystem::WriteRunRecord(const FTDFlightRecord& Flight) const
+{
+	TSharedPtr<FJsonObject> Root = MakeShared<FJsonObject>();
+	Root->SetNumberField(TEXT("schema_version"), 1);
+	FString Version;
+	GConfig->GetString(TEXT("/Script/EngineSettings.GeneralProjectSettings"), TEXT("ProjectVersion"), Version, GGameIni);
+	Root->SetStringField(TEXT("project_version"), Version);
+	Root->SetStringField(TEXT("written_utc"), FDateTime::UtcNow().ToIso8601());
+	Root->SetStringField(TEXT("objective"), Flight.ObjectiveId.ToString());
+	Root->SetStringField(TEXT("model"), Flight.Design.bRealisticModel ? TEXT("Advanced") : TEXT("Guided"));
+	Root->SetNumberField(TEXT("seed"), Flight.Seed);
+	Root->SetStringField(TEXT("design_code"), Flight.DesignCode);
+	TArray<TSharedPtr<FJsonValue>> Picks;
+	for (const FTDDesignPick& Pick : Flight.Design.Picks)
+	{
+		TSharedPtr<FJsonObject> P = MakeShared<FJsonObject>();
+		P->SetStringField(TEXT("option"), Pick.OptionId.ToString());
+		P->SetNumberField(TEXT("count"), Pick.Count);
+		Picks.Add(MakeShared<FJsonValueObject>(P));
+	}
+	Root->SetArrayField(TEXT("design_picks"), Picks);
+	TSharedPtr<FJsonObject> Budget = MakeShared<FJsonObject>();
+	Budget->SetNumberField(TEXT("mass_kg"), Flight.Budget.MassKg);
+	Budget->SetNumberField(TEXT("capacity_kg"), Flight.Budget.CapacityKg);
+	Budget->SetNumberField(TEXT("cost_musd"), Flight.Budget.CostM);
+	Budget->SetNumberField(TEXT("cells"), Flight.Budget.Cells);
+	Budget->SetNumberField(TEXT("cells_in_dust"), Flight.Budget.DustCells);
+	Budget->SetNumberField(TEXT("data_made_total_mb"), Flight.Budget.DataMadeTotalMb);
+	Budget->SetNumberField(TEXT("data_returned_mb"), Flight.Budget.DataReturnedMb);
+	Budget->SetStringField(TEXT("data_note"), TEXT("design-time estimate"));
+	Root->SetObjectField(TEXT("design_budget"), Budget);
+	TArray<TSharedPtr<FJsonValue>> Events;
+	for (const FName& Id : Flight.EventIds) { Events.Add(MakeShared<FJsonValueString>(Id.ToString())); }
+	Root->SetArrayField(TEXT("event_ids"), Events);
+	Root->SetStringField(TEXT("event_list_hash"), Flight.EventListHash);
+	TArray<TSharedPtr<FJsonValue>> Phases;
+	for (const TSharedPtr<FJsonObject>& P : RunPhases) { Phases.Add(MakeShared<FJsonValueObject>(P)); }
+	Root->SetArrayField(TEXT("phases"), Phases);
+	Root->SetStringField(TEXT("phase_note"), TEXT("The model steps by phase, not by sol: one entry per phase (cells, demand, levels)."));
+	Root->SetStringField(TEXT("result"), StaticEnum<ETDMissionResult>()->GetNameStringByValue(static_cast<int64>(State.Result)));
+	TSharedPtr<FJsonObject> Score = MakeShared<FJsonObject>();
+	Score->SetNumberField(TEXT("success"), Flight.Score.Success);
+	Score->SetNumberField(TEXT("science"), Flight.Score.Science);
+	Score->SetNumberField(TEXT("efficiency"), Flight.Score.Efficiency);
+	Score->SetNumberField(TEXT("decisions"), Flight.Score.Decisions);
+	Score->SetNumberField(TEXT("total"), Flight.Score.Total);
+	Root->SetObjectField(TEXT("score"), Score);
+	Root->SetNumberField(TEXT("advice_arrived"), State.AdviceArrived);
+	Root->SetNumberField(TEXT("advice_stale"), State.AdviceStale);
+	Root->SetNumberField(TEXT("highest_crew_dose_ugy"), FMath::RoundToDouble(GetMaxCrewDoseUGy()));
+
+	FString Json;
+	const TSharedRef<TJsonWriter<>> Writer = TJsonWriterFactory<>::Create(&Json);
+	FJsonSerializer::Serialize(Root.ToSharedRef(), Writer);
+	const FString Path = FPaths::ProjectSavedDir() / TEXT("Runs") / FString::Printf(TEXT("run_%s_%d_%s.json"),
+		*FDateTime::UtcNow().ToString(TEXT("%Y%m%dT%H%M%SZ")), Flight.Seed, *Flight.DesignCode);
+	if (FFileHelper::SaveStringToFile(Json, *Path, FFileHelper::EEncodingOptions::ForceUTF8WithoutBOM))
+	{
+		const_cast<UTDMissionSubsystem*>(this)->LastRunRecordPath = Path;
+		UE_LOG(LogTouchdownMars, Display, TEXT("Run record: %s (event list hash %s)"), *Path, *Flight.EventListHash);
+	}
 }

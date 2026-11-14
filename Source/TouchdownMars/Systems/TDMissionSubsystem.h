@@ -60,6 +60,14 @@ struct FTDFlightRecord
 
 	UPROPERTY(BlueprintReadOnly, Category = "Design")
 	int32 Decisions = 0;
+
+	/** The events this flight drew, in order (the comparison checks the list itself, not only the seed). */
+	UPROPERTY(BlueprintReadOnly, Category = "Design")
+	TArray<FName> EventIds;
+
+	/** MD5 of seed, band and event ids: equal hashes mean the same event list. */
+	UPROPERTY(BlueprintReadOnly, Category = "Design")
+	FString EventListHash;
 };
 
 /** First-flight onboarding (docs/gdd.md "First flight"): kept in the subsystem so it survives the design screen being rebuilt. */
@@ -391,6 +399,10 @@ public:
 	double GetEventPeakRate() const;
 	double ForecastEventDayDose(bool bOutside) const;
 	void AddOwnEvaHours(FName TaskId);
+	/** Dev (-TDSeed=): fly the next design on this seed. */
+	void DevSetDesignSeed(int32 Seed) { DesignSeed = Seed; }
+	/** Path of the last run record written (empty if none). */
+	FString LastRunRecordPath;
 	/** InSight catalogue record (rank order) and its one-line text. */
 	const FTDMarsquakeRow* GetQuakeRecord(int32 Index) const;
 	FText GetQuakeRecordText(int32 Index) const;
@@ -490,6 +502,12 @@ private:
 	mutable double RadQuietMean = 0.0;
 	/** EVA hours per crew member this phase (planned work and your own hands-on EVA work). */
 	TArray<double> PhaseEvaHours;
+
+	/** Run record (Saved/Runs/run_*.json): one entry per phase, written when the mission ends. */
+	TArray<TSharedPtr<class FJsonObject>> RunPhases;
+	TArray<FName> PhaseFinishedTasks;
+	void WriteRunRecord(const FTDFlightRecord& Flight) const;
+	FString MakeEventListHash() const;
 
 	UPROPERTY(Transient)
 	TObjectPtr<UDataTable> TasksTable;

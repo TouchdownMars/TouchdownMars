@@ -182,6 +182,9 @@ public:
 	/** Adds a message; returns false if already called this phase or the phase is a blackout. */
 	static bool CallHome(const FTDRulesConfig& Config, FTDMissionState& State);
 
+	/** Weakest system (ETDSystem index); ties go AIR, then SHELTER, then GREENHOUSE (crew first, then base). */
+	static int32 WeakestSystem(const FTDMissionState& State);
+
 	/** Removes and returns messages due now; nothing is delivered during a blackout phase. */
 	static TArray<FTDPendingMessage> TakeDueMessages(const FTDRulesConfig& Config, FTDMissionState& State);
 

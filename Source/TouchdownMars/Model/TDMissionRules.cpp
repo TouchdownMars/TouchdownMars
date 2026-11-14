@@ -454,8 +454,26 @@ bool UTDMissionRules::CallHome(const FTDRulesConfig& Config, FTDMissionState& St
 	Message.SentPhase = State.PhaseIndex;
 	Message.ArrivePhase = Playable.IsValidIndex(ArrivePosition) ? Playable[ArrivePosition] : NeverArrives;
 	Message.TextKey = FName(FString::Printf(TEXT("Capcom_Reply_%s"), *StaticEnum<ETDPhase>()->GetNameStringByValue(State.PhaseIndex)));
+	// The reply answers the base as it was when the call left (it may be out of date when it arrives).
+	Message.WeakestSystemAtSend = WeakestSystem(State);
+	Message.WeakestLevelAtSend = State.Levels.IsValidIndex(Message.WeakestSystemAtSend) ? State.Levels[Message.WeakestSystemAtSend] : 0;
 	State.bCalledHomeThisPhase = true;
 	return true;
+}
+
+int32 UTDMissionRules::WeakestSystem(const FTDMissionState& State)
+{
+	// Tie order: crew first (AIR), then the base (SHELTER), then science food (GREENHOUSE).
+	const int32 Order[3] = { AirIndex, ShelterIndex, GreenhouseIndex };
+	int32 Best = INDEX_NONE;
+	for (int32 Index : Order)
+	{
+		if (State.Levels.IsValidIndex(Index) && (Best == INDEX_NONE || State.Levels[Index] < State.Levels[Best]))
+		{
+			Best = Index;
+		}
+	}
+	return Best;
 }
 
 TArray<FTDPendingMessage> UTDMissionRules::TakeDueMessages(const FTDRulesConfig& Config, FTDMissionState& State)

@@ -227,7 +227,7 @@ Obj_Budget,Budget: {0} million USD (game value),Bütçe: {0} milyon USD (oyun de
 Obj_NoBudget,No budget limit (sandbox),Bütçe sınırı yok (serbest mod)
 Obj_Weights,"Score weights: success {0} %, science {1} %, efficiency {2} %, decisions {3} %","Puan ağırlıkları: başarı %{0}, bilim %{1}, verimlilik %{2}, kararlar %{3}"
 Obj_Choose,Design this mission,Bu görevi tasarla
-Obj_FirstLight,First Light,İlk Işık
+Obj_FirstLight,First Crew,İlk Ekip
 Obj_FirstLight_Info,The first crew of four lives 31 sols at Jezero. Bring everyone home and leave the base running.,Dört kişilik ilk ekip Jezero'da 31 sol yaşar. Herkesi eve getir ve üssü çalışır bırak.
 Obj_ScienceFirst,Science First,Önce Bilim
 Obj_ScienceFirst_Info,The crew comes to answer one question: was Jezero ever home to life? Fly more instruments and get their data home.,Ekip tek bir soruyu yanıtlamaya gelir: Jezero bir zamanlar yaşama ev oldu mu? Daha çok cihaz uçur ve verilerini eve ulaştır.
@@ -848,3 +848,11 @@ Quake_Title,InSight records studied,İncelenen InSight kayıtları
 Quake_None,"No record studied yet. Fly the seismometer, level it outside, then study records in the lab.","Henüz kayıt incelenmedi. Sismometreyi götür, dışarıda dengele, sonra laboratuvarda kayıtları incele."
 Light_Line,"Earth is {0} light-minutes away today (JPL Horizons, 14 Nov 2026): every call home waits for it.","Dünya bugün {0} ışık dakikası uzakta (JPL Horizons, 14 Kasım 2026): eve her çağrı bunu bekler."
 Heat_Phase,"Heating these sols: MEDA mean air {0} °C → heater {1} kW, {2} % of one cell (game heat-loss model).","Bu sollerde ısıtma: MEDA ortalama hava {0} °C → ısıtıcı {1} kW, bir hücrenin % {2}'si (oyun ısı kaybı modeli)."
+Capcom_Advice,"Earth here, answering your call from sols {0} to {1}. Then {2} was your weakest system: put power there first.",Dünya konuşuyor; {0}-{1}. sollerdeki çağrına yanıt veriyoruz. O sırada en zayıf sistemin {2} idi: önce oraya güç ver.
+Capcom_AdviceStale,This advice is one phase old. Now your weakest system is {0}. You decide.,Bu tavsiye bir evre eski. Şu an en zayıf sistemin {0}. Karar senin.
+Capcom_AdviceStillValid,Nothing has changed since: the advice still holds.,O zamandan beri değişen yok: tavsiye hâlâ geçerli.
+Debrief_Advice,Mission Control answered {0} call(s); {1} answer(s) were out of date when they arrived.,Görev Kontrol {0} çağrıyı yanıtladı; {1} yanıt ulaştığında güncelliğini yitirmişti.
+Label_SrcMeasured,NASA measurement or flown hardware,NASA ölçümü ya da uçmuş donanım
+Label_SrcManufacturer,Manufacturer value,Üretici değeri
+Label_SrcPlan,"NASA plan or study, not flown","NASA planı ya da çalışması, uçmadı"
+Label_SrcReference,Published reference,Yayımlanmış kaynak

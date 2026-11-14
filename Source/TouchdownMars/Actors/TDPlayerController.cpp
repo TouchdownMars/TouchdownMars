@@ -275,6 +275,26 @@ void ATDPlayerController::OpenDesignRoom()
 			// -TDGuided: fly the Guided model (K01 check: same six phases and the same Mission Control delay).
 			Mission->SetRealisticModel(!FParse::Param(FCommandLine::Get(), TEXT("TDGuided")));
 			Mission->UseRecommendedDesign();
+			int32 Seed = 0;
+			if (FParse::Value(FCommandLine::Get(), TEXT("TDSeed="), Seed) && Seed > 0)
+			{
+				Mission->DevSetDesignSeed(Seed);
+			}
+			FString PickSpec;
+			if (FParse::Value(FCommandLine::Get(), TEXT("TDPick="), PickSpec, false))
+			{
+				TArray<FString> Picks;
+				PickSpec.ParseIntoArray(Picks, TEXT(","));
+				for (const FString& Pick : Picks)
+				{
+					FString Option;
+					FString Count;
+					if (Pick.Split(TEXT(":"), &Option, &Count))
+					{
+						Mission->SetDesignPick(FName(*Option), FCString::Atoi(*Count));
+					}
+				}
+			}
 			Mission->SetAllRolesGo();
 			UE_LOG(LogTouchdownMars, Display, TEXT("TDSurface: model %s"), Mission->GetDesign().bRealisticModel ? TEXT("Advanced") : TEXT("Guided"));
 			if (Mission->LaunchDesign())
@@ -384,6 +404,7 @@ void ATDPlayerController::HandleTransitDone()
 				return;
 			}
 			Mission->AutoPlanTasks();
+			Mission->CallHome(); // exercises the delayed, state-carrying reply in the run record
 			Mission->DevFillPhase();
 			RunPhase();
 		}), 6.f, true, 3.f);

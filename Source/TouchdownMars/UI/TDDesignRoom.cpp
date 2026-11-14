@@ -2598,7 +2598,8 @@ TSharedRef<SWidget> STDDesignRoom::BuildDebrief()
 	{
 		const FTDFlightRecord& Prev = Flights[Flights.Num() - 2];
 		const FTDFlightRecord& Now = Flights.Last();
-		const bool bSame = Prev.Seed == Now.Seed && Prev.ObjectiveId == Now.ObjectiveId && Prev.Design.bRealisticModel == Now.Design.bRealisticModel;
+		const bool bSame = Prev.Seed == Now.Seed && Prev.ObjectiveId == Now.ObjectiveId && Prev.Design.bRealisticModel == Now.Design.bRealisticModel
+			&& Prev.EventIds == Now.EventIds;
 		auto Passed = [](const FTDMissionScore& S) { int32 N = 0; for (bool b : S.RequirementMet) { N += b ? 1 : 0; } return N; };
 		TSharedRef<SVerticalBox> Table = SNew(SVerticalBox);
 		auto Row = [this, &Table](const TCHAR* Key, const FString& A, const FString& B)
@@ -2690,6 +2691,10 @@ TSharedRef<SWidget> STDDesignRoom::BuildDebrief()
 	[
 		Label(FText::Format(Txt(TEXT("Debrief_Decisions")), State.GoodDecisions, State.Decisions, State.ScienceWalks), 13, Pal::Text())
 	];
+	if (State.AdviceArrived > 0)
+	{
+		Team->AddSlot().AutoHeight().Padding(0.f, 2.f)[Label(FText::Format(Txt(TEXT("Debrief_Advice")), State.AdviceArrived, State.AdviceStale), 13, Pal::Text())];
+	}
 	Team->AddSlot().AutoHeight().Padding(0.f, 4.f)[Label(Txt(TEXT("Debrief_Question")), 15, Pal::Text(), true)];
 
 	const FName ObjectiveId = M->GetFlights().Num() > 0 ? M->GetFlights().Last().ObjectiveId : NAME_None;

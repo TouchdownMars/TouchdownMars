@@ -1,0 +1,311 @@
+{
+	"schema_version": 1,
+	"project_version": "0.0.1",
+	"written_utc": "2026-11-14T18:30:18.886Z",
+	"objective": "FirstLight",
+	"model": "Advanced",
+	"seed": 4242,
+	"design_code": "FH2-KP3-SB-GS-MZ-DL",
+	"design_picks": [
+		{
+			"option": "FalconHeavy",
+			"count": 2
+		},
+		{
+			"option": "Kilopower",
+			"count": 3
+		},
+		{
+			"option": "ShelterBasic",
+			"count": 1
+		},
+		{
+			"option": "GreenhouseSmall",
+			"count": 1
+		},
+		{
+			"option": "DirectLink",
+			"count": 1
+		},
+		{
+			"option": "MastcamZ",
+			"count": 1
+		}
+	],
+	"design_budget":
+	{
+		"mass_kg": 29764.61016,
+		"capacity_kg": 33600,
+		"cost_musd": 866,
+		"cells": 6,
+		"cells_in_dust": 6,
+		"data_made_total_mb": 3720,
+		"data_returned_mb": 1440,
+		"data_note": "design-time estimate"
+	},
+	"event_ids": [
+		"InSight2022",
+		"ArtemisIShelter",
+		"Apollo13Air",
+		"CHAPEA2"
+	],
+	"event_list_hash": "1102dac8b085c714166abb92d69e9d29",
+	"phases": [
+		{
+			"phase_index": 0,
+			"sol_start": 1,
+			"sol_end": 3,
+			"event_id": "",
+			"choice": "",
+			"dust_phase": false,
+			"cells_total": 6,
+			"allocation_air_greenhouse_shelter": [
+				2,
+				3,
+				1
+			],
+			"demand_air_greenhouse_shelter": [
+				1,
+				1,
+				1
+			],
+			"called_home": true,
+			"levels_after_air_greenhouse_shelter": [
+				4,
+				3,
+				3
+			],
+			"pending_greenhouse_delta": 1,
+			"cause_key": "Cause_Air_Up",
+			"storm_exposure": false,
+			"tasks_finished": [
+				"InspectCargo",
+				"SuitCheck",
+				"SetUpGreenhouse"
+			],
+			"crew_dose_ugy_total_after": [
+				468,
+				468,
+				468,
+				468
+			],
+			"advice_arrived_at_start": 0
+		},
+		{
+			"phase_index": 1,
+			"sol_start": 4,
+			"sol_end": 5,
+			"event_id": "InSight2022",
+			"choice": "B",
+			"dust_phase": true,
+			"cells_total": 6,
+			"allocation_air_greenhouse_shelter": [
+				2,
+				2,
+				2
+			],
+			"demand_air_greenhouse_shelter": [
+				2,
+				3,
+				2
+			],
+			"called_home": true,
+			"levels_after_air_greenhouse_shelter": [
+				4,
+				4,
+				4
+			],
+			"pending_greenhouse_delta": -1,
+			"cause_key": "Cause_Greenhouse_Down",
+			"storm_exposure": false,
+			"tasks_finished": [
+				"Maintenance"
+			],
+			"crew_dose_ugy_total_after": [
+				784,
+				784,
+				784,
+				784
+			],
+			"advice_arrived_at_start": 1
+		},
+		{
+			"phase_index": 2,
+			"sol_start": 7,
+			"sol_end": 10,
+			"event_id": "ArtemisIShelter",
+			"choice": "B",
+			"dust_phase": false,
+			"cells_total": 6,
+			"allocation_air_greenhouse_shelter": [
+				2,
+				3,
+				1
+			],
+			"demand_air_greenhouse_shelter": [
+				2,
+				2,
+				2
+			],
+			"called_home": true,
+			"levels_after_air_greenhouse_shelter": [
+				4,
+				4,
+				3
+			],
+			"pending_greenhouse_delta": 1,
+			"cause_key": "Cause_Storm_Exposure",
+			"storm_exposure": true,
+			"tasks_finished": [
+				"OffloadRover",
+				"SurveyClays",
+				"OffloadPayload",
+				"ScienceTraverse",
+				"Maintenance"
+			],
+			"crew_dose_ugy_total_after": [
+				1621,
+				1637,
+				1641,
+				1641
+			],
+			"advice_arrived_at_start": 2
+		},
+		{
+			"phase_index": 3,
+			"sol_start": 11,
+			"sol_end": 13,
+			"event_id": "Apollo13Air",
+			"choice": "A",
+			"dust_phase": false,
+			"cells_total": 6,
+			"allocation_air_greenhouse_shelter": [
+				2,
+				2,
+				2
+			],
+			"demand_air_greenhouse_shelter": [
+				2,
+				3,
+				2
+			],
+			"called_home": true,
+			"levels_after_air_greenhouse_shelter": [
+				4,
+				4,
+				4
+			],
+			"pending_greenhouse_delta": -1,
+			"cause_key": "Cause_Greenhouse_Down",
+			"storm_exposure": false,
+			"tasks_finished": [
+				"Logistics",
+				"ExtractWater",
+				"BuildBerm",
+				"ScienceTraverse",
+				"Maintenance"
+			],
+			"crew_dose_ugy_total_after": [
+				2086,
+				2114,
+				2117,
+				2119
+			],
+			"advice_arrived_at_start": 3
+		},
+		{
+			"phase_index": 4,
+			"sol_start": 21,
+			"sol_end": 27,
+			"event_id": "CHAPEA2",
+			"choice": "A",
+			"dust_phase": false,
+			"cells_total": 6,
+			"allocation_air_greenhouse_shelter": [
+				3,
+				2,
+				1
+			],
+			"demand_air_greenhouse_shelter": [
+				3,
+				2,
+				2
+			],
+			"called_home": false,
+			"levels_after_air_greenhouse_shelter": [
+				4,
+				4,
+				3
+			],
+			"pending_greenhouse_delta": 0,
+			"cause_key": "Cause_Shelter_Down",
+			"storm_exposure": false,
+			"tasks_finished": [
+				"RoverExpedition",
+				"ExtractWater",
+				"Harvest",
+				"Maintenance"
+			],
+			"crew_dose_ugy_total_after": [
+				3104,
+				3131,
+				3135,
+				3137
+			],
+			"advice_arrived_at_start": 3
+		},
+		{
+			"phase_index": 5,
+			"sol_start": 28,
+			"sol_end": 31,
+			"event_id": "",
+			"choice": "",
+			"dust_phase": false,
+			"cells_total": 6,
+			"allocation_air_greenhouse_shelter": [
+				2,
+				2,
+				2
+			],
+			"demand_air_greenhouse_shelter": [
+				2,
+				2,
+				2
+			],
+			"called_home": true,
+			"levels_after_air_greenhouse_shelter": [
+				4,
+				4,
+				4
+			],
+			"pending_greenhouse_delta": 0,
+			"cause_key": "Cause_Steady",
+			"storm_exposure": false,
+			"tasks_finished": [
+				"ScienceTraverse",
+				"ExtractWater",
+				"Maintenance"
+			],
+			"crew_dose_ugy_total_after": [
+				3682,
+				3716,
+				3720,
+				3715
+			],
+			"advice_arrived_at_start": 4
+		}
+	],
+	"phase_note": "The model steps by phase, not by sol: one entry per phase (cells, demand, levels).",
+	"result": "Minimum",
+	"score":
+	{
+		"success": 67,
+		"science": 67,
+		"efficiency": 0,
+		"decisions": 75,
+		"total": 54
+	},
+	"advice_arrived": 4,
+	"advice_stale": 3,
+	"highest_crew_dose_ugy": 3720
+}
