@@ -96,7 +96,7 @@ A crew of four will live 31 sols at Jezero crater. You design the cargo mission 
 - **Reference numbers.** Some sourced numbers (radiation dose rates and the career limit, Earth-Mars light time, Deep Space Network dish sizes) are listed in the Source Panel for context and do not drive a game rule.
 - **Time and scale.** 31 sols are played in a few minutes. Mission Control delay is shown as phases, not minutes. Crew dose is summed from real RAD days, but the habitat and shelter factors are game assumptions and no health effect is computed.
 - **Team play.** Four roles share one screen; there is no network play.
-- **Not in this build.** VR, Moon mode, music and voice.
+- **Not in this build.** VR, music and voice.
 - **SAC21 is an analysis option**, labelled "NASA plan" in the game; it is not a committed NASA mission.
 
 ## Tech
