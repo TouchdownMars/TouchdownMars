@@ -70,7 +70,7 @@ struct FTDFlightRecord
 	FString EventListHash;
 };
 
-/** First-flight onboarding (docs/gdd.md "First flight"): kept in the subsystem so it survives the design screen being rebuilt. */
+/** First-flight onboarding: kept in the subsystem so it survives the design screen being rebuilt. */
 struct FTDFirstFlightState
 {
 	bool bSkipped = false;          // "Flown before? Skip guidance": no locks, warnings-only guide
@@ -87,7 +87,7 @@ struct FTDFirstFlightState
 
 /**
  * Owns the mission state for one world. UI and scene never change state directly: they call these functions and
- * listen to the delegates (technical_design.md §4). All rules live in UTDMissionRules. Also holds the player's
+ * listen to the delegates. All rules live in UTDMissionRules. Also holds the player's
  * settings (UTDSaveGame) and the session's DONKI snapshot.
  */
 UCLASS()
@@ -202,7 +202,7 @@ public:
 	/** Jezero weather (MEDA archive) for a mission sol, or null. */
 	const FTDWeatherRow* GetWeather(int32 MissionSol) const;
 
-	// ---------------------------------------------------------------- Base operations (gdd.md "Base operations")
+	// ---------------------------------------------------------------- Base operations
 
 	const FTDOpsState& GetOps() const { return Ops; }
 	const UDataTable* GetTasksTable() const { return TasksTable; }
@@ -380,7 +380,7 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Touchdown Mars|DONKI")
 	const FTDSpaceWeather& GetSpaceWeather() const { return SpaceWeather; }
 
-	// Sound (design.md §5 tokens; SFX_TD_<Token> in Content/TouchdownMars/Audio)
+	// Sound (SFX_TD_<Token> in Content/TouchdownMars/Audio)
 
 	UFUNCTION(BlueprintCallable, Category = "Touchdown Mars|Sound")
 	void PlaySfx(FName Token);
@@ -534,6 +534,13 @@ private:
 
 	/** Shows the parts the crew has deployed (OpsShow_<TaskId> / OpsHide_<TaskId> tags, combined with DesignShow_). */
 	void RefreshOpsScene();
+	/** A10: parts that just appeared rise (or settle) into place over about 1.5 s. */
+	struct FRiser { TWeakObjectPtr<AActor> Actor; FVector Final; float Age = 0.f; };
+	TArray<FRiser> Risers;
+	FTimerHandle RiserTimer;
+	bool bOpsSceneReady = false;
+	TSet<TWeakObjectPtr<AActor>> ShownOnce;
+	void StepRisers();
 
 	/** Every second: an idle AI crew member joins the player outside (buddy rule) and calls out the sites. */
 	void TickEscort();

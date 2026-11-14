@@ -1,6 +1,7 @@
 // Copyright 2026 Team Touchdown. Licensed under the Apache License, Version 2.0.
 
 #include "Actors/TDWorkSpot.h"
+#include "Misc/ScopeExit.h"
 
 #include "Components/PointLightComponent.h"
 #include "Components/StaticMeshComponent.h"
@@ -177,6 +178,8 @@ void ATDWorkSpot::Setup(ETDWorkVerb InVerb, int32 InBeats, float InFaceYaw)
 	case ETDWorkVerb::Scan:
 		AddPart(Cube, FVector(0.f, 0.f, 23.f), FVector(0.5f, 0.7f, 0.46f), FRotator::ZeroRotator, Hull);
 		Moving = AddPart(Cube, FVector(26.f, 0.f, 28.f), FVector(0.01f, 0.32f, 0.16f), FRotator::ZeroRotator, White);
+		ScanBar = AddPart(Cube, FVector(27.f, 0.f, 21.f), FVector(0.004f, 0.34f, 0.012f), FRotator::ZeroRotator, Accent);
+		ScanBar->SetVisibility(false);
 		LampAt = FVector(26.f, 24.f, 40.f);
 		break;
 	case ETDWorkVerb::Scoop:
@@ -195,6 +198,12 @@ void ATDWorkSpot::Setup(ETDWorkVerb InVerb, int32 InBeats, float InFaceYaw)
 		break;
 	}
 	MovingStart = Moving ? Moving->GetRelativeLocation() : FVector::ZeroVector;
+	// Dust falls at Mars gravity: 980 cm/s2 x MarsGravityRatio (constants.csv, NSSDC); ballistic, no drag.
+	if (const UTDMissionSubsystem* Mission = GetWorld() ? GetWorld()->GetSubsystem<UTDMissionSubsystem>() : nullptr)
+	{
+		const double Ratio = Mission->GetConstant(TEXT("MarsGravityRatio"));
+		DustGravity = Ratio > 0.0 ? static_cast<float>(980.0 * Ratio) : 300.f;
+	}
 
 	// Status lamp: red until the spot is done (the object is the readout).
 	LampMesh = AddPart(Sphere, LampAt, FVector(0.07f), FRotator::ZeroRotator, nullptr);
@@ -257,6 +266,21 @@ void ATDWorkSpot::ApplyVisual()
 	{
 		return;
 	}
+	// A5: compute the new pose, keep it as the target and put the parts back where they were; Tick eases them over.
+	const FTransform MovingWas = Moving->GetRelativeTransform();
+	const FTransform ExtraWas = Extra ? Extra->GetRelativeTransform() : FTransform::Identity;
+	ON_SCOPE_EXIT
+	{
+		MovingTarget = Moving->GetRelativeTransform();
+		ExtraTarget = Extra ? Extra->GetRelativeTransform() : FTransform::Identity;
+		const UTDMissionSubsystem* Mission = GetWorld() ? GetWorld()->GetSubsystem<UTDMissionSubsystem>() : nullptr;
+		if (bHasTargets && !(Mission && Mission->IsReduceMotion()))
+		{
+			Moving->SetRelativeTransform(MovingWas);
+			if (Extra) { Extra->SetRelativeTransform(ExtraWas); }
+		}
+		bHasTargets = true;
+	};
 	switch (Verb)
 	{
 	case ETDWorkVerb::Hammer:
@@ -296,7 +320,7 @@ void ATDWorkSpot::ApplyVisual()
 		const float Left = FMath::Max(0.001f, 1.f - P);
 		Moving->SetRelativeScale3D(FVector(0.81f, 1.21f * Left, 0.012f));
 		Moving->SetRelativeLocation(MovingStart + FVector(0.f, -60.f * (1.f - Left), 0.f));
-		Moving->SetVisibility(!IsDone());
+		// Dust eases down to a sliver (see Tick) instead of vanishing on the last beat.
 		break;
 	}
 	case ETDWorkVerb::Drill:
@@ -330,6 +354,7 @@ bool ATDWorkSpot::Beat()
 	}
 	++BeatsDone;
 	BeatFlash = 0.25f;
+	ScanSweep = 0.25f;
 	ApplyVisual();
 	const bool bDusty = Verb == ETDWorkVerb::Hammer || Verb == ETDWorkVerb::Drill || Verb == ETDWorkVerb::Scoop || Verb == ETDWorkVerb::Brush;
 	if (bDusty)
@@ -365,6 +390,36 @@ void ATDWorkSpot::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
 	Time += DeltaSeconds;
+	// A5: ease the moving parts toward their targets (about 0.15 s, [DESIGNER VALUE]).
+	if (bHasTargets && Moving)
+	{
+		auto Ease = [DeltaSeconds](UStaticMeshComponent* C, const FTransform& Target)
+		{
+			const FTransform Now = C->GetRelativeTransform();
+			const FVector L = FMath::VInterpTo(Now.GetLocation(), Target.GetLocation(), DeltaSeconds, 16.f);
+			const FQuat Q = FQuat::Slerp(Now.GetRotation(), Target.GetRotation(), FMath::Clamp(DeltaSeconds * 16.f, 0.f, 1.f));
+			const FVector S = FMath::VInterpTo(Now.GetScale3D(), Target.GetScale3D(), DeltaSeconds, 16.f);
+			C->SetRelativeTransform(FTransform(Q, L, S));
+		};
+		Ease(Moving, MovingTarget);
+		if (Extra) { Ease(Extra, ExtraTarget); }
+		// The stake's lamp rides on top of the stake as it sinks.
+		if (Verb == ETDWorkVerb::Hammer && LampMesh)
+		{
+			LampMesh->SetRelativeLocation(Moving->GetRelativeLocation() + FVector(0.f, 0.f, 49.f));
+		}
+	}
+	// Scan: a light bar sweeps up the label once per beat.
+	if (ScanBar)
+	{
+		ScanSweep = FMath::Max(0.f, ScanSweep - DeltaSeconds);
+		const float Sweep = ScanSweep > 0.f ? 1.f - ScanSweep / 0.25f : -1.f;
+		ScanBar->SetVisibility(Sweep >= 0.f && Sweep <= 1.f);
+		if (Sweep >= 0.f)
+		{
+			ScanBar->SetRelativeLocation(FVector(27.f, 0.f, FMath::Lerp(21.f, 35.f, Sweep)));
+		}
+	}
 	if (Marker && bActive)
 	{
 		Marker->SetRelativeLocation(FVector(0.f, 0.f, 165.f + 8.f * FMath::Sin(Time * 3.f)));
@@ -395,7 +450,7 @@ void ATDWorkSpot::Tick(float DeltaSeconds)
 			continue;
 		}
 		PuffAge[Index] += DeltaSeconds;
-		PuffVelocity[Index].Z -= 300.f * DeltaSeconds;
+		PuffVelocity[Index].Z -= DustGravity * DeltaSeconds;
 		Puffs[Index]->AddWorldOffset(PuffVelocity[Index] * DeltaSeconds);
 		Puffs[Index]->SetWorldScale3D(FVector(FMath::Lerp(0.06f, 0.01f, FMath::Min(PuffAge[Index] / 0.9f, 1.f))));
 		if (PuffAge[Index] > 0.9f)

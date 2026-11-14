@@ -850,8 +850,39 @@ void ATDAstronautCharacter::PoseTool(float DeltaSeconds, bool bNear)
 	if (ToolB) { ToolB->SetVisibility(bVisible); }
 	Kick = FMath::Max(0.f, Kick - DeltaSeconds * 7.f);
 	BeatPulse = FMath::Max(0.f, BeatPulse - DeltaSeconds * 3.f);
-	// Camera kick on every hit (Nijman: small, fast, decays).
-	Camera->SetRelativeLocation(FVector(0.f, 0.f, EyeHeight - 2.5f * Kick));
+	// A3: the tool has weight (Boehm, "The First Person Animation of Overwatch", GDC 2017: additive offsets on springs).
+	// It trails turns, leans against side steps and dips on landing; low stiffness, one small overshoot.
+	// All amplitudes are [DESIGNER VALUE]; Reduce motion turns them off.
+	const UTDMissionSubsystem* Mission = GetWorld()->GetSubsystem<UTDMissionSubsystem>();
+	const bool bCalm = Mission && Mission->IsReduceMotion();
+	const FRotator Control = Controller ? Controller->GetControlRotation() : FRotator::ZeroRotator;
+	const float Dt = FMath::Max(DeltaSeconds, 1e-3f);
+	const float YawRate = FRotator::NormalizeAxis(Control.Yaw - LastControl.Yaw) / Dt;
+	const float PitchRate = FRotator::NormalizeAxis(Control.Pitch - LastControl.Pitch) / Dt;
+	LastControl = Control;
+	const FVector LocalVel = Camera->GetComponentTransform().InverseTransformVectorNoScale(GetVelocity());
+	const float YawTarget = bCalm ? 0.f : FMath::Clamp(-YawRate * 0.02f, -3.f, 3.f);
+	const float PitchTarget = bCalm ? 0.f : FMath::Clamp(PitchRate * 0.015f, -2.f, 2.f);
+	const float RollTarget = bCalm ? 0.f : FMath::Clamp(-LocalVel.Y * 0.03f, -4.f, 4.f);
+	const float DipTarget = bCalm ? 0.f : FMath::Clamp(GetVelocity().Z * 0.01f, -4.f, 4.f);
+	ToolSpring.Yaw = UKismetMathLibrary::FloatSpringInterp(ToolSpring.Yaw, YawTarget, YawSpring, 60.f, 0.7f, Dt);
+	ToolSpring.Pitch = UKismetMathLibrary::FloatSpringInterp(ToolSpring.Pitch, PitchTarget, PitchSpring, 60.f, 0.7f, Dt);
+	ToolSpring.Roll = UKismetMathLibrary::FloatSpringInterp(ToolSpring.Roll, RollTarget, RollSpring, 40.f, 0.7f, Dt);
+	ToolSpring.Dip = UKismetMathLibrary::FloatSpringInterp(ToolSpring.Dip, DipTarget, DipSpring, 50.f, 0.6f, Dt);
+	if (bCalm)
+	{
+		ToolSpring = FToolSprings();
+	}
+	// Camera kick on every hit (Nijman: small, fast, decays), plus A9: a slow, small step rhythm while walking
+	// (one bob per 70 cm, 0.5 cm; a suit damps the bob, so smaller and slower, not bigger) and the landing dip
+	// from the tool's dip spring. [DESIGNER VALUE] Reduce motion: no bob, no dip.
+	const UTDMissionSubsystem* CamMission = GetWorld()->GetSubsystem<UTDMissionSubsystem>();
+	const bool bCamCalm = CamMission && CamMission->IsReduceMotion();
+	const float Ground = GetCharacterMovement()->IsMovingOnGround() ? GetVelocity().Size2D() : 0.f;
+	BobPhase += Ground * DeltaSeconds / 70.f * PI;
+	const float Bob = bCamCalm ? 0.f : 0.5f * FMath::Sin(BobPhase) * FMath::Clamp(Ground / 100.f, 0.f, 1.f);
+	const float LandDip = bCamCalm ? 0.f : FMath::Clamp(ToolSpring.Dip, -3.f, 3.f) * 0.6f;
+	Camera->SetRelativeLocation(FVector(0.f, 0.f, EyeHeight - 2.5f * Kick + Bob + LandDip));
 	Camera->SetFieldOfView(FieldOfView - 1.5f * Kick);
 	if (!ToolRoot || !bVisible)
 	{
@@ -861,19 +892,31 @@ void ATDAstronautCharacter::PoseTool(float DeltaSeconds, bool bNear)
 	const float Idle = FMath::Sin(GetWorld()->GetTimeSeconds() * 2.f) * 0.6f;
 	FVector Loc(48.f, 26.f, -30.f - 40.f * (1.f - ToolOut) + Idle);
 	FRotator Rot = FRotator::ZeroRotator;
+	auto Smooth = [](float X) { X = FMath::Clamp(X, 0.f, 1.f); return X * X * (3.f - 2.f * X); }; // slow in and out
 	switch (static_cast<ETDWorkVerb>(ToolVerb))
 	{
 	case ETDWorkVerb::Hammer:
-		// Wind up (top back), then strike forward; the hit lands at the end of the beat.
-		Rot.Pitch = bWorking ? (T < 0.7f ? FMath::Lerp(0.f, 65.f, T / 0.7f) : FMath::Lerp(65.f, -40.f, (T - 0.7f) / 0.3f)) : 10.f;
+		// Anticipation and follow-through (Cooper, Game Anim): an eased wind-up, a strike that accelerates into the
+		// hit at the end of the beat, then the kick spring gives the rebound.
+		Rot.Pitch = bWorking ? (T < 0.7f ? 65.f * Smooth(T / 0.7f) : FMath::Lerp(65.f, -40.f, FMath::Square((T - 0.7f) / 0.3f))) : 10.f;
 		Rot.Pitch -= 30.f * Kick;
 		break;
 	case ETDWorkVerb::Plug:
+		Loc.X += bWorking ? 16.f * FMath::Sin(T * PI) : 0.f;
+		Rot.Roll = 90.f * Smooth(T); // seat, push, twist-lock
+		break;
 	case ETDWorkVerb::Latch:
+		// Grab and turn the latch: the hand rolls the tablet down and back. [DESIGNER VALUE]
+		Loc.X += bWorking ? 10.f * FMath::Sin(T * PI) : 0.f;
+		Rot.Roll = bWorking ? -70.f * FMath::Sin(T * PI) : 0.f;
+		break;
 	case ETDWorkVerb::Switch:
+		// A short press, then a 25 degree flick. [DESIGNER VALUE]
+		Loc.X += bWorking ? 9.f * FMath::Sin(FMath::Min(T / 0.6f, 1.f) * PI) : 0.f;
+		Rot.Pitch = bWorking && T > 0.6f ? -25.f * FMath::Sin((T - 0.6f) / 0.4f * PI) : 0.f;
+		break;
 	case ETDWorkVerb::Scan:
 		Loc.X += bWorking ? 16.f * FMath::Sin(T * PI) : 0.f;
-		Rot.Roll = static_cast<ETDWorkVerb>(ToolVerb) == ETDWorkVerb::Plug ? 90.f * T : 0.f;
 		break;
 	case ETDWorkVerb::Wrench:
 		Rot.Roll = bWorking ? -55.f * FMath::Sin(T * PI) : 0.f;
@@ -886,18 +929,32 @@ void ATDAstronautCharacter::PoseTool(float DeltaSeconds, bool bNear)
 		Loc.X += bWorking ? 8.f : 0.f;
 		if (bWorking)
 		{
-			Loc += FVector(FMath::FRandRange(-0.6f, 0.6f), FMath::FRandRange(-0.6f, 0.6f), FMath::FRandRange(-0.6f, 0.6f));
+			// A steady motor hum: two sines at unrelated frequencies instead of per-frame noise. [DESIGNER VALUE]
+			const float Now = GetWorld()->GetTimeSeconds();
+			Loc += FVector(0.f, 0.5f * FMath::Sin(Now * 47.f), 0.4f * FMath::Sin(Now * 61.f + 1.3f));
 			ToolB->AddRelativeRotation(FRotator(0.f, 0.f, 1800.f * DeltaSeconds));
 		}
 		break;
 	case ETDWorkVerb::Scoop:
-		Rot.Pitch = bWorking ? (T < 0.5f ? FMath::Lerp(0.f, -35.f, T * 2.f) : FMath::Lerp(-35.f, 25.f, (T - 0.5f) * 2.f)) : 0.f;
+		Rot.Pitch = bWorking ? (T < 0.5f ? -35.f * Smooth(T * 2.f) : FMath::Lerp(-35.f, 25.f, Smooth((T - 0.5f) * 2.f))) : 0.f;
 		break;
 	default:
 		break;
 	}
+
+	Loc.Z += ToolSpring.Dip;
+	Rot.Yaw += ToolSpring.Yaw;
+	Rot.Pitch += ToolSpring.Pitch;
+	Rot.Roll += ToolSpring.Roll;
 	ToolRoot->SetRelativeLocation(Loc);
 	ToolRoot->SetRelativeRotation(Rot);
+}
+
+void ATDAstronautCharacter::Landed(const FHitResult& Hit)
+{
+	Super::Landed(Hit);
+	// Landing: kick the dip spring with the impact speed (it settles back in a few tenths of a second).
+	DipSpring.Velocity -= FMath::Clamp(FMath::Abs(GetVelocity().Z), 0.f, 400.f) * 0.15f;
 }
 
 FTDWorkUi ATDAstronautCharacter::GetWorkUi() const

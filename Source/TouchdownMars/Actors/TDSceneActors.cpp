@@ -1,6 +1,12 @@
 // Copyright 2026 Team Touchdown. Licensed under the Apache License, Version 2.0.
 
 #include "Actors/TDSceneActors.h"
+#include "Animation/AnimSingleNodeInstance.h"
+#include "Actors/TDWorkSpot.h"
+#include "Components/StaticMeshComponent.h"
+#include "Engine/StaticMesh.h"
+#include "Kismet/GameplayStatics.h"
+#include "Materials/MaterialInterface.h"
 
 #include "Actors/TDSystemModule.h"
 #include "Animation/AnimSequence.h"
@@ -160,7 +166,7 @@ ATDCrewMember::ATDCrewMember()
 	{
 		Body->SetStaticMesh(Capsule.Object);
 	}
-	// 180 cm crew in suits (level-design.md scale standard).
+	// 180 cm crew in suits (scale: 1 unit = 1 cm).
 	Body->SetRelativeScale3D(FVector(0.6f, 0.6f, 1.8f));
 	// Crew never carve the nav mesh and never block ground traces of other crew.
 	Body->SetCanEverAffectNavigation(false);
@@ -222,8 +228,28 @@ void ATDCrewMember::PlayClip(UAnimSequence* Clip, float Rate)
 	{
 		return;
 	}
+	// A1: PlayAnimation restarts at frame 0 on every call (engine: AnimSingleNodeInstanceProxy sets CurrentTime = 0),
+	// so the same clip only gets its rate updated; idles no longer snap back when a system level changes.
+	if (const UAnimSingleNodeInstance* Single = Suit->GetSingleNodeInstance(); Single && Single->GetAnimationAsset() == Clip)
+	{
+		Suit->SetPlayRate(Clip == WalkAnim ? Rate : Rate * (1.f + 0.06f * FMath::Sin(IdleSeed * 1.7f)));
+		return;
+	}
 	Suit->PlayAnimation(Clip, true);
+	if (Clip != WalkAnim)
+	{
+		// Each crew member breathes and shifts weight at their own moment: own start phase, own rate (+-6 %,
+		// [DESIGNER VALUE]). Not on walk: a rate offset there makes the feet slide.
+		Suit->SetPosition(FMath::Fmod(IdleSeed / (2.f * PI), 1.f) * Clip->GetPlayLength(), false);
+		Rate *= 1.f + 0.06f * FMath::Sin(IdleSeed * 1.7f);
+	}
 	Suit->SetPlayRate(Rate);
+}
+
+float ATDCrewMember::WalkRate(float SpeedCmPerSec) const
+{
+	// A2: feet stay planted at any path speed; 0.35-5 [DESIGNER VALUE] covers a slow arrival and the time-lapse.
+	return FMath::Clamp(SpeedCmPerSec / FMath::Max(10.f, WalkClipSpeedCmPerSec), 0.35f, 5.f);
 }
 
 void ATDCrewMember::BeginPlay()
@@ -295,6 +321,7 @@ void ATDCrewMember::HandlePhaseStarted(ETDPhase Phase)
 
 void ATDCrewMember::SetBasePose(const FVector& Location, const FRotator& Rotation)
 {
+	UKismetMathLibrary::ResetFloatSpringState(FacingSpring);
 	BaseLocation = Location;
 	BaseRotation = Rotation;
 	SetActorLocationAndRotation(Location, Rotation);
@@ -303,6 +330,7 @@ void ATDCrewMember::SetBasePose(const FVector& Location, const FRotator& Rotatio
 void ATDCrewMember::StepIdle()
 {
 	IdleTime += 1.f / 30.f;
+	StepWorkRange();
 	if (IsWalking())
 	{
 		StepWalk(1.f / 30.f);
@@ -314,6 +342,15 @@ void ATDCrewMember::StepIdle()
 		return;
 	}
 	const UTDMissionSubsystem* Mission = GetWorld()->GetSubsystem<UTDMissionSubsystem>();
+	// A8: an idle crew member at home turns the whole suit toward the player when they come close (suits limit
+	// head turns, so suited people turn the torso). [DESIGNER VALUE] 600 cm, 20 degrees.
+	if (SuitMesh && !bOnTask && !bInsideModule && !bStaged && !(Mission && Mission->IsReduceMotion()))
+	{
+		if (const APawn* Player = UGameplayStatics::GetPlayerPawn(this, 0); Player && FVector::Dist2D(Player->GetActorLocation(), BaseLocation) < 600.f)
+		{
+			FaceToward(Player->GetActorLocation(), 1.f / 30.f, 20.f);
+		}
+	}
 	if ((Mission && Mission->IsReduceMotion()) || SuitMesh)
 	{
 		SetActorLocationAndRotation(BaseLocation, BaseRotation);
@@ -441,7 +478,7 @@ void ATDCrewMember::WalkTo(const FVector& Target, float SpeedCmPerSec, TFunction
 		PathPoints = { Start, Target }; // no nav mesh: walk straight
 	}
 	PathIndex = 1;
-	PlayClip(WalkAnim, FMath::Clamp(WalkSpeed / 140.f, 0.6f, 3.f));
+	PlayClip(WalkAnim, WalkRate(WalkSpeed));
 }
 
 void ATDCrewMember::WalkPath(const TArray<FVector>& Points, float SpeedCmPerSec, TFunction<void()> OnArrived)
@@ -453,7 +490,7 @@ void ATDCrewMember::WalkPath(const TArray<FVector>& Points, float SpeedCmPerSec,
 	PathPoints.Add(BaseLocation);
 	PathPoints.Append(Points);
 	PathIndex = 1;
-	PlayClip(WalkAnim, FMath::Clamp(WalkSpeed / 140.f, 0.6f, 3.f));
+	PlayClip(WalkAnim, WalkRate(WalkSpeed));
 }
 
 void ATDCrewMember::StopWalking()
@@ -481,7 +518,15 @@ void ATDCrewMember::StepWalk(float DeltaSeconds)
 	const FVector Goal = PathPoints[PathIndex];
 	FVector Flat = FVector(Goal.X - BaseLocation.X, Goal.Y - BaseLocation.Y, 0.f);
 	const float Distance = Flat.Size();
-	const float Step = WalkSpeed * DeltaSeconds;
+	// A8: slow down over the last 40 cm of the path instead of popping from mid-stride into the idle; the walk
+	// play rate follows the eased speed so the feet stay planted. [DESIGNER VALUE]
+	float Speed = WalkSpeed;
+	if (PathIndex == PathPoints.Num() - 1 && Distance < 40.f)
+	{
+		Speed = WalkSpeed * FMath::Clamp(Distance / 40.f, 0.4f, 1.f);
+		if (SuitMesh) { Suit->SetPlayRate(WalkRate(Speed)); }
+	}
+	const float Step = Speed * DeltaSeconds;
 	FVector Next = BaseLocation;
 	if (Distance <= Step)
 	{
@@ -493,7 +538,8 @@ void ATDCrewMember::StepWalk(float DeltaSeconds)
 	{
 		Flat /= Distance;
 		Next += Flat * Step;
-		// Turn smoothly toward the walking direction.
+		// Turn smoothly toward the walking direction (the facing spring starts fresh after the walk).
+		UKismetMathLibrary::ResetFloatSpringState(FacingSpring);
 		const float TargetYaw = Flat.Rotation().Yaw - SuitForwardYaw;
 		BaseRotation.Yaw = FMath::FixedTurn(BaseRotation.Yaw, TargetYaw, 360.f * DeltaSeconds);
 	}
@@ -502,7 +548,7 @@ void ATDCrewMember::StepWalk(float DeltaSeconds)
 	SetActorLocationAndRotation(BaseLocation, BaseRotation);
 }
 
-void ATDCrewMember::WorkAt(const FVector& LookAt)
+void ATDCrewMember::WorkAt(const FVector& LookAt, FName TaskId)
 {
 	FVector Dir = LookAt - BaseLocation;
 	Dir.Z = 0.f;
@@ -512,6 +558,128 @@ void ATDCrewMember::WorkAt(const FVector& LookAt)
 		SetActorLocationAndRotation(BaseLocation, BaseRotation);
 	}
 	PlayClip(WorkAnim ? WorkAnim.Get() : IdleAnim.Get());
+	if (!WorkAnim || !SuitMesh || TaskId.IsNone())
+	{
+		return;
+	}
+	// A6: ground work (stakes, regolith, bolts) stays crouched with hands near the ground; waist work (cables,
+	// latches, panels, scanners, drills) stands. Ranges measured from the lift_heavy clip, pulled in from the ends.
+	// Suited crew really work kneeling and crouching (NASA Artemis conops, EVA-EXP-0075).
+	const ETDWorkVerb Verb = TDHandsOn::SpecFor(TaskId).Verb;
+	const bool bGround = Verb == ETDWorkVerb::Hammer || Verb == ETDWorkVerb::Scoop || Verb == ETDWorkVerb::Wrench;
+	WorkRangeStart = bGround ? 0.2f : 6.0f;
+	WorkRangeEnd = bGround ? 3.7f : 13.4f;
+	bWorkRange = true;
+	Suit->SetPosition(WorkRangeStart + FMath::Fmod(IdleSeed, 1.f) * (WorkRangeEnd - WorkRangeStart) * 0.5f, false);
+	ShowHandTool(static_cast<int32>(Verb));
+}
+
+void ATDCrewMember::StepWorkRange()
+{
+	if (!bWorkRange || !SuitMesh)
+	{
+		return;
+	}
+	UAnimSingleNodeInstance* Single = Suit->GetSingleNodeInstance();
+	if (!Single || Single->GetAnimationAsset() != WorkAnim)
+	{
+		bWorkRange = false;
+		HideHandTool();
+		return;
+	}
+	// Ping-pong instead of a hard wrap: no pop at the range ends.
+	// A frame hitch can carry the position past an end (and a looping clip wraps): clamp back into the range.
+	const float Now = Single->GetCurrentTime();
+	if (Now >= WorkRangeEnd || (Single->IsReverse() && Now > WorkRangeEnd - 0.01f))
+	{
+		Single->SetPosition(WorkRangeEnd, false);
+		Single->SetReverse(true);
+	}
+	else if (Now <= WorkRangeStart)
+	{
+		Single->SetPosition(WorkRangeStart, false);
+		Single->SetReverse(false);
+	}
+}
+
+void ATDCrewMember::ShowHandTool(int32 VerbIndex)
+{
+	auto Mesh = [](const TCHAR* Name) { return LoadObject<UStaticMesh>(nullptr, *FString::Printf(TEXT("/Engine/BasicShapes/%s.%s"), Name, Name)); };
+	auto Mat = [](const TCHAR* Name) { return LoadObject<UMaterialInterface>(nullptr, *FString::Printf(TEXT("/Game/TouchdownMars/Materials/%s.%s"), Name, Name)); };
+	for (TObjectPtr<UStaticMeshComponent>* Part : { &HandToolA, &HandToolB })
+	{
+		if (!*Part)
+		{
+			*Part = NewObject<UStaticMeshComponent>(this);
+			(*Part)->SetMobility(EComponentMobility::Movable);
+			(*Part)->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+			(*Part)->SetCastShadow(false);
+			(*Part)->SetupAttachment(Suit, TEXT("RightHand"));
+			(*Part)->RegisterComponent();
+		}
+	}
+	// The suit is scaled up to SuitHeight; the tool undoes that scale. Sizes and offsets [DESIGNER VALUE].
+	const float Undo = 1.f / FMath::Max(0.01f, Suit->GetComponentScale().X);
+	auto Set = [Undo](UStaticMeshComponent* C, UStaticMesh* M, const FVector& Loc, const FVector& Scale, const FRotator& Rot, UMaterialInterface* Mt)
+	{
+		C->SetStaticMesh(M);
+		C->SetRelativeLocation(Loc * Undo);
+		C->SetRelativeRotation(Rot);
+		C->SetRelativeScale3D(Scale * Undo);
+		C->SetMaterial(0, Mt);
+		C->SetVisibility(true);
+	};
+	UStaticMesh* Cube = Mesh(TEXT("Cube"));
+	UStaticMesh* Cyl = Mesh(TEXT("Cylinder"));
+	UMaterialInterface* Dark = Mat(TEXT("MI_TD_Base_Dark"));
+	UMaterialInterface* Rib = Mat(TEXT("MI_TD_Base_Rib"));
+	UMaterialInterface* Accent = Mat(TEXT("MI_TD_Base_Accent"));
+	switch (static_cast<ETDWorkVerb>(VerbIndex))
+	{
+	case ETDWorkVerb::Hammer:
+		Set(HandToolA, Cyl, FVector(0.f, 0.f, 0.f), FVector(0.03f, 0.03f, 0.4f), FRotator::ZeroRotator, Dark);
+		Set(HandToolB, Cube, FVector(0.f, 0.f, 20.f), FVector(0.14f, 0.06f, 0.06f), FRotator::ZeroRotator, Rib);
+		break;
+	case ETDWorkVerb::Scoop:
+		Set(HandToolA, Cyl, FVector(0.f, 0.f, 0.f), FVector(0.03f, 0.03f, 0.5f), FRotator::ZeroRotator, Dark);
+		Set(HandToolB, Cube, FVector(0.f, 0.f, -26.f), FVector(0.16f, 0.02f, 0.2f), FRotator::ZeroRotator, Rib);
+		break;
+	case ETDWorkVerb::Wrench:
+	case ETDWorkVerb::Drill:
+		Set(HandToolA, Cube, FVector(0.f, 0.f, 0.f), FVector(0.12f, 0.07f, 0.1f), FRotator::ZeroRotator, Accent);
+		Set(HandToolB, Cyl, FVector(10.f, 0.f, 0.f), FVector(0.02f, 0.02f, 0.18f), FRotator(90.f, 0.f, 0.f), Rib);
+		break;
+	default: // tablet / scanner for cables, latches, panels, brushes, switches
+		Set(HandToolA, Cube, FVector(0.f, 0.f, 0.f), FVector(0.12f, 0.02f, 0.09f), FRotator::ZeroRotator, Dark);
+		Set(HandToolB, Cube, FVector(0.f, -1.2f, 0.f), FVector(0.1f, 0.004f, 0.07f), FRotator::ZeroRotator, Accent);
+		break;
+	}
+}
+
+void ATDCrewMember::HideHandTool()
+{
+	if (HandToolA) { HandToolA->SetVisibility(false); }
+	if (HandToolB) { HandToolB->SetVisibility(false); }
+}
+
+void ATDCrewMember::FaceToward(const FVector& Point, float DeltaSeconds, float ThresholdDegrees)
+{
+	const FVector To = Point - BaseLocation;
+	if (To.IsNearlyZero())
+	{
+		return;
+	}
+	const float Target = To.Rotation().Yaw - SuitForwardYaw;
+	const float Delta = FRotator::NormalizeAxis(Target - BaseRotation.Yaw);
+	if (FMath::Abs(Delta) < ThresholdDegrees && FMath::Abs(FacingSpring.Velocity) < 1.f)
+	{
+		UKismetMathLibrary::ResetFloatSpringState(FacingSpring);
+		return; // do not track every small step
+	}
+	// Spring on the angle difference: slow, deliberate, one small overshoot. [DESIGNER VALUE]
+	// Mass 1, no target velocity: the spring follows the angle difference only.
+	const float Step = UKismetMathLibrary::FloatSpringInterp(0.f, Delta, FacingSpring, 8.f, 0.75f, DeltaSeconds, 1.f, 0.f);
+	BaseRotation.Yaw += Step;
 }
 
 void ATDCrewMember::SetInside(bool bInside)
@@ -544,6 +712,12 @@ void ATDCrewMember::RunSteps(TArray<FTDCrewStep> Steps, float WalkSpeedCmPerSec,
 void ATDCrewMember::RunNextStep()
 {
 	GetWorldTimerManager().ClearTimer(WorkTimer);
+	if (bWorkRange && SuitMesh)
+	{
+		if (UAnimSingleNodeInstance* Single = Suit->GetSingleNodeInstance()) { Single->SetReverse(false); }
+	}
+	bWorkRange = false;
+	HideHandTool();
 	if (StepQueue.Num() == 0)
 	{
 		bOnTask = false;
@@ -578,7 +752,7 @@ void ATDCrewMember::RunNextStep()
 		}
 		else
 		{
-			WorkAt(Step.Look);
+			WorkAt(Step.Look, Step.TaskId);
 		}
 		WorkStart = FPlatformTime::Seconds();
 		WorkLength = Step.WorkSeconds;
@@ -616,7 +790,7 @@ void ATDCrewMember::StopEscort()
 	bEscortMoving = false;
 	if (!bOnTask)
 	{
-		WalkTo(HomeLocation, 160.f, [this]() { SetBasePose(HomeLocation, BaseRotation); PlayClip(IdleAnim); });
+		WalkTo(HomeLocation, WalkClipSpeedCmPerSec, [this]() { SetBasePose(HomeLocation, BaseRotation); PlayClip(IdleAnim); });
 	}
 }
 
@@ -641,12 +815,13 @@ void ATDCrewMember::StepEscort(float DeltaSeconds)
 	const bool bMove = bEscortMoving ? Distance > 60.f : Distance > 260.f; // hysteresis: no jitter at the edge
 	if (bMove)
 	{
-		const float Speed = Distance > 1500.f ? 380.f : (Distance > 600.f ? 220.f : 140.f);
-		if (!bEscortMoving)
-		{
-			PlayClip(WalkAnim, Speed / 140.f);
-		}
+		// Escort pace [DESIGNER VALUE]: 130 near, 150 mid; the fast catch-up only while the buddy is off screen, so
+		// nobody sees a 4x walk (above about 109 cm/s is game pace, faster than a suited walk derived from Apollo).
+		const bool bSeen = Suit && Suit->WasRecentlyRendered(0.25f);
+		const float Speed = Distance > 1500.f ? (bSeen ? 150.f : 380.f) : (Distance > 600.f ? 150.f : 130.f);
+		PlayClip(WalkAnim, WalkRate(Speed));
 		bEscortMoving = true;
+		UKismetMathLibrary::ResetFloatSpringState(FacingSpring);
 		Flat /= FMath::Max(1.f, Distance);
 		const float Step = FMath::Min(Distance, Speed * DeltaSeconds);
 		BaseLocation += Flat * Step;
@@ -659,8 +834,7 @@ void ATDCrewMember::StepEscort(float DeltaSeconds)
 			PlayClip(IdleAnim);
 		}
 		bEscortMoving = false;
-		const FVector ToPlayer = Target->GetActorLocation() - BaseLocation;
-		BaseRotation.Yaw = FMath::FixedTurn(BaseRotation.Yaw, ToPlayer.Rotation().Yaw - SuitForwardYaw, 120.f * DeltaSeconds);
+		FaceToward(Target->GetActorLocation(), DeltaSeconds, 20.f);
 	}
 	BaseLocation.Z = GroundZ(BaseLocation) + FeetOffset;
 	SetActorLocationAndRotation(BaseLocation, BaseRotation);

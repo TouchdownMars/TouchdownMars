@@ -6,6 +6,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "Kismet/KismetMathLibrary.h"
 #include "TDAstronautCharacter.generated.h"
 
 class UCameraComponent;
@@ -150,6 +151,13 @@ private:
 	float Kick = 0.f;         // camera kick after a hit
 	float BeatPulse = 0.f;
 	float SyncTimer = 0.f;
+	// A3: springs that give the tool weight (lag on turns, lean on side steps, dip on landing).
+	struct FToolSprings { float Yaw = 0.f, Pitch = 0.f, Roll = 0.f, Dip = 0.f; };
+	FToolSprings ToolSpring;
+	FFloatSpringState YawSpring, PitchSpring, RollSpring, DipSpring;
+	FRotator LastControl = FRotator::ZeroRotator;
+	float BobPhase = 0.f;
+	virtual void Landed(const FHitResult& Hit) override;
 	double StationPingTime = -100.0;
 	/** Your planned task whose site is within reach (none if far). */
 	FName NearbyOwnTask() const;

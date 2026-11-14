@@ -92,6 +92,13 @@ private:
 	float Time = 0.f;
 	float BeatFlash = 0.f;
 	FVector MovingStart = FVector::ZeroVector;
+	// A5: ApplyVisual sets targets; Tick eases the parts there (the object changes smoothly on every beat).
+	FTransform MovingTarget;
+	FTransform ExtraTarget;
+	bool bHasTargets = false;
+	UPROPERTY() TObjectPtr<UStaticMeshComponent> ScanBar;
+	float DustGravity = 300.f;
+	float ScanSweep = 0.f;
 	FVector ExtraScale = FVector::OneVector;
 };
 

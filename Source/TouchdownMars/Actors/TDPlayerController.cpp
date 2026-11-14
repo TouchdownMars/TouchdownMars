@@ -1,6 +1,8 @@
 // Copyright 2026 Team Touchdown. Licensed under the Apache License, Version 2.0.
 
 #include "Actors/TDPlayerController.h"
+#include "EngineUtils.h"
+#include "Actors/TDSceneActors.h"
 
 #include "UI/TDDesignRoom.h"
 #include "UI/TDBaseComputer.h"
@@ -342,7 +344,29 @@ void ATDPlayerController::HandleTransitDone()
 	HideDesignScreen();
 	UE_LOG(LogTouchdownMars, Display, TEXT("Design: landed, surface mission running"));
 #if !UE_BUILD_SHIPPING
-	if (FParse::Param(FCommandLine::Get(), TEXT("TDEventTest")))
+	if (FParse::Param(FCommandLine::Get(), TEXT("TDCrewCam")))
+	{
+		// Dev: a camera that follows a crew member who is working outside (animation checks).
+		static FTimerHandle CrewCamTimer;
+		GetWorldTimerManager().SetTimer(CrewCamTimer, FTimerDelegate::CreateWeakLambda(this, [this]()
+		{
+			ATDCrewMember* Pick = nullptr;
+			for (TActorIterator<ATDCrewMember> It(GetWorld()); It; ++It)
+			{
+				if (It->IsOnTask() && !It->IsInside() && !It->IsWalking()) { Pick = *It; break; }
+			}
+			if (!Pick) { return; }
+			static TWeakObjectPtr<ACameraActor> Cam;
+			if (!Cam.IsValid()) { Cam = GetWorld()->SpawnActor<ACameraActor>(); }
+			const FVector At = Pick->GetActorLocation() + FVector(0.f, 0.f, 90.f);
+			const FVector From = At + FVector(380.f, 320.f, 220.f);
+			Cam->SetActorLocationAndRotation(From, (At - From).Rotation());
+			UE_LOG(LogTouchdownMars, Display, TEXT("CrewCam: %s at %s, camera %s"), *Pick->GetName(), *At.ToCompactString(), *From.ToCompactString());
+			Cam->GetCameraComponent()->SetFieldOfView(60.f);
+			SetViewTarget(Cam.Get());
+		}), 0.5f, true, 4.f);
+	}
+		if (FParse::Param(FCommandLine::Get(), TEXT("TDEventTest")))
 	{
 		// Skip phases until an event card is drawn, then stand at Mission Control with it open (decision check).
 		GetWorldTimerManager().SetTimer(PadTestTimer, FTimerDelegate::CreateWeakLambda(this, [this]()

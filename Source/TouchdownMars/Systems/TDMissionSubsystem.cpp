@@ -91,6 +91,7 @@ bool UTDMissionSubsystem::StartMission(ETDAgeBand Band, int32 Seed)
 	Band = ETDAgeBand::Commander;
 	RunPhases.Reset();
 	PhaseFinishedTasks.Reset();
+	ShownOnce.Reset();
 	FString Error;
 	if (!LoadTables(Error) || !UTDMissionRules::MakeConfig(PhasesTable, AgeBandsTable, ConstantsTable, Band, Config, Error))
 	{
@@ -954,7 +955,7 @@ void UTDMissionSubsystem::SetAllRolesGo()
 	OnDesignChanged.Broadcast();
 }
 
-// ---------------------------------------------------------------- Base operations (gdd.md "Base operations")
+// ---------------------------------------------------------------- Base operations
 
 namespace
 {
@@ -1210,6 +1211,7 @@ bool UTDMissionSubsystem::RunPhase()
 			Step.WorkSeconds = UTDOps::TaskHours(*Row, ConstantsTable) * SecondsPerHour;
 			Step.bInside = Site->bInside;
 			Step.Status = GetText(Row->NameKey);
+			Step.TaskId = Id;
 			At = SitePos;
 		}
 		const FVector Home = Actor->GetHomeLocation();
@@ -1407,10 +1409,30 @@ void UTDMissionSubsystem::RefreshOpsScene()
 		}
 		// A deployed part shows only when the crew has done its task (and the design brought it).
 		const bool bShow = bOpsShow && (!bDesignTagged || bDesignShow);
+		// A10: a part that appears during play rises from 80 cm below into place (not on load). [DESIGNER VALUE]
+		const bool bFirstShow = bShow && !ShownOnce.Contains(Actor);
+		if (bShow)
+		{
+			ShownOnce.Add(Actor);
+		}
+		const bool bAlreadyRising = Risers.ContainsByPredicate([Actor](const FRiser& R) { return R.Actor.Get() == Actor; });
+		if (bFirstShow && !bAlreadyRising && Actor->IsHidden() && bOpsSceneReady && !IsReduceMotion() && Actor->GetRootComponent())
+		{
+			Actor->GetRootComponent()->SetMobility(EComponentMobility::Movable);
+			FRiser& Riser = Risers.AddDefaulted_GetRef();
+			Riser.Actor = Actor;
+			Riser.Final = Actor->GetActorLocation();
+			Actor->SetActorLocation(Riser.Final - FVector(0.f, 0.f, 80.f));
+			if (!World->GetTimerManager().IsTimerActive(RiserTimer))
+			{
+				World->GetTimerManager().SetTimer(RiserTimer, FTimerDelegate::CreateUObject(this, &UTDMissionSubsystem::StepRisers), 1.f / 30.f, true);
+			}
+		}
 		Actor->SetActorHiddenInGame(!bShow);
 		Actor->SetActorEnableCollision(bShow);
 		(bShow ? Shown : Hidden) += 1;
 	}
+	bOpsSceneReady = true;
 	WalkGrid.Reset(); // deployed parts change where the crew can walk
 	UE_LOG(LogTouchdownMars, Display, TEXT("Ops: scene %d deployed parts shown, %d waiting"), Shown, Hidden);
 }
@@ -1854,3 +1876,30 @@ bool UTDMissionSubsystem::IsLookInverted() const { return Settings && Settings->
 void UTDMissionSubsystem::SetLookInverted(bool bInvert) { if (Settings) { Settings->bInvertLookY = bInvert; SaveSettings(); } }
 bool UTDMissionSubsystem::IsTapToWork() const { return Settings && Settings->bTapToWork; }
 void UTDMissionSubsystem::SetTapToWork(bool bTap) { if (Settings) { Settings->bTapToWork = bTap; SaveSettings(); } }
+
+void UTDMissionSubsystem::StepRisers()
+{
+	for (int32 Index = Risers.Num() - 1; Index >= 0; --Index)
+	{
+		FRiser& Riser = Risers[Index];
+		AActor* Actor = Riser.Actor.Get();
+		if (!Actor)
+		{
+			Risers.RemoveAt(Index);
+			continue;
+		}
+		Riser.Age += 1.f / 30.f;
+		const float A = FMath::Clamp(Riser.Age / 1.5f, 0.f, 1.f);
+		const float Ease = 1.f - FMath::Pow(1.f - A, 3.f); // slow out: rises fast, settles gently
+		Actor->SetActorLocation(Riser.Final - FVector(0.f, 0.f, 80.f * (1.f - Ease)));
+		if (A >= 1.f)
+		{
+			Actor->SetActorLocation(Riser.Final);
+			Risers.RemoveAt(Index);
+		}
+	}
+	if (Risers.Num() == 0 && GetWorld())
+	{
+		GetWorld()->GetTimerManager().ClearTimer(RiserTimer);
+	}
+}

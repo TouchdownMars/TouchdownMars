@@ -1,10 +1,11 @@
 // Copyright 2026 Team Touchdown. Licensed under the Apache License, Version 2.0.
-// Greybox scene actors for L_TD_Outpost (level-design.md §3). No Tick: delegates and short timers only.
+// Greybox scene actors for L_TD_Outpost. No Tick: delegates and short timers only.
 
 #pragma once
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "Kismet/KismetMathLibrary.h"
 #include "Model/TDTypes.h"
 #include "TDSceneActors.generated.h"
 
@@ -56,7 +57,7 @@ class TOUCHDOWNMARS_API ATDPowerUnit : public AActor
 public:
 	ATDPowerUnit();
 
-	/** Line radius scale per cell given (design.md EnergyLine_Width: thicker per cell, thin minimum). */
+	/** Line radius scale per cell given (thicker per cell, thin minimum). */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Touchdown Mars")
 	float ThicknessPerCell = 0.06f;
 
@@ -93,6 +94,8 @@ struct FTDCrewStep
 	float WorkSeconds = 0.f;
 	bool bInside = false;
 	FText Status;
+	/** The task worked at this step (picks the work pose and tool). */
+	FName TaskId;
 };
 
 /** Crew member placeholder (BP_TD_FlightEngineer etc. derive from this): reacts to its system's level. */
@@ -134,6 +137,11 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Touchdown Mars|Suit")
 	float SuitHeight = 180.f;
 
+	/** Ground speed of the walk clip at play rate 1 (cm/s): the walk play rate is path speed / this, so the feet do
+	 *  not slide. [DESIGNER VALUE, measured from the Tripo walk clip at the 180 cm scale, +-5 %] */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Touchdown Mars|Suit")
+	float WalkClipSpeedCmPerSec = 97.f;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Touchdown Mars|Suit")
 	TObjectPtr<UAnimSequence> IdleAnim;
 
@@ -166,10 +174,12 @@ public:
 	/** Walks through the given points (from the base path graph), then calls OnArrived. */
 	void WalkPath(const TArray<FVector>& Points, float SpeedCmPerSec, TFunction<void()> OnArrived = nullptr);
 	void StopWalking();
+	/** Walk clip play rate for a path speed (feet planted). */
+	float WalkRate(float SpeedCmPerSec) const;
 	bool IsWalking() const { return PathPoints.Num() > 0; }
 
-	/** Plays the work clip on the spot, facing LookAt. */
-	void WorkAt(const FVector& LookAt);
+	/** Plays the work pose for the task on the spot, facing LookAt, with the task's tool in the right hand. */
+	void WorkAt(const FVector& LookAt, FName TaskId = NAME_None);
 
 	/** Indoor task: the suit is hidden while the crew member is inside a module. */
 	void SetInside(bool bInside);
@@ -268,6 +278,20 @@ private:
 	FRotator BaseRotation;
 	FTimerHandle IdleTimer;
 	float IdleTime = 0.f;
+
+	// A6: a sub-range of the work clip played back and forth (squat for ground work, standing for waist work).
+	bool bWorkRange = false;
+	float WorkRangeStart = 0.f;
+	float WorkRangeEnd = 0.f;
+	void StepWorkRange();
+	// A7: the tool in the right hand while working.
+	UPROPERTY(Transient) TObjectPtr<class UStaticMeshComponent> HandToolA;
+	UPROPERTY(Transient) TObjectPtr<class UStaticMeshComponent> HandToolB;
+	void ShowHandTool(int32 VerbIndex);
+	void HideHandTool();
+	// A8: facing spring (turn the whole suit toward the player or the work, slowly, with a little overshoot).
+	FFloatSpringState FacingSpring;
+	void FaceToward(const FVector& Point, float DeltaSeconds, float ThresholdDegrees);
 	float IdleSeed = 0.f;
 	bool bStaged = false;
 	FTransform PreShotTransform;
