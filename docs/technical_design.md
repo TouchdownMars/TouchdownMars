@@ -2,7 +2,7 @@
 
 > **Canonical design source:** `gdd.md`. This document turns the GDD into a concrete Blueprint / C++ architecture. **Where this document and the GDD disagree, the GDD wins** and this document must be corrected.
 > **Engine target:** Unreal Engine 5.8 (Windows 64-bit).
-> **Companion documents:** `level-design.md` (where things are) and `production_pipeline.md` (build order).
+> **Companion documents:** `gdd.md` (what the game is) and `level-design.md` (where things are).
 
 **Status legend:** `✅ Built` · `🟡 Partial` · `🔲 Not started` · `♻️ Built but must change`
 All systems below are `🔲 Not started`: no project work exists before 14.11.2026 09:00.
@@ -47,7 +47,7 @@ TouchdownMars/
     Data/        DT_TD_*
     Maps/        L_TD_Test, L_TD_Outpost, L_TD_MoonOutpost
     Materials/ Meshes/ VFX/ Audio/ NASA/
-  docs/         gdd.md, design.md, technical_design.md, level-design.md, production_pipeline.md, debug.md, sources.csv
+  docs/         gdd.md, design.md, technical_design.md, level-design.md, cards_check.md, submission.md
 ```
 
 ### 1.2 Core classes

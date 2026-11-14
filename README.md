@@ -77,7 +77,7 @@ Work in progress during the hackathon (14–15 November 2026). Windows and macOS
 | `Data/Source/` | CSV source of truth for every DataTable (mission options, objectives, phases, events, constants, sources, text EN/TR, Jezero weather, DONKI archive, outcome shots) |
 | `Content/TouchdownMars/` | Unreal assets: DataTables, widgets, maps (`L_TD_Outpost`, `L_TD_Test`), materials, sounds, NASA 3D meshes |
 | `Scripts/` | Python editor scripts (data import, UI and level setup, terrain, art, cameras, balance check, sound synthesis) and `package.ps1` |
-| `docs/` | Game design, technical design, level design, production plan, model card, teacher card, project page draft, landing page |
+| `docs/` | Game design, UI design, technical design, level design, event-card fact check, project page draft |
 
 ### Build and run
 

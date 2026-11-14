@@ -294,7 +294,7 @@ Where AI was used:
 - **Game code:** the C++ module (mission design rules, mission rules, tests, design room and debrief screens, DONKI client, scene actors, UI widgets) was written with Claude Code.
 - **Research and data:** Claude Code research agents read the challenge resources, GDC talks and developer postmortems, and NASA data archives (MEDA, RAD, InSight). They extracted the sourced numbers and the archive tables; every number in `constants.csv` keeps its source and page.
 - **Editor scripts and editor work:** the Python scripts in `Scripts/` (data import, level and UI setup, terrain, art, rock scatter and camera setup, balance check, sound synthesis, sound import) and the packaging script were written with Claude Code. Claude Code also drove the Unreal Editor through Unreal MCP, VibeUE and our StraySpark MCP fork to build the levels, UMG widget layouts, DataTables, input assets and cameras.
-- **Documents:** the design documents, this project text, the README, the model card, the teacher card and the landing page were drafted with Claude Code from the team's research and decisions.
+- **Documents:** the design documents, this project text and the README were drafted with Claude Code from the team's research and decisions.
 - **Card research and game text:** the event-card research drafts and the English and Turkish card and UI text in `Data/Source/text.csv` were drafted with Claude Code. Every card fact was checked against its source page; the source quotes are logged in `docs/cards_check.md`.
 
 Where AI was not used:
@@ -317,7 +317,7 @@ Where AI was not used:
 - **Not in the current build:** the Warn-Gather-Work emergency ritual, optional science tasks, the prediction and recall questions, Moon mode, crew animations, music and voice.
 - **Seed sharing:** the seed is shown on the report and replayed with "Fly again", but cannot be typed in yet.
 - **On-screen notes:** "Not endorsed by NASA." and the time-compression note are the first lines of the in-game Source Panel.
-- **Time and scale.** 31 sols are played in about 5-8 minutes and Mission Control delay is shown as phases, not minutes; level rules, demands and thresholds are designer values (see `docs/model_card.md`).
+- **Time and scale.** 31 sols are played in about 5-8 minutes and Mission Control delay is shown as phases, not minutes; level rules, demands and thresholds are designer values (each row of `Data/Source/constants.csv` is marked as a NASA value with its source or as a game value).
 - **SAC21 is an analysis option**, labelled "NASA plan" in the game; it is not a committed NASA mission.
 - **Platforms.** 64-bit Windows and macOS (Apple silicon) downloads; no browser version. The latest test build (Package 4) is 642 MB. TODO: final package size and SHA-256 checksum.
 

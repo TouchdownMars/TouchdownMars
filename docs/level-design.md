@@ -1,7 +1,7 @@
 # Touchdown Mars: First Light · Level Design Document (level-design.md)
 
 > **Canonical design source:** `gdd.md` (Level Design, Themes, Game Flow). This document turns the GDD levels into buildable detail. **Where this document and the GDD disagree, the GDD wins.**
-> **Companion documents:** `technical_design.md` and `production_pipeline.md`.
+> **Companion documents:** `gdd.md` and `technical_design.md`.
 
 **World overview:** `L_TD_Test` (greybox test map) → `L_TD_Outpost` (Mars, the only required level) → `L_TD_MoonOutpost` (optional, cut first). The game is one fixed view; "levels" of play are the six mission phases inside `L_TD_Outpost`.
 
