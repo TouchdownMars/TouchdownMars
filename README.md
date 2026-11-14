@@ -77,7 +77,6 @@ Work in progress during the hackathon (14–15 November 2026). Windows and macOS
 | `Data/Source/` | CSV source of truth for every DataTable (mission options, objectives, phases, events, constants, sources, text EN/TR, Jezero weather, DONKI archive, outcome shots) |
 | `Content/TouchdownMars/` | Unreal assets: DataTables, widgets, maps (`L_TD_Outpost`, `L_TD_Test`), materials, sounds, NASA 3D meshes |
 | `Scripts/` | Python editor scripts (data import, UI and level setup, terrain, art, cameras, balance check, sound synthesis) and `package.ps1` |
-| `docs/` | Game design, UI design, technical design, level design, event-card fact check, project page draft |
 
 ### Build and run
 
@@ -101,7 +100,7 @@ Scripts in this order (inside the editor, Play-in-Editor stopped): `setup_outpos
 
 ## Data and third-party assets
 
-Full list with URLs, retrieval dates and licences: `Data/Source/sources.csv` and `docs/submission.md` (References).
+Full list with URLs, retrieval dates and licences: `Data/Source/sources.csv`.
 
 **NASA data used in the game**
 - NASA CCMC DONKI API: live and archived space weather (Today's Sun panel).
@@ -109,7 +108,7 @@ Full list with URLs, retrieval dates and licences: `Data/Source/sources.csv` and
 - NASA 3D Resources: Habitat Demonstration Unit, Z2 Spacesuit, Space Exploration Vehicle, RASSOR and Tall Dish meshes, with every texture removed (no insignia).
 - Mission design numbers: launch vehicle payloads (SpaceX), NASA launch contract values, Kilopower and Fission Surface Power, MMRTG, NSSDC Mars fact sheet, InSight power, MRO relay, Deep Space Network, MSL and Mars 2020 press kits, Perseverance and Curiosity instrument pages, NASA OIG reports, the NASA human Mars landing study (NTRS), NASA BVAD Rev 2.
 - NASA PDS archives: Perseverance MEDA (Jezero weather), Curiosity RAD Level 2 (daily dose, September 2017), InSight Marsquake Service catalogue V14 (S1222a).
-- NASA/JPL Horizons: Earth–Mars light time. NASA BVAD, OCHMO briefs, Veggie, MOXIE, SAC21 and mission news pages for the numbers and the 14 event cards (see `docs/cards_check.md`).
+- NASA/JPL Horizons: Earth–Mars light time. NASA BVAD, OCHMO briefs, Veggie, MOXIE, SAC21 and mission news pages for the numbers and the 14 event cards.
 
 **Third-party assets and tools**
 - Unreal Engine 5.8 (Epic Games, Unreal Engine EULA).
@@ -127,12 +126,11 @@ No NASA logo, flag, insignia or mission patch is used anywhere in the game.
 The game concept, the design decisions and the choice of NASA sources are the team's. We used AI tools as follows:
 
 - **ChatGPT and Claude** were used to analyse the challenge documents and to set up this repository (`.gitattributes`, `.gitignore`, first README).
-- **Anthropic Claude (Claude Code, an AI coding assistant)** wrote the C++ code, the Python editor scripts and the packaging script, built the levels, widgets and DataTables in the Unreal Editor through MCP editor tooling, and drafted the documents, the card research and the English and Turkish game text from the team's research and decisions. Every card fact was checked against its source page (`docs/cards_check.md`).
+- **Anthropic Claude (Claude Code, an AI coding assistant)** wrote the C++ code, the Python editor scripts and the packaging script, built the levels, widgets and DataTables in the Unreal Editor through MCP editor tooling, and drafted the documents, the card research and the English and Turkish game text from the team's research and decisions. Every card fact was checked against its source page.
 - **Tripo AI** generated seven 3D models from text prompts written by Claude Code and run in the team's Tripo Studio account: ascent vehicle, fission power unit, greenhouse dome, plant rack, cargo crates, shelter hatch and the rigged crew astronaut (retopologised and auto-rigged with six preset animations). They are listed in `sources.csv` with `bIsAIGenerated=True`.
 - **Google Gemini** generated the 25 design-room illustrations (option cards, objective cards and the cold open of the fictional Ares-0 crew) from prompts written by Claude Code, in one locked style that matches the UI palette. The team checked every image at full size for logos, insignia, flags, mission patches, text and faces and rejected any that had them. Every card carries a visible "AI illustration (Gemini)" tag. Real NASA photos are not used for fictional scenes.
 - **Not AI-generated:** the current sounds (team script), the NASA data and meshes, and the Megascans rocks. No AI-generated audio or video is used.
 
-Details: `docs/submission.md`, section "Use of Artificial Intelligence (SI)".
 
 ## License
 
