@@ -356,6 +356,10 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Touchdown Mars|Settings")
 	bool IsReduceMotion() const;
 
+	/** Crew walking path on the base walk grid (built on first use, rebuilt when deployed parts change): level cm
+	 *  points after From, ending at To. Empty when no path (the caller walks straight or stays). */
+	TArray<FVector> FindCrewPath(const FVector& From, const FVector& To);
+
 	UFUNCTION(BlueprintCallable, Category = "Touchdown Mars|Settings")
 	void SetOutcomeShotsEnabled(bool bOn);
 

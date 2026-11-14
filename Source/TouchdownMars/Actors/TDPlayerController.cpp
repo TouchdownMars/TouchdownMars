@@ -353,6 +353,33 @@ void ATDPlayerController::HandleTransitDone()
 	HideDesignScreen();
 	UE_LOG(LogTouchdownMars, Display, TEXT("Design: landed, surface mission running"));
 #if !UE_BUILD_SHIPPING
+	if (FParse::Param(FCommandLine::Get(), TEXT("TDIdleCam")))
+	{
+		// Dev: watch the idle crew (idle life checks). Every 8 s the camera moves to the next crew member, and a
+		// screenshot is taken 4 s after each move (Saved/Screenshots).
+		static FTimerHandle IdleCamTimer;
+		static int32 IdleCamTick = 0;
+		GetWorldTimerManager().SetTimer(IdleCamTimer, FTimerDelegate::CreateWeakLambda(this, [this]()
+		{
+			TArray<ATDCrewMember*> Crew;
+			for (TActorIterator<ATDCrewMember> It(GetWorld()); It; ++It) { Crew.Add(*It); }
+			if (Crew.Num() == 0) { return; }
+			ATDCrewMember* Pick = Crew[(IdleCamTick / 16) % Crew.Num()];
+			static TWeakObjectPtr<ACameraActor> Cam;
+			if (!Cam.IsValid()) { Cam = GetWorld()->SpawnActor<ACameraActor>(); }
+			const FVector At = Pick->GetActorLocation() + FVector(0.f, 0.f, 90.f);
+			const FVector From = At + FVector(-520.f, 420.f, 260.f);
+			Cam->SetActorLocationAndRotation(From, (At - From).Rotation());
+			Cam->GetCameraComponent()->SetFieldOfView(55.f);
+			SetViewTarget(Cam.Get());
+			if (IdleCamTick % 16 == 8)
+			{
+				UE_LOG(LogTouchdownMars, Display, TEXT("IdleCam: %s at %s"), *Pick->GetName(), *At.ToCompactString());
+				ConsoleCommand(TEXT("shot"));
+			}
+			++IdleCamTick;
+		}), 0.5f, true, 3.f);
+	}
 	if (FParse::Param(FCommandLine::Get(), TEXT("TDCrewCam")))
 	{
 		// Dev: a camera that follows a crew member who is working outside (animation checks).

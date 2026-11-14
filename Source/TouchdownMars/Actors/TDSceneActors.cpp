@@ -8,6 +8,7 @@
 #include "Engine/StaticMesh.h"
 #include "Kismet/GameplayStatics.h"
 #include "Materials/MaterialInterface.h"
+#include "LandscapeProxy.h"
 
 #include "Actors/TDSystemModule.h"
 #include "Animation/AnimSequence.h"
@@ -159,7 +160,9 @@ void ATDPowerUnit::HandleAllocation(const FTDMissionState& State)
 
 ATDCrewMember::ATDCrewMember()
 {
-	PrimaryActorTick.bCanEverTick = false;
+	// Movement runs every frame (a 30 Hz timer made walking judder against the render rate).
+	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bStartWithTickEnabled = true;
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> Capsule(TEXT("/Engine/BasicShapes/Cylinder.Cylinder"));
 	Body = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Body"));
 	RootComponent = Body;
@@ -176,6 +179,8 @@ ATDCrewMember::ATDCrewMember()
 	Suit->SetupAttachment(Body);
 	Suit->SetUsingAbsoluteScale(true);
 	Suit->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	// Bones refresh even before the first render, so no frame of the bind (T) pose shows in the opening shots.
+	Suit->VisibilityBasedAnimTickOption = EVisibilityBasedAnimTickOption::AlwaysTickPoseAndRefreshBones;
 }
 
 void ATDCrewMember::OnConstruction(const FTransform& Transform)
@@ -188,6 +193,12 @@ void ATDCrewMember::OnConstruction(const FTransform& Transform)
 	}
 	Suit->SetSkeletalMesh(SuitMesh);
 	Suit->SetVisibility(SuitMesh != nullptr);
+	if (SuitMesh && IdleAnim)
+	{
+		// Construction-time single-node setup: the editor viewport and the first game frame show the idle pose.
+		Suit->SetAnimationMode(EAnimationMode::AnimationSingleNode);
+		Suit->OverrideAnimationData(IdleAnim, true, true, 0.f, 1.f);
+	}
 	Body->SetVisibility(SuitMesh == nullptr, false);
 	if (SuitMesh)
 	{
@@ -256,11 +267,33 @@ float ATDCrewMember::WalkRate(float SpeedCmPerSec) const
 void ATDCrewMember::BeginPlay()
 {
 	Super::BeginPlay();
+	for (TActorIterator<ALandscapeProxy> It(GetWorld()); It; ++It)
+	{
+		Landscapes.Add(*It);
+	}
 	HomeLocation = GetActorLocation();
-	FeetOffset = GetActorLocation().Z - GroundZ(GetActorLocation());
+	HomeRotation = GetActorRotation();
+	FeetOffset = 0.f;
+	const float Ground = GroundZ(HomeLocation);
+	FeetOffset = HomeLocation.Z - Ground;
+	if (FMath::Abs(FeetOffset) < 40.f)
+	{
+		HomeLocation.Z = Ground; // feet on the regolith (suit pivot is at the feet)
+		FeetOffset = 0.f;
+	}
 	IdleSeed = static_cast<float>(static_cast<int32>(System)) * 2.1f; // fixed phase per crew member, no random stream
-	SetBasePose(GetActorLocation(), GetActorRotation());
-	GetWorldTimerManager().SetTimer(IdleTimer, this, &ATDCrewMember::StepIdle, 1.f / 30.f, true);
+	IdleRand.Initialize(static_cast<int32>(FCrc::StrCrc32(*GetName())));
+	IdleAct = EIdleAct::Relax;
+	IdleActUntil = IdleRand.FRandRange(1.5f, 6.f); // staggered first decision: the crew never move in lockstep
+	SetBasePose(HomeLocation, HomeRotation);
+	if (SuitMesh && IdleAnim)
+	{
+		PlayClip(IdleAnim);
+		Suit->SetPosition(IdleRand.FRand() * IdleAnim->GetPlayLength(), false);
+		Suit->TickAnimation(0.f, false);
+		Suit->RefreshBoneTransforms();
+	}
+	UE_LOG(LogTemp, Display, TEXT("Crew %s: home %s, feet offset %.1f cm"), *GetName(), *HomeLocation.ToCompactString(), FeetOffset);
 	if (UTDMissionSubsystem* Mission = GetWorld()->GetSubsystem<UTDMissionSubsystem>())
 	{
 		Mission->OnLevelsChanged.AddDynamic(this, &ATDCrewMember::HandleLevels);
@@ -273,6 +306,12 @@ void ATDCrewMember::BeginPlay()
 		Director->OnShotStarted.AddDynamic(this, &ATDCrewMember::HandleShotStarted);
 		Director->OnShotEnded.AddDynamic(this, &ATDCrewMember::HandleShotEnded);
 	}
+}
+
+void ATDCrewMember::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+	StepIdle(FMath::Min(DeltaSeconds, 0.1f)); // a hitch never throws a crew member across the map
 }
 
 void ATDCrewMember::HandleShotStarted(FName ShotId, FName CameraTag, int32 OutcomeState)
@@ -293,6 +332,22 @@ void ATDCrewMember::HandleShotStarted(FName ShotId, FName CameraTag, int32 Outco
 			{
 				PreShotTransform = FTransform(BaseRotation, BaseLocation);
 				bStaged = true;
+				if (IsWalking() && !bOnTask)
+				{
+					StopWalking();
+				}
+				if (bWorkRange && !bOnTask)
+				{
+					bWorkRange = false;
+					HideHandTool();
+				}
+				if (!bOnTask)
+				{
+					IdleAct = EIdleAct::Relax;
+					IdleActUntil = IdleTime + 3.f;
+					ChatPartner.Reset();
+					IdleClaim = FVector::ZeroVector;
+				}
 				SetBasePose(It->GetActorLocation(), It->GetActorRotation());
 				PlayClip(It->ActorHasTag(TEXT("Anim_Walk")) ? WalkAnim.Get() : (It->ActorHasTag(TEXT("Anim_Work")) ? WorkAnim.Get() : IdleAnim.Get()));
 				return;
@@ -313,11 +368,15 @@ void ATDCrewMember::HandleShotEnded(FName ShotId)
 
 void ATDCrewMember::HandlePhaseStarted(ETDPhase Phase)
 {
-	if (bOnTask)
+	if (bOnTask || bStaged || IsEscorting())
 	{
 		return;
 	}
-	SetBasePose(HomeLocation, BaseRotation);
+	// A new phase brings everyone back to their station. Seen crew walk there; unseen crew are simply placed.
+	if (FVector::Dist2D(BaseLocation, HomeLocation) > 60.f)
+	{
+		StartIdleAct(EIdleAct::ReturnHome);
+	}
 }
 
 void ATDCrewMember::SetBasePose(const FVector& Location, const FRotator& Rotation)
@@ -328,36 +387,54 @@ void ATDCrewMember::SetBasePose(const FVector& Location, const FRotator& Rotatio
 	SetActorLocationAndRotation(Location, Rotation);
 }
 
-void ATDCrewMember::StepIdle()
+void ATDCrewMember::StepIdle(float DeltaSeconds)
 {
-	IdleTime += 1.f / 30.f;
+	IdleTime += DeltaSeconds;
 	StepWorkRange();
+	if (ClipSwapAt >= 0.f && IdleTime >= ClipSwapAt && !IsWalking())
+	{
+		ClipSwapAt = -1.f;
+		PlayClip(Current == ETDCrewBehaviour::Worried ? WorriedAnim.Get() : IdleAnim.Get());
+	}
 	if (IsWalking())
 	{
-		StepWalk(1.f / 30.f);
+		StepWalk(DeltaSeconds);
 		return;
 	}
 	if (IsEscorting() && !bOnTask)
 	{
-		StepEscort(1.f / 30.f);
+		StepEscort(DeltaSeconds);
 		return;
 	}
 	const UTDMissionSubsystem* Mission = GetWorld()->GetSubsystem<UTDMissionSubsystem>();
-	// A8: an idle crew member at home turns the whole suit toward the player when they come close (suits limit
+	const bool bReduce = Mission && Mission->IsReduceMotion();
+	if (!bReduce)
+	{
+		StepIdleLife(DeltaSeconds);
+		if (IsWalking())
+		{
+			return; // idle life just set off somewhere
+		}
+	}
+	// A8: an idle crew member at rest turns the whole suit toward the player when they come close (suits limit
 	// head turns, so suited people turn the torso). [DESIGNER VALUE] 600 cm, 20 degrees.
-	if (SuitMesh && !bOnTask && !bInsideModule && !bStaged && !(Mission && Mission->IsReduceMotion()))
+	if (SuitMesh && !bOnTask && !bInsideModule && !bStaged && !bReduce && IdleAct == EIdleAct::Relax)
 	{
 		if (const APawn* Player = UGameplayStatics::GetPlayerPawn(this, 0); Player && FVector::Dist2D(Player->GetActorLocation(), BaseLocation) < 600.f)
 		{
-			FaceToward(Player->GetActorLocation(), 1.f / 30.f, 20.f);
+			FaceToward(Player->GetActorLocation(), DeltaSeconds, 20.f);
+		}
+		else if (!IdleFocus.IsZero())
+		{
+			FaceToward(IdleFocus, DeltaSeconds, 6.f); // settle back to the station's facing
 		}
 	}
-	if ((Mission && Mission->IsReduceMotion()) || SuitMesh)
+	if (bReduce || SuitMesh)
 	{
 		SetActorLocationAndRotation(BaseLocation, BaseRotation);
 		if (SuitMesh && Mission)
 		{
-			Suit->bPauseAnims = Mission->IsReduceMotion();
+			Suit->bPauseAnims = bReduce;
 		}
 		return;
 	}
@@ -424,6 +501,25 @@ void ATDCrewMember::PlayBehaviour(ETDCrewBehaviour Behaviour)
 		OnBehaviour(Behaviour);
 		return; // busy with a task: keep walking/working where they are
 	}
+	const bool bIdleLifeBehaviour = Behaviour == ETDCrewBehaviour::Working || Behaviour == ETDCrewBehaviour::Worried;
+	if (bIdleLifeBehaviour && SuitMesh && !bStaged && (IsWalking() || IsEscorting() || (IdleAct != EIdleAct::Relax && IdleAct != EIdleAct::LookAround)))
+	{
+		OnBehaviour(Behaviour); // idle life keeps its activity and picks the matching clip at the next one
+		return;
+	}
+	if (!bIdleLifeBehaviour && !bStaged && !IsEscorting())
+	{
+		if (IsWalking())
+		{
+			StopWalking();
+		}
+		if (bWorkRange)
+		{
+			bWorkRange = false;
+			HideHandTool();
+		}
+		IdleAct = EIdleAct::Relax;
+	}
 	switch (Behaviour)
 	{
 	case ETDCrewBehaviour::Worried: PlayClip(WorriedAnim); break;
@@ -432,9 +528,20 @@ void ATDCrewMember::PlayBehaviour(ETDCrewBehaviour Behaviour)
 	case ETDCrewBehaviour::AtLander: PlayClip(FarewellAnim); break;
 	default: PlayClip(IdleAnim); break;
 	}
-	if (!bStaged)
+	if (!bStaged && !IsEscorting())
 	{
-		SetBasePose(Location, BaseRotation);
+		const bool bHomeBehaviour = bIdleLifeBehaviour || Behaviour == ETDCrewBehaviour::Alarm;
+		if (bHomeBehaviour && SuitMesh && FVector::Dist2D(BaseLocation, HomeLocation) > 60.f)
+		{
+			if (Behaviour == ETDCrewBehaviour::Alarm)
+			{
+				StartIdleAct(EIdleAct::ReturnHome); // back to the station, on foot (no pop)
+			}
+		}
+		else if (!bHomeBehaviour || FVector::Dist2D(BaseLocation, Location) < 60.f)
+		{
+			SetBasePose(FVector(Location.X, Location.Y, bHomeBehaviour ? HomeLocation.Z : GroundZ(Location) + FeetOffset), BaseRotation);
+		}
 	}
 	OnBehaviour(Behaviour);
 }
@@ -443,10 +550,30 @@ void ATDCrewMember::PlayBehaviour(ETDCrewBehaviour Behaviour)
 
 float ATDCrewMember::GroundZ(const FVector& At) const
 {
+	// Feet follow the terrain only: a trace on WorldStatic also hit crates, rocks and module roofs, which lifted the
+	// crew into the air. The highest landscape under the point wins (the near DEM sits on the far terrain).
+	bool bFound = false;
+	float Best = 0.f;
+	for (const TWeakObjectPtr<ALandscapeProxy>& Landscape : Landscapes)
+	{
+		if (const ALandscapeProxy* Proxy = Landscape.Get())
+		{
+			const TOptional<float> Z = Proxy->GetHeightAtLocation(At);
+			if (Z.IsSet() && (!bFound || Z.GetValue() > Best))
+			{
+				Best = Z.GetValue();
+				bFound = true;
+			}
+		}
+	}
+	if (bFound)
+	{
+		return Best;
+	}
 	FHitResult Hit;
 	FCollisionQueryParams Params(TEXT("TDCrewGround"), false, this);
-	const FVector Start(At.X, At.Y, At.Z + 3000.f);
-	const FVector End(At.X, At.Y, At.Z - 6000.f);
+	const FVector Start(At.X, At.Y, At.Z + 300.f);
+	const FVector End(At.X, At.Y, At.Z - 3000.f);
 	if (GetWorld() && GetWorld()->LineTraceSingleByObjectType(Hit, Start, End, FCollisionObjectQueryParams(ECC_WorldStatic), Params))
 	{
 		return Hit.ImpactPoint.Z;
@@ -491,7 +618,18 @@ void ATDCrewMember::WalkPath(const TArray<FVector>& Points, float SpeedCmPerSec,
 	PathPoints.Add(BaseLocation);
 	PathPoints.Append(Points);
 	PathIndex = 1;
-	PlayClip(WalkAnim, WalkRate(WalkSpeed));
+	// Turn in place first when the first leg points well away from the facing (no moonwalk, no sideways slide).
+	bTurningToPath = false;
+	for (int32 Index = 1; SuitMesh && Index < PathPoints.Num(); ++Index)
+	{
+		const FVector To = PathPoints[Index] - BaseLocation;
+		if (To.Size2D() > 40.f)
+		{
+			bTurningToPath = FMath::Abs(FRotator::NormalizeAxis(To.Rotation().Yaw - SuitForwardYaw - BaseRotation.Yaw)) > 35.f;
+			break;
+		}
+	}
+	PlayClip(WalkAnim, bTurningToPath ? 0.5f : WalkRate(WalkSpeed));
 }
 
 void ATDCrewMember::StopWalking()
@@ -499,16 +637,25 @@ void ATDCrewMember::StopWalking()
 	PathPoints.Reset();
 	PathIndex = 0;
 	ArriveCallback = nullptr;
+	bTurningToPath = false;
 	PlayClip(IdleAnim);
 }
 
 void ATDCrewMember::StepWalk(float DeltaSeconds)
 {
+	// Corners: a middle point counts as reached within 40 cm, so the crew round corners instead of stopping dead
+	// on each grid node (Reynolds path following; no exact-equality arrival).
+	while (PathPoints.IsValidIndex(PathIndex) && PathIndex < PathPoints.Num() - 1
+		&& FVector::Dist2D(PathPoints[PathIndex], BaseLocation) < 40.f)
+	{
+		++PathIndex;
+	}
 	if (!PathPoints.IsValidIndex(PathIndex))
 	{
 		TFunction<void()> Done = MoveTemp(ArriveCallback);
 		PathPoints.Reset();
 		PathIndex = 0;
+		bTurningToPath = false;
 		PlayClip(IdleAnim);
 		if (Done)
 		{
@@ -516,15 +663,37 @@ void ATDCrewMember::StepWalk(float DeltaSeconds)
 		}
 		return;
 	}
+	const bool bLast = PathIndex == PathPoints.Num() - 1;
 	const FVector Goal = PathPoints[PathIndex];
-	FVector Flat = FVector(Goal.X - BaseLocation.X, Goal.Y - BaseLocation.Y, 0.f);
+	FVector Flat(Goal.X - BaseLocation.X, Goal.Y - BaseLocation.Y, 0.f);
 	const float Distance = Flat.Size();
-	// A8: slow down over the last 40 cm of the path instead of popping from mid-stride into the idle; the walk
+	if (Distance < 0.5f)
+	{
+		++PathIndex;
+		return;
+	}
+	const FVector Dir = Flat / Distance;
+	const float TargetYaw = Dir.Rotation().Yaw - SuitForwardYaw;
+	UKismetMathLibrary::ResetFloatSpringState(FacingSpring);
+	if (bTurningToPath)
+	{
+		// Suited turn: about 90 degrees a second with small steps, faster in the time-lapse. [DESIGNER VALUE]
+		const float Rate = 90.f * FMath::Max(1.f, WalkSpeed / 100.f);
+		BaseRotation.Yaw = FMath::FixedTurn(BaseRotation.Yaw, TargetYaw, Rate * DeltaSeconds);
+		SetActorLocationAndRotation(BaseLocation, BaseRotation);
+		if (FMath::Abs(FRotator::NormalizeAxis(TargetYaw - BaseRotation.Yaw)) < 20.f)
+		{
+			bTurningToPath = false;
+			if (SuitMesh) { Suit->SetPlayRate(WalkRate(WalkSpeed)); }
+		}
+		return;
+	}
+	// A8: slow down over the last 80 cm (Reynolds arrival) instead of popping from mid-stride into the idle; the walk
 	// play rate follows the eased speed so the feet stay planted. [DESIGNER VALUE]
 	float Speed = WalkSpeed;
-	if (PathIndex == PathPoints.Num() - 1 && Distance < 40.f)
+	if (bLast && Distance < 80.f)
 	{
-		Speed = WalkSpeed * FMath::Clamp(Distance / 40.f, 0.4f, 1.f);
+		Speed = WalkSpeed * FMath::Clamp(Distance / 80.f, 0.45f, 1.f);
 		if (SuitMesh) { Suit->SetPlayRate(WalkRate(Speed)); }
 	}
 	const float Step = Speed * DeltaSeconds;
@@ -537,16 +706,56 @@ void ATDCrewMember::StepWalk(float DeltaSeconds)
 	}
 	else
 	{
-		Flat /= Distance;
-		Next += Flat * Step;
-		// Turn smoothly toward the walking direction (the facing spring starts fresh after the walk).
-		UKismetMathLibrary::ResetFloatSpringState(FacingSpring);
-		const float TargetYaw = Flat.Rotation().Yaw - SuitForwardYaw;
-		BaseRotation.Yaw = FMath::FixedTurn(BaseRotation.Yaw, TargetYaw, 360.f * DeltaSeconds);
+		// Separation: step around colleagues and the player, capped at 30 % of the walking speed.
+		Next += Dir * Step + AvoidPush(Dir) * (0.3f * Step);
+		BaseRotation = FMath::RInterpTo(BaseRotation, FRotator(BaseRotation.Pitch, TargetYaw, BaseRotation.Roll), DeltaSeconds, 7.f);
 	}
-	Next.Z = GroundZ(Next) + FeetOffset;
+	const float TargetZ = GroundZ(Next) + FeetOffset;
+	Next.Z = FMath::Abs(TargetZ - BaseLocation.Z) > 60.f ? TargetZ : FMath::FInterpTo(BaseLocation.Z, TargetZ, DeltaSeconds, 12.f);
 	BaseLocation = Next;
 	SetActorLocationAndRotation(BaseLocation, BaseRotation);
+}
+
+FVector ATDCrewMember::AvoidPush(const FVector& Dir) const
+{
+	FVector Push = FVector::ZeroVector;
+	auto Add = [this, &Push, &Dir](const FVector& Other)
+	{
+		FVector Away(BaseLocation.X - Other.X, BaseLocation.Y - Other.Y, 0.f);
+		const float D = Away.Size();
+		if (D < 1.f || D > 120.f)
+		{
+			return;
+		}
+		Away /= D;
+		if (FVector::DotProduct(-Away, Dir) < -0.2f && D > 70.f)
+		{
+			return; // behind: only a very close neighbour counts
+		}
+		Push += Away * ((120.f - D) / 120.f);
+	};
+	for (TActorIterator<ATDCrewMember> It(GetWorld()); It; ++It)
+	{
+		if (*It != this && !It->IsInside() && !It->IsHidden())
+		{
+			Add(It->BaseLocation);
+		}
+	}
+	if (const APawn* Player = UGameplayStatics::GetPlayerPawn(this, 0))
+	{
+		Add(Player->GetActorLocation());
+	}
+	if (Push.IsNearlyZero())
+	{
+		return FVector::ZeroVector;
+	}
+	// Sideways part only (never walk backwards); head-on, keep to the right.
+	FVector Lateral = Push - Dir * FVector::DotProduct(Push, Dir);
+	if (Lateral.SizeSquared() < 0.0025f)
+	{
+		Lateral = FVector::CrossProduct(FVector::UpVector, Dir) * Push.Size();
+	}
+	return Lateral.GetClampedToMaxSize(1.f);
 }
 
 void ATDCrewMember::WorkAt(const FVector& LookAt, FName TaskId)
@@ -719,6 +928,9 @@ void ATDCrewMember::RunSteps(TArray<FTDCrewStep> Steps, float WalkSpeedCmPerSec,
 {
 	StepQueue = MoveTemp(Steps);
 	StepsDone = MoveTemp(OnAllDone);
+	IdleAct = EIdleAct::Relax;
+	ChatPartner.Reset();
+	IdleClaim = FVector::ZeroVector;
 	StepSpeed = WalkSpeedCmPerSec;
 	bOnTask = true;
 	RunNextStep();
@@ -739,8 +951,9 @@ void ATDCrewMember::RunNextStep()
 		StatusText = FText::GetEmpty();
 		StatusProgress = -1.f;
 		SetInside(false);
-		SetBasePose(HomeLocation, BaseRotation);
 		PlayClip(IdleAnim);
+		// Never stand frozen after a task and never pop home: walk back (idle life takes over from there).
+		StartIdleAct(EIdleAct::ReturnHome);
 		TFunction<void()> Done = MoveTemp(StepsDone);
 		if (Done)
 		{
@@ -790,8 +1003,15 @@ void ATDCrewMember::StartEscort(AActor* Target)
 		return;
 	}
 	StopWalking();
+	if (bWorkRange)
+	{
+		bWorkRange = false;
+		HideHandTool();
+	}
+	IdleAct = EIdleAct::Relax;
 	EscortTarget = Target;
 	bEscortMoving = false;
+	bEscortDetour = false;
 	SetInside(false);
 }
 
@@ -803,10 +1023,29 @@ void ATDCrewMember::StopEscort()
 	}
 	EscortTarget.Reset();
 	bEscortMoving = false;
+	bEscortDetour = false;
 	if (!bOnTask)
 	{
-		WalkTo(HomeLocation, WalkClipSpeedCmPerSec, [this]() { SetBasePose(HomeLocation, BaseRotation); PlayClip(IdleAnim); });
+		StartIdleAct(EIdleAct::ReturnHome);
 	}
+}
+
+bool ATDCrewMember::EscortLineBlocked(const FVector& To) const
+{
+	// A crew-sized sphere at waist height along the straight line, against everything but the terrain and people.
+	FCollisionQueryParams Params(TEXT("TDCrewEscort"), false, this);
+	for (const TWeakObjectPtr<ALandscapeProxy>& Landscape : Landscapes)
+	{
+		Params.AddIgnoredActor(Landscape.Get());
+	}
+	if (const APawn* Player = UGameplayStatics::GetPlayerPawn(this, 0))
+	{
+		Params.AddIgnoredActor(Player);
+	}
+	const FVector A(BaseLocation.X, BaseLocation.Y, BaseLocation.Z + 80.f);
+	const FVector B(To.X, To.Y, BaseLocation.Z + 80.f);
+	FHitResult Hit;
+	return GetWorld()->SweepSingleByObjectType(Hit, A, B, FQuat::Identity, FCollisionObjectQueryParams(ECC_WorldStatic), FCollisionShape::MakeSphere(35.f), Params);
 }
 
 void ATDCrewMember::StepEscort(float DeltaSeconds)
@@ -825,9 +1064,28 @@ void ATDCrewMember::StepEscort(float DeltaSeconds)
 	}
 	const FVector Right = FVector::CrossProduct(FVector::UpVector, Forward);
 	const FVector Slot = Target->GetActorLocation() + Forward * 160.f + Right * 230.f;
-	FVector Flat(Slot.X - BaseLocation.X, Slot.Y - BaseLocation.Y, 0.f);
+	// Twice a second: is a module or crate in the way? Then follow the walk grid around it instead of through it.
+	if (IdleTime >= EscortCheckAt)
+	{
+		EscortCheckAt = IdleTime + 0.5f;
+		bEscortDetour = false;
+		if (FVector::Dist2D(Slot, BaseLocation) > 120.f && EscortLineBlocked(Slot))
+		{
+			if (UTDMissionSubsystem* Mission = GetWorld()->GetSubsystem<UTDMissionSubsystem>())
+			{
+				const TArray<FVector> Path = Mission->FindCrewPath(BaseLocation, Slot);
+				if (Path.Num() > 1)
+				{
+					EscortWaypoint = Path[0];
+					bEscortDetour = true;
+				}
+			}
+		}
+	}
+	const FVector Aim = bEscortDetour ? EscortWaypoint : Slot;
+	FVector Flat(Aim.X - BaseLocation.X, Aim.Y - BaseLocation.Y, 0.f);
 	const float Distance = Flat.Size();
-	const bool bMove = bEscortMoving ? Distance > 60.f : Distance > 260.f; // hysteresis: no jitter at the edge
+	const bool bMove = bEscortDetour || (bEscortMoving ? Distance > 60.f : Distance > 260.f); // hysteresis: no jitter at the edge
 	if (bMove)
 	{
 		// Escort pace [DESIGNER VALUE]: 130 near, 150 mid; the fast catch-up only while the buddy is off screen, so
@@ -840,7 +1098,7 @@ void ATDCrewMember::StepEscort(float DeltaSeconds)
 		Flat /= FMath::Max(1.f, Distance);
 		const float Step = FMath::Min(Distance, Speed * DeltaSeconds);
 		BaseLocation += Flat * Step;
-		BaseRotation.Yaw = FMath::FixedTurn(BaseRotation.Yaw, Flat.Rotation().Yaw - SuitForwardYaw, 360.f * DeltaSeconds);
+		BaseRotation = FMath::RInterpTo(BaseRotation, FRotator(BaseRotation.Pitch, Flat.Rotation().Yaw - SuitForwardYaw, BaseRotation.Roll), DeltaSeconds, 6.f);
 	}
 	else
 	{
@@ -851,6 +1109,483 @@ void ATDCrewMember::StepEscort(float DeltaSeconds)
 		bEscortMoving = false;
 		FaceToward(Target->GetActorLocation(), DeltaSeconds, 20.f);
 	}
-	BaseLocation.Z = GroundZ(BaseLocation) + FeetOffset;
+	const float TargetZ = GroundZ(BaseLocation) + FeetOffset;
+	BaseLocation.Z = FMath::Abs(TargetZ - BaseLocation.Z) > 60.f ? TargetZ : FMath::FInterpTo(BaseLocation.Z, TargetZ, DeltaSeconds, 12.f);
 	SetActorLocationAndRotation(BaseLocation, BaseRotation);
+}
+
+// Crew idle life: nobody stands frozen when nothing is assigned.
+// Sources (research_notes/Crew AI canlılığı): smart objects with claim and release (Epic Smart Objects; Forbus and
+// Wright, The Sims, p.3), weighted random choice instead of argmax (Mark and Dill, GDC 2010), a novelty cooldown
+// (RimWorld tolerance; Horizon Forbidden West GDC 2023), face-to-face talk spots (Final Fantasy XV), Reynolds arrival
+// and separation (GDC 1999), and the analog-mission activities a reviewer expects: instrument and panel checks, a look
+// at the horizon for dust, rock sampling near the station, buddy check-ins (CHAPEA; MDRS Handbook p.22, p.38).
+
+bool ATDCrewMember::IsIdleFree() const
+{
+	return SuitMesh && !bOnTask && !IsEscorting() && !bInsideModule && !bStaged && !IsWalking()
+		&& Current == ETDCrewBehaviour::Working && (IdleAct == EIdleAct::Relax || IdleAct == EIdleAct::LookAround)
+		&& IdleTime >= NextChatAt;
+}
+
+void ATDCrewMember::JoinChat(const ATDCrewMember* Other, float Seconds)
+{
+	if (!Other || !IsIdleFree())
+	{
+		return;
+	}
+	IdleAct = EIdleAct::Listen;
+	ChatPartner = const_cast<ATDCrewMember*>(Other);
+	IdleFocus = Other->BaseLocation;
+	IdleActUntil = IdleTime + Seconds;
+	NextChatAt = IdleTime + Seconds + 60.f;
+	ClipSwapAt = -1.f;
+	PlayClip(IdleAnim);
+}
+
+ATDCrewMember* ATDCrewMember::FindChatPartner() const
+{
+	if (IdleTime < NextChatAt)
+	{
+		return nullptr;
+	}
+	ATDCrewMember* Best = nullptr;
+	float BestDistance = 2000.f; // [DESIGNER VALUE] talk to someone within 20 m
+	for (TActorIterator<ATDCrewMember> It(GetWorld()); It; ++It)
+	{
+		if (*It == this || !It->IsIdleFree())
+		{
+			continue;
+		}
+		const float D = FVector::Dist2D(It->BaseLocation, BaseLocation);
+		if (D < BestDistance)
+		{
+			BestDistance = D;
+			Best = *It;
+		}
+	}
+	return Best;
+}
+
+void ATDCrewMember::GatherIdlePoints()
+{
+	bIdlePointsReady = true;
+	IdlePoints.Reset();
+	IdleLooks.Reset();
+	auto AddSpots = [this](const FBox& Box, float Stand)
+	{
+		if (!Box.IsValid || Box.GetSize().X > 4000.f || Box.GetSize().Y > 4000.f || Box.GetSize().Z < 40.f)
+		{
+			return;
+		}
+		// Up to three stand spots per object: the face toward home and the faces to either side of it.
+		const FVector Center = Box.GetCenter();
+		FVector ToHome(HomeLocation.X - Center.X, HomeLocation.Y - Center.Y, 0.f);
+		if (ToHome.Size() > 1800.f || ToHome.Size() < 1.f)
+		{
+			return;
+		}
+		ToHome.Normalize();
+		const FVector Side = FVector::CrossProduct(FVector::UpVector, ToHome);
+		const FVector Probes[] = { HomeLocation, Center + (ToHome + Side) * 1500.f, Center + (ToHome - Side) * 1500.f };
+		for (const FVector& Probe : Probes)
+		{
+			const FVector Closest(FMath::Clamp(Probe.X, Box.Min.X, Box.Max.X), FMath::Clamp(Probe.Y, Box.Min.Y, Box.Max.Y), HomeLocation.Z);
+			FVector Out(Probe.X - Closest.X, Probe.Y - Closest.Y, 0.f);
+			if (Out.Size() < 1.f)
+			{
+				continue;
+			}
+			Out.Normalize();
+			const FVector StandAt = Closest + Out * Stand;
+			bool bNear = false;
+			for (const FVector& Existing : IdlePoints)
+			{
+				bNear |= FVector::Dist2D(Existing, StandAt) < 150.f;
+			}
+			if (!bNear)
+			{
+				IdlePoints.Add(FVector(StandAt.X, StandAt.Y, HomeLocation.Z));
+				IdleLooks.Add(FVector(Closest.X, Closest.Y, HomeLocation.Z));
+			}
+		}
+	};
+	auto MeshBox = [](const AActor* Actor)
+	{
+		FBox Box(ForceInit);
+		TArray<UStaticMeshComponent*> Meshes;
+		Actor->GetComponents<UStaticMeshComponent>(Meshes);
+		for (const UStaticMeshComponent* Mesh : Meshes)
+		{
+			if (Mesh && Mesh->IsVisible() && Mesh->GetStaticMesh())
+			{
+				Box += Mesh->Bounds.GetBox();
+			}
+		}
+		return Box;
+	};
+	for (TActorIterator<AActor> It(GetWorld()); It; ++It)
+	{
+		const AActor* Actor = *It;
+		if (Actor->IsHidden() || Actor == this || Actor->IsA<ATDCrewMember>())
+		{
+			continue;
+		}
+		if (Actor->IsA<ATDSystemModule>() || Actor->IsA<ATDWorkSpot>())
+		{
+			AddSpots(MeshBox(Actor), Actor->IsA<ATDWorkSpot>() ? 110.f : 90.f);
+			continue;
+		}
+		// Placed NASA and Tripo models (panels, tanks, crates, consoles) are points of interest too.
+		if (const UStaticMeshComponent* Root = Cast<UStaticMeshComponent>(Actor->GetRootComponent()); Root && Root->GetStaticMesh())
+		{
+			const FString Path = Root->GetStaticMesh()->GetPathName();
+			if (Path.Contains(TEXT("/Tripo/")) || Path.Contains(TEXT("/NASA/")))
+			{
+				AddSpots(MeshBox(Actor), 90.f);
+			}
+		}
+	}
+	UE_LOG(LogTemp, Verbose, TEXT("Crew %s: %d idle spots"), *GetName(), IdlePoints.Num());
+}
+
+int32 ATDCrewMember::PickIdleSpot()
+{
+	struct FCandidate { int32 Index; float Score; };
+	TArray<FCandidate> Candidates;
+	for (int32 Index = 0; Index < IdlePoints.Num(); ++Index)
+	{
+		const FVector& Spot = IdlePoints[Index];
+		const float D = FVector::Dist2D(Spot, BaseLocation);
+		if (D < 60.f || D > 1600.f)
+		{
+			continue;
+		}
+		bool bClaimed = false;
+		for (TActorIterator<ATDCrewMember> It(GetWorld()); It && !bClaimed; ++It)
+		{
+			bClaimed = *It != this && !It->IdleClaim.IsZero() && FVector::Dist2D(It->IdleClaim, Spot) < 200.f;
+		}
+		if (bClaimed)
+		{
+			continue;
+		}
+		float Score = 1.f / (1.f + D / 600.f); // nearer spots advertise louder (Sims attenuation)
+		if (const float* Used = IdleSpotUsed.Find(FIntPoint(FMath::RoundToInt(Spot.X / 50.f), FMath::RoundToInt(Spot.Y / 50.f))))
+		{
+			if (IdleTime - *Used < 90.f)
+			{
+				Score *= 0.4f; // novelty cooldown
+			}
+		}
+		Candidates.Add({ Index, Score * static_cast<float>(IdleRand.FRandRange(0.8f, 1.2f)) });
+	}
+	if (Candidates.Num() == 0)
+	{
+		return INDEX_NONE;
+	}
+	Candidates.Sort([](const FCandidate& A, const FCandidate& B) { return A.Score > B.Score; });
+	const int32 Top = FMath::Min(3, Candidates.Num());
+	float Total = 0.f;
+	for (int32 I = 0; I < Top; ++I)
+	{
+		Total += Candidates[I].Score;
+	}
+	float Roll = IdleRand.FRandRange(0.f, Total);
+	for (int32 I = 0; I < Top; ++I)
+	{
+		Roll -= Candidates[I].Score;
+		if (Roll <= 0.f)
+		{
+			return Candidates[I].Index;
+		}
+	}
+	return Candidates[0].Index;
+}
+
+bool ATDCrewMember::WalkIdleTo(const FVector& Target, TFunction<void()> OnArrived)
+{
+	TArray<FVector> Points;
+	if (UTDMissionSubsystem* Mission = GetWorld()->GetSubsystem<UTDMissionSubsystem>())
+	{
+		Points = Mission->FindCrewPath(BaseLocation, Target);
+	}
+	if (Points.Num() == 0)
+	{
+		if (FVector::Dist2D(BaseLocation, Target) > 200.f)
+		{
+			return false; // no way around: skip this activity rather than walk through a module
+		}
+		Points.Add(Target);
+	}
+	// A suited stroll: a little under the walk clip's own pace. [DESIGNER VALUE]
+	WalkPath(Points, 0.92f * WalkClipSpeedCmPerSec, MoveTemp(OnArrived));
+	return true;
+}
+
+void ATDCrewMember::BeginWorkPose(bool bGround, int32 VerbIndex)
+{
+	if (!WorkAnim || !SuitMesh)
+	{
+		PlayClip(IdleAnim);
+		return;
+	}
+	PlayClip(WorkAnim);
+	WorkRangeStart = bGround ? 0.2f : 6.0f;
+	WorkRangeEnd = bGround ? 3.7f : 13.4f;
+	bWorkRange = true;
+	Suit->SetPosition(WorkRangeStart + IdleRand.FRand() * (WorkRangeEnd - WorkRangeStart) * 0.5f, false);
+	ShowHandTool(VerbIndex);
+}
+
+void ATDCrewMember::BeginInspect(const FVector& Look)
+{
+	// Instrument or panel check at a module, tablet in hand (MDRS daily operations checks).
+	IdleAct = EIdleAct::Inspect;
+	IdleFocus = Look;
+	BeginWorkPose(false, static_cast<int32>(ETDWorkVerb::Scan));
+	IdleActUntil = IdleTime + IdleRand.FRandRange(7.f, 13.f);
+}
+
+void ATDCrewMember::BeginChat(float Seconds)
+{
+	ATDCrewMember* Partner = ChatPartner.Get();
+	if (!Partner || Partner->ChatPartner.Get() != this)
+	{
+		StartIdleAct(EIdleAct::Relax);
+		return;
+	}
+	// Buddy check-in: both face each other, a greeting, then a relaxed stand (FFXV face-to-face spots).
+	IdleAct = EIdleAct::Chat;
+	IdleFocus = Partner->BaseLocation;
+	IdleActUntil = IdleTime + Seconds;
+	Partner->IdleActUntil = FMath::Max(Partner->IdleActUntil, Partner->IdleTime + Seconds);
+	if (CelebrateAnim)
+	{
+		PlayClip(CelebrateAnim);
+		ClipSwapAt = IdleTime + FMath::Min(3.5f, CelebrateAnim->GetPlayLength());
+		Partner->PlayClip(CelebrateAnim);
+		Partner->ClipSwapAt = Partner->IdleTime + 0.6f + FMath::Min(3.f, CelebrateAnim->GetPlayLength());
+	}
+}
+
+void ATDCrewMember::StepIdleLife(float DeltaSeconds)
+{
+	const bool bCan = SuitMesh && !bOnTask && !IsEscorting() && !bInsideModule && !bStaged
+		&& (Current == ETDCrewBehaviour::Working || Current == ETDCrewBehaviour::Worried);
+	if (!bCan)
+	{
+		return;
+	}
+	switch (IdleAct)
+	{
+	case EIdleAct::Inspect:
+		FaceToward(IdleFocus, DeltaSeconds, 5.f);
+		break;
+	case EIdleAct::Chat:
+	case EIdleAct::Listen:
+		if (const ATDCrewMember* Partner = ChatPartner.Get())
+		{
+			IdleFocus = Partner->BaseLocation;
+		}
+		FaceToward(IdleFocus, DeltaSeconds, 8.f);
+		break;
+	default:
+		break;
+	}
+	if (IdleTime >= IdleActUntil)
+	{
+		PickNextIdleAct();
+	}
+}
+
+void ATDCrewMember::PickNextIdleAct()
+{
+	if (bWorkRange)
+	{
+		if (UAnimSingleNodeInstance* Single = Suit->GetSingleNodeInstance()) { Single->SetReverse(false); }
+		bWorkRange = false;
+		HideHandTool();
+	}
+	const EIdleAct Last = IdleAct;
+	ChatPartner.Reset();
+	IdleClaim = FVector::ZeroVector;
+	const bool bWorried = Current == ETDCrewBehaviour::Worried;
+	const bool bAway = FVector::Dist2D(BaseLocation, HomeLocation) > 100.f;
+	// Back to the station after one or two activities out (a crew member has a post to return to).
+	if (bAway && (IdleActsAway >= 2 || IdleRand.FRand() < 0.45f))
+	{
+		StartIdleAct(EIdleAct::ReturnHome);
+		return;
+	}
+	if (!bAway || !bIdlePointsReady)
+	{
+		GatherIdlePoints(); // deployed parts appear during the mission
+	}
+	// Weighted random [DESIGNER VALUE]; a worried crew member checks instruments and the sky more and does not chat.
+	const bool bColleague = !bWorried && FindChatPartner() != nullptr;
+	float Weights[5] = {
+		bWorried ? 2.f : 3.f,                                // Relax
+		bWorried ? 3.5f : 2.f,                               // LookAround
+		IdlePoints.Num() > 0 ? (bWorried ? 4.5f : 3.f) : 0.f, // Inspect
+		bColleague ? 1.6f : 0.f,                             // Chat
+		(!bAway && !bWorried) ? 1.6f : 0.f                   // Stroll
+	};
+	const EIdleAct Acts[5] = { EIdleAct::Relax, EIdleAct::LookAround, EIdleAct::Inspect, EIdleAct::Chat, EIdleAct::Stroll };
+	float Total = 0.f;
+	for (int32 I = 0; I < 5; ++I)
+	{
+		if (Acts[I] == Last && Last != EIdleAct::Relax)
+		{
+			Weights[I] *= 0.3f; // rarely the same thing twice in a row
+		}
+		Total += Weights[I];
+	}
+	float Roll = IdleRand.FRandRange(0.f, Total);
+	EIdleAct Pick = EIdleAct::Relax;
+	for (int32 I = 0; I < 5; ++I)
+	{
+		Roll -= Weights[I];
+		if (Roll <= 0.f && Weights[I] > 0.f)
+		{
+			Pick = Acts[I];
+			break;
+		}
+	}
+	StartIdleAct(Pick);
+}
+
+void ATDCrewMember::StartIdleAct(EIdleAct Act)
+{
+	const bool bWorried = Current == ETDCrewBehaviour::Worried;
+	UAnimSequence* Rest = bWorried && WorriedAnim ? WorriedAnim.Get() : IdleAnim.Get();
+	IdleAct = Act;
+	IdleActUntil = 1.0e9f; // walking activities set their length on arrival
+	UE_LOG(LogTemp, Verbose, TEXT("Crew %s: idle act %d at %s (%d spots)"), *GetName(), static_cast<int32>(Act), *BaseLocation.ToCompactString(), IdlePoints.Num());
+	ClipSwapAt = -1.f;
+	switch (Act)
+	{
+	case EIdleAct::Relax:
+	case EIdleAct::Listen:
+		IdleAct = EIdleAct::Relax;
+		PlayClip(Rest);
+		IdleActUntil = IdleTime + IdleRand.FRandRange(5.f, 11.f);
+		break;
+	case EIdleAct::LookAround:
+		// Scan the horizon and the sky for dust (weather watch).
+		PlayClip(WorriedAnim ? WorriedAnim.Get() : IdleAnim.Get(), 0.8f);
+		IdleActUntil = IdleTime + IdleRand.FRandRange(4.5f, 8.f);
+		break;
+	case EIdleAct::Inspect:
+	{
+		const int32 Spot = PickIdleSpot();
+		if (Spot == INDEX_NONE)
+		{
+			StartIdleAct(EIdleAct::LookAround);
+			return;
+		}
+		const FVector Stand = IdlePoints[Spot];
+		const FVector Look = IdleLooks[Spot];
+		IdleClaim = Stand;
+		IdleSpotUsed.Add(FIntPoint(FMath::RoundToInt(Stand.X / 50.f), FMath::RoundToInt(Stand.Y / 50.f)), IdleTime);
+		++IdleActsAway;
+		if (!WalkIdleTo(Stand, [this, Look]() { BeginInspect(Look); }))
+		{
+			IdleClaim = FVector::ZeroVector;
+			StartIdleAct(EIdleAct::Relax);
+		}
+		break;
+	}
+	case EIdleAct::Chat:
+	{
+		ATDCrewMember* Other = FindChatPartner();
+		if (!Other)
+		{
+			StartIdleAct(EIdleAct::Relax);
+			return;
+		}
+		const float ChatSeconds = IdleRand.FRandRange(6.f, 10.f);
+		FVector ToMe(BaseLocation.X - Other->BaseLocation.X, BaseLocation.Y - Other->BaseLocation.Y, 0.f);
+		const float D = ToMe.Size();
+		const FVector Meet = D > 1.f ? Other->BaseLocation + ToMe / D * 150.f : BaseLocation;
+		const float WalkSeconds = FMath::Max(0.f, D - 150.f) / FMath::Max(10.f, 0.92f * WalkClipSpeedCmPerSec) + 3.f;
+		ChatPartner = Other;
+		NextChatAt = IdleTime + 60.f;
+		Other->JoinChat(this, WalkSeconds + ChatSeconds);
+		if (D < 230.f)
+		{
+			BeginChat(ChatSeconds);
+		}
+		else
+		{
+			++IdleActsAway;
+			if (!WalkIdleTo(Meet, [this, ChatSeconds]() { BeginChat(ChatSeconds); }))
+			{
+				StartIdleAct(EIdleAct::Relax);
+			}
+		}
+		break;
+	}
+	case EIdleAct::Stroll:
+	{
+		// A short walk out from the station: kneel at the regolith to sample it, or stop and scan the horizon.
+		const float Angle = IdleRand.FRandRange(0.f, 2.f * PI);
+		const float Distance = IdleRand.FRandRange(250.f, 500.f);
+		const FVector Target = HomeLocation + FVector(FMath::Cos(Angle), FMath::Sin(Angle), 0.f) * Distance;
+		const bool bSample = WorkAnim && IdleRand.FRand() < 0.5f;
+		IdleClaim = Target;
+		++IdleActsAway;
+		if (!WalkIdleTo(Target, [this, bSample]()
+			{
+				if (bSample)
+				{
+					IdleAct = EIdleAct::Inspect;
+					IdleFocus = BaseLocation + FRotator(0.f, BaseRotation.Yaw + SuitForwardYaw, 0.f).Vector() * 100.f;
+					BeginWorkPose(true, static_cast<int32>(ETDWorkVerb::Scoop));
+					IdleActUntil = IdleTime + IdleRand.FRandRange(6.f, 10.f);
+				}
+				else
+				{
+					IdleAct = EIdleAct::LookAround;
+					PlayClip(WorriedAnim ? WorriedAnim.Get() : IdleAnim.Get(), 0.8f);
+					IdleActUntil = IdleTime + IdleRand.FRandRange(4.f, 7.f);
+				}
+			}))
+		{
+			IdleClaim = FVector::ZeroVector;
+			StartIdleAct(EIdleAct::LookAround);
+		}
+		break;
+	}
+	case EIdleAct::ReturnHome:
+	{
+		const FVector HomeFace = HomeLocation + FRotator(0.f, HomeRotation.Yaw + SuitForwardYaw, 0.f).Vector() * 1000.f;
+		auto Arrive = [this, HomeFace]()
+		{
+			IdleActsAway = 0;
+			IdleAct = EIdleAct::Relax;
+			IdleFocus = HomeFace;
+			PlayClip(Current == ETDCrewBehaviour::Worried && WorriedAnim ? WorriedAnim.Get() : IdleAnim.Get());
+			IdleActUntil = IdleTime + IdleRand.FRandRange(4.f, 9.f);
+		};
+		if (FVector::Dist2D(BaseLocation, HomeLocation) < 40.f)
+		{
+			Arrive();
+			break;
+		}
+		if (!(SuitMesh && Suit->WasRecentlyRendered(1.f)))
+		{
+			// Nobody is looking: just be at the station.
+			StopWalking();
+			SetBasePose(HomeLocation, HomeRotation);
+			Arrive();
+			break;
+		}
+		if (!WalkIdleTo(HomeLocation, Arrive))
+		{
+			WalkPath({ HomeLocation }, 0.92f * WalkClipSpeedCmPerSec, Arrive);
+		}
+		break;
+	}
+	}
 }

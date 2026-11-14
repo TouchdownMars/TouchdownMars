@@ -66,8 +66,11 @@ void FTDWalkGrid::Build(UWorld* World, const FBox2D& Bounds, float CellSize)
 			}
 			// Blocked when anything other than the landscape stands at chest height (modules, tanks, props, rocks).
 			// Flat pads and roads stay walkable: the probe sits above them.
+			// A second probe at knee height catches crates, cases and junction boxes (pebbles stay below it).
 			const FVector Chest(P.X, P.Y, Ground + 110.f);
-			if (World->OverlapAnyTestByObjectType(Chest, FQuat::Identity, Statics, Probe, Params))
+			const FVector Knee(P.X, P.Y, Ground + 58.f);
+			if (World->OverlapAnyTestByObjectType(Chest, FQuat::Identity, Statics, Probe, Params)
+				|| World->OverlapAnyTestByObjectType(Knee, FQuat::Identity, Statics, FCollisionShape::MakeSphere(Cell * 0.4f), Params))
 			{
 				Cells[Y * Width + X] = 1;
 				++Blocked;

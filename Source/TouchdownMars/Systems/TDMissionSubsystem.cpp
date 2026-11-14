@@ -594,6 +594,21 @@ bool UTDMissionSubsystem::IsReduceMotion() const
 	return Settings && Settings->bReduceMotion;
 }
 
+TArray<FVector> UTDMissionSubsystem::FindCrewPath(const FVector& From, const FVector& To)
+{
+	TArray<FVector> Points;
+	if (!WalkGrid.IsValid())
+	{
+		WalkGrid = MakeShared<FTDWalkGrid>();
+		WalkGrid->Build(GetWorld(), FBox2D(FVector2D(-2600.f, -4200.f), FVector2D(7600.f, 4200.f)), 100.f);
+	}
+	for (const FVector2D& P : WalkGrid->FindPath(FVector2D(From), FVector2D(To)))
+	{
+		Points.Add(FVector(P.X, P.Y, From.Z));
+	}
+	return Points;
+}
+
 void UTDMissionSubsystem::SetOutcomeShotsEnabled(bool bOn)
 {
 	Settings->bOutcomeShotsEnabled = bOn;

@@ -205,6 +205,13 @@ public:
 	void StopEscort();
 	bool IsEscorting() const { return EscortTarget.IsValid(); }
 
+	/** Idle life: true while the crew member is free (no task, escort, staging or alarm) and can join a chat. */
+	bool IsIdleFree() const;
+	/** A colleague starts a short chat: face them and listen until Until (idle clock seconds). */
+	void JoinChat(const ATDCrewMember* Other, float Seconds);
+	FVector GetBaseLocation() const { return BaseLocation; }
+
+	virtual void Tick(float DeltaSeconds) override;
 
 protected:
 	virtual void BeginPlay() override;
@@ -246,11 +253,11 @@ private:
 	UPROPERTY(Transient)
 	TObjectPtr<UMaterialInstanceDynamic> Material;
 
-	/** Idle life (timer, no Tick): slow look-around and breathing; worried/alarm sway faster; celebrate hops. */
+	/** Idle life (actor Tick, frame rate): slow look-around and breathing; worried/alarm sway faster; celebrate hops. */
 	void SetBasePose(const FVector& Location, const FRotator& Rotation);
-	void StepIdle();
+	void StepIdle(float DeltaSeconds);
 
-	/** Walking: path points from the navigation system, advanced in StepIdle at 30 Hz. */
+	/** Walking: path points from the base walk grid or navigation system, advanced every frame. */
 	void StepWalk(float DeltaSeconds);
 	float GroundZ(const FVector& At) const;
 	TArray<FVector> PathPoints;
@@ -262,6 +269,24 @@ private:
 	void StepEscort(float DeltaSeconds);
 	TWeakObjectPtr<AActor> EscortTarget;
 	bool bEscortMoving = false;
+	// Escort detour: when a module stands between the buddy and its slot, follow the walk grid instead.
+	bool bEscortDetour = false;
+	float EscortCheckAt = 0.f;
+	FVector EscortWaypoint = FVector::ZeroVector;
+	bool EscortLineBlocked(const FVector& To) const;
+	// Turn in place toward the first path leg before striding (suits turn slowly, EVA Ops 101 p.4).
+	bool bTurningToPath = false;
+	// Idle spots used recently (idle clock seconds, keyed on a 50 cm grid), so the crew vary what they do.
+	TMap<FIntPoint, float> IdleSpotUsed;
+	FVector IdleClaim = FVector::ZeroVector; // the spot this crew member claimed (nobody else walks to it)
+	TWeakObjectPtr<ATDCrewMember> ChatPartner;
+	float NextChatAt = 0.f;
+	float ClipSwapAt = -1.f;
+	ATDCrewMember* FindChatPartner() const;
+	int32 PickIdleSpot();
+	void BeginInspect(const FVector& Look);
+	void BeginChat(float Seconds);
+	void BeginWorkPose(bool bGround, int32 VerbIndex);
 	TArray<FTDCrewStep> StepQueue;
 	TFunction<void()> StepsDone;
 	float StepSpeed = 300.f;
@@ -274,10 +299,30 @@ private:
 	double BarkUntil = 0.0;
 
 	FVector HomeLocation;
+	FRotator HomeRotation;
 	FVector BaseLocation;
 	FRotator BaseRotation;
-	FTimerHandle IdleTimer;
 	float IdleTime = 0.f;
+
+	// Idle life (ambient behaviour when nothing is assigned). Smart-object style: small activities at points of
+	// interest around home (instrument checks, a look at the horizon, a chat with a colleague, a short walk), each
+	// with its own randomized length, so no crew member stands frozen in a loop and no two are in sync.
+	enum class EIdleAct : uint8 { Relax, LookAround, Inspect, Chat, Listen, Stroll, ReturnHome };
+	EIdleAct IdleAct = EIdleAct::Relax;
+	float IdleActUntil = 0.f;
+	FVector IdleFocus = FVector::ZeroVector;
+	int32 IdleActsAway = 0;
+	FRandomStream IdleRand;
+	TArray<FVector> IdlePoints;   // stand spots in front of modules and work spots near home
+	TArray<FVector> IdleLooks;    // what each stand spot faces
+	bool bIdlePointsReady = false;
+	void GatherIdlePoints();
+	void StepIdleLife(float DeltaSeconds);
+	void StartIdleAct(EIdleAct Act);
+	void PickNextIdleAct();
+	bool WalkIdleTo(const FVector& Target, TFunction<void()> OnArrived);
+	FVector AvoidPush(const FVector& Dir) const;
+	TArray<TWeakObjectPtr<class ALandscapeProxy>> Landscapes;
 
 	// A6: a sub-range of the work clip played back and forth (squat for ground work, standing for waist work).
 	bool bWorkRange = false;
