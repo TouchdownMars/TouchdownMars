@@ -1,0 +1,21 @@
+{
+	"FileVersion": 3,
+	"EngineAssociation": "5.8",
+	"Category": "",
+	"Description": "Touchdown Mars: First Light - NASA Space Apps Challenge 2026, Build a Junior Astronaut Mission Trainer",
+	"Modules": [
+		{
+			"Name": "TouchdownMars",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		}
+	],
+	"Plugins": [
+		{ "Name": "ModelContextProtocol", "Enabled": true },
+		{ "Name": "ToolsetRegistry", "Enabled": true },
+		{ "Name": "PythonScriptPlugin", "Enabled": true },
+		{ "Name": "EditorScriptingUtilities", "Enabled": true },
+		{ "Name": "MovieRenderPipeline", "Enabled": true },
+		{ "Name": "EnhancedInput", "Enabled": true }
+	]
+}

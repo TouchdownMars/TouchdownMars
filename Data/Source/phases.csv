@@ -1,0 +1,7 @@
+Name,Phase,SolStart,SolEnd,NameKey,DemandAir,DemandGreenhouse,DemandShelter,EventFamily,OptionalScienceKey,bIsBlackout,CadetLockedSystem,SourceIds
+Arrival,Arrival,1,3,Phase_Arrival,1,1,1,None,,False,Shelter,()
+FirstWalk,FirstWalk,4,5,Phase_FirstWalk,2,2,2,Power,,False,Shelter,()
+Exploration,Exploration,7,10,Phase_Exploration,2,2,2,Radiation,Science_IceOrWeather,False,Greenhouse,()
+Resupply,Resupply,11,13,Phase_Resupply,1,2,2,Equipment,Science_PlantExperiment,False,Shelter,()
+HardWeek,HardWeek,21,27,Phase_HardWeek,2,2,2,Comms,,True,Greenhouse,()
+Return,Return,28,31,Phase_Return,2,2,2,None,,False,Shelter,()

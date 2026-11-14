@@ -1,0 +1,15 @@
+Name,ShotId,EventId,CameraTag,BlendIn,Hold,BlendOut,bAllowedInCadet,ResultTextKey
+PowerHookup,S02_EVA,PowerHookup,CAM_S02_EVA,0.4,2.0,0.4,True,Shot_S02_EVA
+Storm2017,S03_STORM,Storm2017,CAM_S03_STORM,0.4,2.0,0.4,True,Shot_S03_STORM
+DoseSpike2024,S03_STORM,DoseSpike2024,CAM_S03_STORM,0.4,2.0,0.4,True,Shot_S03_STORM
+ArtemisIShelter,S03_STORM,ArtemisIShelter,CAM_S03_STORM,0.4,2.0,0.4,True,Shot_S03_STORM
+ArtemisIIShelter,S03_STORM,ArtemisIIShelter,CAM_S03_STORM,0.4,2.0,0.4,True,Shot_S03_STORM
+Lettuce,S04_GREEN,Lettuce,CAM_S04_GREEN,0.4,2.0,0.4,True,Shot_S04_GREEN
+Pepper,S04_GREEN,Pepper,CAM_S04_GREEN,0.4,2.0,0.4,True,Shot_S04_GREEN
+LostTomatoes,S04_GREEN,LostTomatoes,CAM_S04_GREEN,0.4,2.0,0.4,True,Shot_S04_GREEN
+DustStorm2018,S04_GREEN,DustStorm2018,CAM_S04_GREEN,0.4,2.0,0.4,True,Shot_S04_GREEN
+Conjunction,S05_COMMS,Conjunction,CAM_S05_COMMS,0.4,2.0,0.4,True,Shot_S05_COMMS
+CHAPEA2,S05_COMMS,CHAPEA2,CAM_S05_COMMS,0.4,2.0,0.4,True,Shot_S05_COMMS
+Apollo13Air,S06_FAULT,Apollo13Air,CAM_S06_FAULT,0.4,2.0,0.4,True,Shot_S06_FAULT
+MOXIE,S06_FAULT,MOXIE,CAM_S06_FAULT,0.4,2.0,0.4,True,Shot_S06_FAULT
+Departure,S07_DEPART,Departure,CAM_S07_DEPART,0.4,2.0,0.4,True,Shot_S07_DEPART

@@ -1,0 +1,32 @@
+{
+  "source_label": "JEZ_hirise_soc_006_DTM_MOLAtopography_DeltaGeoid_1m_Eqc_latTs0_lon0_blend40",
+  "centre_lat": 18.4447,
+  "centre_lon": 77.4508,
+  "pixel_row": 13314,
+  "pixel_col": 13507,
+  "size": 1009,
+  "metres_per_pixel": 1.0,
+  "raw_min_m": -2584.794677734375,
+  "raw_max_m": -2553.4345703125,
+  "pad_height_m": -2569.75341796875,
+  "relief_m": 31.360107421875,
+  "pad": {
+    "centre_m": [
+      15.0,
+      -5.0
+    ],
+    "radius_m": 30.0,
+    "falloff_m": 25.0,
+    "note": "levelled base pad, designer change"
+  },
+  "ue_scale": [
+    100.0,
+    100.0,
+    6.737523078918528
+  ],
+  "ue_location": [
+    -50400.0,
+    -50400.0,
+    63.904738258570426
+  ]
+}

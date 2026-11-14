@@ -88,3 +88,16 @@ Packaged/
 Windows/
 *.zip
 *.7z
+
+# Team additions (14.11.2026)
+# Packaged builds made by Scripts/package.ps1
+Builds/
+# Plugins kept out of the public repo
+# UnrealMCPServer: private team fork of a Fab product (licence forbids redistribution)
+# VibeUE: MIT editor tooling, installed from https://github.com/kevinpbuckley/VibeUE
+Plugins/UnrealMCPServer/
+Plugins/VibeUE/
+# Local machine files
+*.log
+.DS_Store
+Thumbs.db

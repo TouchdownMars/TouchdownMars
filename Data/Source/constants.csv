@@ -1,0 +1,30 @@
+Name,Value,Unit,SourceId,bIsDesignerValue,SourceDetail
+O2PerPersonDay,0.895,kg per crew member per day,BVAD2,False,"Table 3-31 (PDF p. 72): oxygen consumed, 82 kg crew member"
+MarsSurfaceDose,0.65,mSv per day,George2024,False,"Table 2, average dose equivalent rate, Mars surface"
+MoonSurfaceDose,0.81,mSv per day,George2024,False,"Table 2, lunar surface"
+MarsTransitDose,1.58,mSv per day,George2024,False,"Table 2, Mars transit"
+CareerLimit,600,mSv,OCHMO,False,"Career effective dose limit, NASA-STD-3001 Vol. 1 Rev B (brief p. 4)"
+LightTimeNow,11.014,minutes,HorizonsMars,False,"One-way light time Earth-Mars, 2026-11-14 00:00 UT"
+LightTimeMin,3.2,minutes,HorizonsSeries,False,"Minimum of daily series 2017-2032, 2018-07-31"
+LightTimeMax,22.25,minutes,HorizonsSeries,False,"Maximum of daily series 2017-2032, 2019-08-29"
+MoonLightTime,1.353,seconds,HorizonsMoon,False,"One-way light time Earth-Moon, 2026-11-14 00:00 UT (0.02255 min)"
+LettuceDays,33,days,Veggie,False,VEG-01 red romaine lettuce grew for 33 days (fact sheet p. 3)
+PepperDays,137,days,Pepper2021,False,Plant Habitat-04 chile peppers
+StartLevelAir,3,level,,True,gdd.md 2 Mechanic 1
+StartLevelGreenhouse,2,level,,True,gdd.md 2 Mechanic 1
+StartLevelShelter,3,level,,True,gdd.md 2 Mechanic 1
+LevelMin,0,level,,True,gdd.md 2 Mechanic 1
+LevelMax,4,level,,True,gdd.md 2 Mechanic 1
+BaseDemand,2,cells,,True,gdd.md 2 Mechanic 1
+TutorialDemand,1,cells,,True,gdd.md 2 Mechanic 1 (phase 1)
+DemandDeltaNormal,1,cells,,True,gdd.md 2 Mechanic 2
+DemandDeltaSevere,2,cells,,True,gdd.md 2 Mechanic 2
+ShelterSafeLevel,2,level,,True,gdd.md 2 Mechanic 4 (below this a radiation card records an exposure)
+HarvestMinLevel,3,level,,True,gdd.md 2 Mechanic 5
+MissionSols,31,sols,,True,gdd.md 3 Game Flow
+SeedMin,1000,seed,,True,technical_design.md 4
+SeedMax,9999,seed,,True,technical_design.md 4
+IdleHintSecondsMin,6,seconds,,True,gdd.md 2 Mechanic 1 edge cases
+IdleHintSecondsMax,8,seconds,,True,gdd.md 2 Mechanic 1 edge cases
+DonkiTimeoutSeconds,5,seconds,,True,gdd.md 2 Mechanic 7
+DonkiRangeDays,30,days,,True,gdd.md 2 Mechanic 7

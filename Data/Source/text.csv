@@ -1,0 +1,208 @@
+Name,EN,TR
+Phase_Arrival,Arrival,Varış
+Phase_FirstWalk,First walk,İlk yürüyüş
+Phase_Exploration,Exploration,Keşif
+Phase_Resupply,Resupply and rest,İkmal ve dinlenme
+Phase_HardWeek,Hard week,Zor hafta
+Phase_Return,Return,Dönüş
+Phase_SolRange,Sol {0}-{1},Sol {0}-{1}
+System_Air,AIR,HAVA
+System_Greenhouse,GREENHOUSE,SERA
+System_Shelter,SHELTER,SIĞINAK
+Level_0,Off,Kapalı
+Level_1,Danger,Tehlike
+Level_2,Low,Düşük
+Level_3,Good,İyi
+Level_4,Good,İyi
+Band_Cadet,Cadet (7-9),Aday (7-9)
+Band_Commander,Commander (10-12),Komutan (10-12)
+UI_NextPhase,Next phase,Sonraki evre
+UI_CallHome,Call home,Dünya'yı ara
+UI_PriorityRule,"Crew first, then base, then science.","Önce ekip, sonra üs, sonra bilim."
+UI_WhereFrom,Where does this number come from?,Bu sayı nereden geliyor?
+UI_NoSignal,No signal,Sinyal yok
+UI_MessageOnItsWay,Message still on its way,Mesaj hâlâ yolda
+UI_Live,LIVE,CANLI
+UI_Archive,ARCHIVE,ARŞİV
+UI_DonkiDisclaimer,DONKI is a research prototype catalogue; it does not give dose values.,DONKI bir araştırma prototipi kataloğudur; doz değeri vermez.
+UI_NotEndorsed,Not endorsed by NASA.,NASA tarafından onaylanmamıştır.
+UI_DesignerValue,"Game value chosen by the team, not a NASA measurement.",Ekibin seçtiği oyun değeri; NASA ölçümü değildir.
+Science_IceOrWeather,Optional science: search for ice or set up a weather station.,İsteğe bağlı bilim: buz ara ya da hava istasyonu kur.
+Science_PlantExperiment,Optional science: plant experiment.,İsteğe bağlı bilim: bitki deneyi.
+UI_LockedGood,Good this phase,Bu evre iyi
+UI_GrowsNextPhase,Grows by next phase,Sonraki evrede büyür
+UI_WhatReallyHappened,What really happened?,Gerçekte ne oldu?
+UI_SourceLine,Source: {0},Kaynak: {0}
+UI_Close,Close,Kapat
+Label_FlownMeasured,Flown / measured,Uçuldu / ölçüldü
+Label_NASAPlan,NASA plan,NASA planı
+Label_AnalogMission,Analog mission on Earth,Dünya'da benzetim görevi
+Label_ModelEstimate,Model estimate,Model tahmini
+UI_SentIn,Sent in: {0},Gönderildiği evre: {0}
+Report_Title,Mission Report,Görev Raporu
+Report_Crew,Crew home safe and healthy,Ekip eve güvenle ve sağlıkla döndü
+Report_Base,Base left working for the next crew,Üs bir sonraki ekip için çalışır durumda
+Report_Emergency,Emergency handled,Acil durum iyi yönetildi
+Report_Bonus,Samples and experiments,Örnekler ve deneyler
+Report_Full,Full mission,Tam görev
+Report_Minimum,Minimum mission,Temel görev
+Report_Patch,Mission patch: {0},Görev arması: {0}
+Report_Seed,Mission seed {0},Görev kodu {0}
+Report_LastTime,Last time: {0} of 4 stamps. This time: {1} of 4.,Geçen sefer: 4 mühürden {0}. Bu sefer: 4 mühürden {1}.
+Patch_StormChaser,Storm Chaser,Fırtına Avcısı
+Patch_GreenThumb,Green Thumb,Yeşil Parmak
+Patch_CarefulPlanner,Careful Planner,Dikkatli Planlayıcı
+Patch_SteadyHands,Steady Hands,Sağlam Eller
+UI_FlyAgain,Fly again,Yeniden uç
+UI_NewMission,New mission,Yeni görev
+UI_ChangeOneThing,Change one thing and try again,"Bir şeyi değiştir, yeniden dene"
+Capcom_LostAir,Our plan ran out of air in {0}. Want to change one thing?,Planımızda hava şu evrede bitti: {0}. Bir şeyi değiştirmek ister misin?
+Sun_Badge,Today's Sun,Bugünün Güneşi
+Sun_Title,Today's Sun,Bugünün Güneşi
+Sun_LiveStatus,LIVE · fetched {0} UTC from NASA DONKI,CANLI · NASA DONKI'den {0} UTC'de alındı
+Sun_ArchiveStatus,ARCHIVE · 4-15 September 2017 (no connection now),ARŞİV · 4-15 Eylül 2017 (şu an bağlantı yok)
+Sun_SummaryLive,"Last 30 days: {0} solar flares (strongest {1}), {2} CMEs, {3} geomagnetic storms.","Son 30 gün: {0} güneş patlaması (en güçlüsü {1}), {2} koronal kütle atımı, {3} jeomanyetik fırtına."
+Sun_SummaryArchive,"September 2017: {0} big flares (strongest {1}), {2} fast CMEs, {3} geomagnetic storms.","Eylül 2017: {0} büyük patlama (en güçlüsü {1}), {2} hızlı koronal kütle atımı, {3} jeomanyetik fırtına."
+UI_NasaMeasurement,NASA measurement,NASA ölçümü
+UI_Retrieved,checked {0},kontrol: {0}
+UI_Settings,Settings,Ayarlar
+UI_Resume,Resume,Devam et
+UI_RestartSame,Restart same mission,Aynı görevi yeniden başlat
+UI_AgeBand,Age band,Yaş grubu
+UI_Sound,Sound,Ses
+UI_ReduceMotion,Reduce motion,Hareketi azalt
+UI_On,on,açık
+UI_Off,off,kapalı
+UI_Fullscreen,Screen: full,Ekran: tam
+UI_Window,Screen: window,Ekran: pencere
+UI_Quit,Quit,Çık
+UI_Mute,Mute,Sesi kapat
+UI_Unmute,Sound on,Sesi aç
+UI_DoseBadge,Storm exposures: {0},Fırtına maruziyeti: {0}
+Capcom_Opening_1,Your cargo landed before you. Power is ready.,Kargon senden önce indi. Güç hazır.
+Capcom_Opening_2,You are Stay. Put the first power cell in AIR.,Sen Stay'sin. İlk güç hücresini HAVA'ya koy.
+Capcom_Opening_3,"Power you give to one, the others lose.",Birine verdiğin gücü diğerleri kaybeder.
+Capcom_Opening_4,Good. Press Call home to tell Earth you landed.,Güzel. İndiğini bildirmek için Dünya'yı ara'ya bas.
+Capcom_Restart,"Same mission, new plan. Earth is listening.","Aynı görev, yeni plan. Dünya dinliyor."
+Capcom_Reply_Arrival,Earth here: we hear you. Keep AIR strong first.,Dünya konuşuyor: Seni duyuyoruz. Önce HAVA'yı güçlü tut.
+Capcom_Reply_FirstWalk,Earth here: the Sun is busy. Plan a strong SHELTER.,Dünya konuşuyor: Güneş hareketli. SIĞINAK'ı güçlü planla.
+Capcom_Reply_Exploration,"Earth here: good work. Plants grow slowly, feed the GREENHOUSE early.","Dünya konuşuyor: İyi iş. Bitkiler yavaş büyür, SERA'yı erkenden besle."
+Capcom_Reply_Resupply,Earth here: soon we cannot talk for a while. Your plan is your guide.,Dünya konuşuyor: Yakında bir süre konuşamayacağız. Planın sana yol gösterecek.
+Capcom_Reply_HardWeek,Earth here: we are back. Get the base ready for the next crew.,Dünya konuşuyor: Geri döndük. Üssü bir sonraki ekip için hazırla.
+Capcom_Reply_Return,Earth here: we are proud of your plan.,Dünya konuşuyor: Planınla gurur duyuyoruz.
+Cause_Air_Down,AIR went down: it got fewer cells than it needed.,HAVA düştü: ihtiyacından az hücre aldı.
+Cause_Greenhouse_Down,GREENHOUSE will shrink next phase: it got fewer cells than it needed.,SERA sonraki evrede küçülecek: ihtiyacından az hücre aldı.
+Cause_Shelter_Down,SHELTER went down: it got fewer cells than it needed.,SIĞINAK düştü: ihtiyacından az hücre aldı.
+Cause_Air_Up,AIR got stronger: it got more cells than it needed.,HAVA güçlendi: ihtiyacından fazla hücre aldı.
+Cause_Greenhouse_Up,GREENHOUSE will grow next phase: it got extra cells.,SERA sonraki evrede büyüyecek: fazladan hücre aldı.
+Cause_Shelter_Up,SHELTER got stronger: it got more cells than it needed.,SIĞINAK güçlendi: ihtiyacından fazla hücre aldı.
+Cause_Steady,Everything held steady: each system got what it needed.,Her şey dengede kaldı: her sistem ihtiyacını aldı.
+Cause_Storm_Exposure,"The crew got a storm exposure: the shelter was not strong enough, or they kept working.",Ekip fırtınaya maruz kaldı: sığınak yeterince güçlü değildi ya da çalışmaya devam ettiler.
+Cause_Air_Out,AIR ran out. The crew walks back to the lander.,HAVA bitti. Ekip iniş aracına geri yürüyor.
+Card_Storm2017_Q,A solar storm is on its way to Mars. The crew is outside collecting rocks.,Mars'a doğru bir Güneş fırtınası geliyor. Ekip dışarıda taş topluyor.
+Card_Storm2017_Q_Cadet,A solar storm is coming while the crew is outside.,Ekip dışarıdayken bir Güneş fırtınası geliyor.
+Card_Storm2017_A,Go to the shelter now,Hemen sığınağa geçin
+Card_Storm2017_B,Finish the rock sample,Taş örneğini bitirin
+Card_Storm2017_Reveal,A real solar storm reached Mars. Curiosity's radiation detector measured more than ever before since the rover landed.,"Gerçek bir Güneş fırtınası Mars'a ulaştı. Curiosity'nin radyasyon ölçeri, gezgin indiğinden beri gördüğü en yüksek değeri ölçtü."
+Card_Storm2017_Reveal_Cadet,"A real solar storm reached Mars, and the Curiosity rover measured it.",Gerçek bir Güneş fırtınası Mars'a ulaştı ve Curiosity gezgini onu ölçtü.
+Card_Storm2017_Measure,"On 11 September 2017, radiation on the Martian surface was more than double any level Curiosity's RAD had measured before, and the high readings lasted more than two days.","11 Eylül 2017'de Mars yüzeyindeki radyasyon, Curiosity'nin RAD aletinin daha önce ölçtüğü her değerin iki katından fazlaydı ve yüksek değerler iki günden uzun sürdü."
+Card_DoseSpike2024_Q,Space weather watchers saw a giant flare on the Sun. Its fast particles will reach the base soon.,Uzay havası gözcüleri Güneş'te dev bir patlama gördü. Hızlı parçacıkları yakında üsse ulaşacak.
+Card_DoseSpike2024_Q_Cadet,A giant flare on the Sun is sending particles our way.,Güneş'teki dev bir patlama bize doğru parçacıklar gönderiyor.
+Card_DoseSpike2024_A,Gather in the shelter,Sığınakta toplanın
+Card_DoseSpike2024_B,Finish the weather station,Hava istasyonunu bitirin
+Card_DoseSpike2024_Reveal,"A giant solar storm really reached Mars. Curiosity measured its biggest radiation surge since landing, and a camera on the Odyssey orbiter briefly stopped working.",Dev bir Güneş fırtınası gerçekten Mars'a ulaştı. Curiosity indiğinden beri en büyük radyasyon artışını ölçtü; Odyssey uydusundaki bir kamera da kısa bir süre çalışmadı.
+Card_DoseSpike2024_Reveal_Cadet,"A giant solar storm really reached Mars, and Curiosity measured it.",Dev bir Güneş fırtınası gerçekten Mars'a ulaştı ve Curiosity onu ölçtü.
+Card_DoseSpike2024_Measure,"On 20 May 2024, an astronaut standing next to Curiosity would have received 8,100 micrograys, like 30 chest X-rays, the biggest surge RAD has measured since landing.",20 Mayıs 2024'te Curiosity'nin yanında duran bir astronot 8.100 mikrogray doz alırdı; bu 30 göğüs röntgeni kadardır ve RAD'in inişten beri ölçtüğü en büyük artıştır.
+Card_ArtemisIShelter_Q,A radiation warning comes in. Building the shelter wall from supplies takes time and power.,Bir radyasyon uyarısı geldi. Malzemelerden sığınak duvarı kurmak zaman ve güç ister.
+Card_ArtemisIShelter_Q_Cadet,A radiation warning comes in; where should the crew wait?,Bir radyasyon uyarısı geldi; ekip nerede beklesin?
+Card_ArtemisIShelter_A,Build the shelter wall,Sığınak duvarını kurun
+Card_ArtemisIShelter_B,Wait in the work room,Çalışma odasında bekleyin
+Card_ArtemisIShelter_Reveal,"On Artemis I, radiation detectors flew around the Moon inside the Orion spacecraft. The detector in Orion's storm shelter measured much less radiation than the one in the crew cabin.","Artemis I görevinde radyasyon ölçerler Orion aracının içinde Ay'ın çevresinde uçtu. Orion'un fırtına sığınağındaki ölçer, ekip kabinindekinden çok daha az radyasyon ölçtü."
+Card_ArtemisIShelter_Reveal_Cadet,"On a real Moon flight, the storm shelter got less radiation than the cabin.",Gerçek bir Ay uçuşunda fırtına sığınağına kabinden daha az radyasyon ulaştı.
+Card_ArtemisIShelter_Measure,"After launch on 16 November 2022, peak dose rates in a radiation belt were 287 µGy per minute in Orion's crew cabin and 134 µGy per minute in its storm shelter, a factor of 2.","16 Kasım 2022'deki fırlatıştan sonra bir radyasyon kuşağında en yüksek doz hızı Orion'un ekip kabininde dakikada 287 µGy, fırtına sığınağında dakikada 134 µGy idi; yani 2 kat fark vardı."
+Card_ArtemisIIShelter_Q,Mission Control suggests a shelter drill using the base's own supplies. The drill takes time away from today's exploring.,"Görev Kontrol, üsteki malzemelerle bir sığınak tatbikatı öneriyor. Tatbikat bugünkü keşiften zaman alır."
+Card_ArtemisIIShelter_Q_Cadet,Should the crew practise building a storm shelter today?,Ekip bugün fırtına sığınağı kurmayı denesin mi?
+Card_ArtemisIIShelter_A,Practise the shelter drill,Sığınak tatbikatı yapın
+Card_ArtemisIIShelter_B,Keep exploring today,Bugün keşfe devam edin
+Card_ArtemisIIShelter_Reveal,"The Artemis II crew planned to build a radiation shelter from Orion's own supplies. Near the end of the flight, the team skipped the practice so the cabin could be made ready for coming home.","Artemis II ekibi, Orion'daki malzemelerle bir radyasyon sığınağı kurmayı planlamıştı. Uçuşun sonuna doğru ekip, kabini eve dönüşe hazırlamak için bu denemeyi atladı."
+Card_ArtemisIIShelter_Reveal_Cadet,The Artemis II crew planned a shelter drill but skipped it to get ready for home.,Artemis II ekibi bir sığınak tatbikatı planladı ama eve dönüşe hazırlanmak için atladı.
+Card_ArtemisIIShelter_Measure,"The radiation shelter demonstration was planned for Flight Day 8 (8 April 2026), and the teams chose to skip it to prepare the cabin for entry.",Radyasyon sığınağı gösterimi 8. uçuş gününe (8 Nisan 2026) planlanmıştı; ekipler kabini atmosfere girişe hazırlamak için bunu yapmamayı seçti.
+Card_InSight2022_Q,A dust storm is making the sky hazy. The backup solar panels are making less power.,Bir toz fırtınası gökyüzünü puslu yapıyor. Yedek güneş panelleri daha az güç üretiyor.
+Card_InSight2022_Q_Cadet,Dust in the sky is dimming our backup solar panels.,"Gökteki toz, yedek güneş panellerimizi karartıyor."
+Card_InSight2022_A,Keep the science tools on,Bilim aletlerini açık tutun
+Card_InSight2022_B,Switch off the science tools,Bilim aletlerini kapatın
+Card_InSight2022_Reveal,"The InSight lander on Mars ran on solar panels. When a dust storm made the sky hazier, its power dropped, so the team turned off its quake sensor for a while.",Mars'taki InSight iniş aracı güneş panelleriyle çalışıyordu. Bir toz fırtınası gökyüzünü bulandırınca gücü düştü; ekip de deprem ölçerini bir süre kapattı.
+Card_InSight2022_Reveal_Cadet,"A real dust storm dimmed InSight's solar panels, so the team switched off a tool.",Gerçek bir toz fırtınası InSight'ın panellerini kararttı; ekip de bir aleti kapattı.
+Card_InSight2022_Measure,"On 7 October 2022 NASA reported that InSight's energy fell from 425 to 275 watt-hours per sol, and the team turned off its seismometer for two weeks.",NASA 7 Ekim 2022'de InSight'ın enerjisinin sol başına 425 vatsaatten 275 vatsaate düştüğünü bildirdi; ekip sismometreyi iki hafta kapattı.
+Card_DustStorm2018_Q,"A huge dust storm is darkening the sky for days. The thin Mars wind cannot knock the base over, but the backup panels get very little sunlight.",Dev bir toz fırtınası gökyüzünü günlerce karartıyor. İnce Mars rüzgârı üssü deviremez ama yedek paneller çok az güneş ışığı alıyor.
+Card_DustStorm2018_Q_Cadet,"A huge dust storm is blocking the sunlight, but it cannot knock the base over.",Dev bir toz fırtınası güneş ışığını kesiyor ama üssü deviremez.
+Card_DustStorm2018_A,Give the plant lamps more power,Bitki lambalarına daha çok güç verin
+Card_DustStorm2018_B,Keep the crew rooms warm,Ekip odalarını sıcak tutun
+Card_DustStorm2018_Reveal,"The solar-powered Opportunity rover was caught in a giant dust storm. The dust blotted out the sunlight, and the rover went into a sleepy low-power mode.",Güneş enerjisiyle çalışan Opportunity gezgini dev bir toz fırtınasına yakalandı. Toz güneş ışığını kapattı ve gezgin uykuya benzer bir düşük güç moduna geçti.
+Card_DustStorm2018_Reveal_Cadet,A real dust storm blocked the sunlight for the Opportunity rover.,Gerçek bir toz fırtınası Opportunity gezgininin güneş ışığını kesti.
+Card_DustStorm2018_Measure,"On 10 June 2018 the storm's estimated tau (dust haze) was 10.8, against somewhere above 5.5 in a 2007 storm, and the rover's last signal came that day.","10 Haziran 2018'de fırtınanın tahmini tau değeri (toz pusu) 10,8 idi, 2007'deki bir fırtınada ise 5,5'in biraz üstündeydi; gezginden son sinyal de o gün geldi."
+Card_PowerHookup_Q,The robot could not plug the lander into the base power. The lander's own batteries will not last forever.,Robot iniş aracını üssün gücüne bağlayamadı. İniş aracının kendi bataryaları sonsuza dek dayanmaz.
+Card_PowerHookup_Q_Cadet,The robot could not plug in the power cable.,Robot güç kablosunu takamadı.
+Card_PowerHookup_A,Suit up and plug it in,Tulumu giyip kabloyu takın
+Card_PowerHookup_B,Let the robot try again,Robot yeniden denesin
+Card_PowerHookup_Reveal,"NASA's Mars plan keeps the first sols free of spacewalks so the crew can get used to gravity. But if the robot cannot connect the power, the crew may have to go outside and hook it up.","NASA'nın Mars planı, ekip yer çekimine alışsın diye ilk sollarda uzay yürüyüşü koymaz. Ama robot gücü bağlayamazsa ekip dışarı çıkıp bağlantıyı kendisi yapabilir."
+Card_PowerHookup_Reveal_Cadet,"In NASA's plan, the crew plugs in the power if the robot cannot.",NASA'nın planında robot yapamazsa gücü ekip bağlar.
+Card_PowerHookup_Measure,"In NASA's SAC21 Mars plan the crew lands about 1 km from the cargo landers, and Sols 1-3 have no scheduled EVA unless the power must be hooked up.",NASA'nın SAC21 Mars planında ekip kargo iniş araçlarından yaklaşık 1 km uzağa iner; güç bağlanması gerekmedikçe 1-3. sollarda planlı uzay yürüyüşü yoktur.
+Card_Apollo13Air_Q,The air cleaner's filters are almost full. The spare filters have the wrong shape.,Hava temizleyicinin filtreleri neredeyse dolu. Yedek filtrelerin şekli uymuyor.
+Card_Apollo13Air_Q_Cadet,"The air filter is full, and the spare does not fit.",Hava filtresi dolu ve yedeği uymuyor.
+Card_Apollo13Air_A,Build an adapter with tape,Bantla bir bağlantı parçası yapın
+Card_Apollo13Air_B,Run the fans much harder,Fanları çok daha güçlü çalıştırın
+Card_Apollo13Air_Reveal,"On Apollo 13, carbon dioxide built up in the lunar module and the spare filters did not fit. Following Mission Control's plan, the crew made them fit with plastic bags, duct tape and a suit hose.","Apollo 13'te Ay modülünde karbondioksit birikti ve yedek filtreler uymadı. Ekip, Görev Kontrol'ün planıyla filtreleri plastik torba, koli bandı ve bir tulum hortumuyla uydurdu."
+Card_Apollo13Air_Reveal_Cadet,On Apollo 13 the crew fixed their air filters with bags and tape.,Apollo 13'te ekip hava filtrelerini torba ve bantla onardı.
+Card_Apollo13Air_Measure,Carbon dioxide in the Apollo 13 lunar module rose to 14.9 mmHg; after the filter fix it dropped to 1 mmHg.,"Apollo 13'ün Ay modülünde karbondioksit 14,9 mmHg'ye çıktı; filtre onarımından sonra 1 mmHg'ye düştü."
+Card_MOXIE_Q,The oxygen maker can turn Mars air into oxygen. It needs power to run.,Oksijen yapıcı Mars havasını oksijene çevirebilir. Çalışmak için güç ister.
+Card_MOXIE_Q_Cadet,Should we run the machine that makes oxygen from Mars air?,Mars havasından oksijen yapan makineyi çalıştıralım mı?
+Card_MOXIE_A,Run the oxygen maker,Oksijen yapıcıyı çalıştırın
+Card_MOXIE_B,Use oxygen from the tanks,Tanklardaki oksijeni kullanın
+Card_MOXIE_Reveal,"MOXIE, a test machine on the Perseverance rover, made oxygen from the carbon dioxide in Mars's thin air. It worked better than its builders expected and finished all its tests.","Perseverance gezginindeki deneme makinesi MOXIE, Mars'ın ince havasındaki karbondioksitten oksijen yaptı. Yapanların beklediğinden daha iyi çalıştı ve bütün testlerini tamamladı."
+Card_MOXIE_Reveal_Cadet,A real machine on Mars made oxygen from the Martian air.,Mars'taki gerçek bir makine Mars havasından oksijen yaptı.
+Card_MOXIE_Measure,"In 16 runs ending on 7 August 2023, MOXIE made 122 grams of oxygen, up to 12 grams per hour at 98% purity or better.",7 Ağustos 2023'te biten 16 çalışmada MOXIE 122 gram oksijen yaptı; saatte 12 grama kadar ve en az yüzde 98 saflıkta.
+Card_Conjunction_Q,"The Sun is moving between Mars and Earth, and messages may get scrambled. What should we prepare first?","Güneş, Mars ile Dünya'nın arasına giriyor ve mesajlar karışabilir. Önce neyi hazırlayalım?"
+Card_Conjunction_Q_Cadet,Messages may get mixed up for a while; what do we prepare first?,Mesajlar bir süre karışabilir; önce neyi hazırlayalım?
+Card_Conjunction_A,Fill the shelter batteries first,Önce sığınak bataryalarını doldurun
+Card_Conjunction_B,Store extra water for plants,Bitkiler için fazladan su ayırın
+Card_Conjunction_Reveal,"Every so often the Sun passes between Earth and Mars. NASA then pauses sending commands to its Mars spacecraft, because the Sun's hot gas can scramble them.","Güneş ara sıra Dünya ile Mars'ın arasına girer. NASA o zaman Mars araçlarına komut göndermeye ara verir, çünkü Güneş'in sıcak gazı komutları bozabilir."
+Card_Conjunction_Reveal_Cadet,"When the Sun is between Earth and Mars, NASA pauses its commands.","Güneş, Dünya ile Mars'ın arasındayken NASA komut göndermeye ara verir."
+Card_Conjunction_Measure,Solar conjunction occurs every two years; in 2019 NASA paused commands to its Mars missions from 28 August to 7 September.,"Güneş kavuşumu iki yılda bir olur; 2019'da NASA, Mars görevlerine 28 Ağustos ile 7 Eylül arasında komut göndermedi."
+Card_CHAPEA2_Q,"A long quiet time begins, and no messages from Earth will arrive. The crew must decide everything on their own.",Uzun bir sessizlik başlıyor ve Dünya'dan hiç mesaj gelmeyecek. Ekip her şeye kendi karar vermeli.
+Card_CHAPEA2_Q_Cadet,"No messages from Earth for a while, so the crew decides alone.",Bir süre Dünya'dan mesaj yok; ekip kendi karar veriyor.
+Card_CHAPEA2_A,Double-check the air system,Hava sistemini tekrar kontrol edin
+Card_CHAPEA2_B,Keep the experiments going,Deneylere devam edin
+Card_CHAPEA2_Reveal,"CHAPEA is a NASA practice Mars home on Earth, in Houston. Its second crew lived inside for more than a year and practised a long communication blackout.","CHAPEA, NASA'nın Houston'daki deneme Mars evidir. İkinci ekibi bir yıldan uzun süre içeride yaşadı ve uzun bir iletişim kesintisini denedi."
+Card_CHAPEA2_Reveal_Cadet,A NASA practice crew on Earth also lived through a pretend blackout.,Dünya'daki bir NASA deneme ekibi de böyle bir kesintiyi canlandırdı.
+Card_CHAPEA2_Measure,"CHAPEA Mission 2 was a 378-day simulated Mars mission in a 1,700-square-foot habitat, with a simulated two-week communication blackout.","CHAPEA 2. Görev, 1.700 fit karelik bir habitatta 378 günlük benzetimli bir Mars göreviydi ve iki haftalık benzetimli bir iletişim kesintisi içeriyordu."
+Card_Lettuce_Q,"The lettuce is growing slowly under the lamps. Brighter light helps, but light costs power.",Marul lambaların altında yavaşça büyüyor. Daha parlak ışık yardım eder ama ışık güç ister.
+Card_Lettuce_Q_Cadet,The lettuce needs light for weeks; how much light should it get?,Marulun haftalarca ışığa ihtiyacı var; ne kadar ışık alsın?
+Card_Lettuce_A,Turn the grow lights up,Bitki lambalarını güçlendirin
+Card_Lettuce_B,Keep the lights as they are,Lambaları olduğu gibi bırakın
+Card_Lettuce_Reveal,"Astronauts on the space station grew red romaine lettuce in a plant box called Veggie. It took weeks to grow, and then the crew ate some of it.","Uzay istasyonundaki astronotlar Veggie adlı bir bitki kutusunda kırmızı marul yetiştirdi. Büyümesi haftalar sürdü, sonra ekip bir kısmını yedi."
+Card_Lettuce_Reveal_Cadet,Astronauts grew lettuce in space and ate it weeks later.,Astronotlar uzayda marul yetiştirdi ve haftalar sonra yedi.
+Card_Lettuce_Measure,"The VEG-01 B red romaine lettuce grew for 33 days, and on 10 August 2015 the crew harvested half of the leaves to eat.",VEG-01 B kırmızı marulu 33 gün büyüdü; 10 Ağustos 2015'te ekip yapraklarının yarısını yemek için topladı.
+Card_Pepper_Q,"The pepper plants have flowers, but there are no bees or wind inside the base. The flowers need help to make peppers.",Biber bitkileri çiçek açtı ama üsste arı ya da rüzgâr yok. Çiçeklerin biber yapması için yardım gerekiyor.
+Card_Pepper_Q_Cadet,The pepper flowers need help to turn into peppers.,Biber çiçeklerinin bibere dönüşmesi için yardım gerekiyor.
+Card_Pepper_A,Run the greenhouse fans,Sera fanlarını çalıştırın
+Card_Pepper_B,Help the flowers by hand,Çiçeklere elle yardım edin
+Card_Pepper_Reveal,"Chile peppers grew on the space station for months, the longest plant test there. The team ran fans to move pollen, astronauts helped some flowers by hand, and the crew ate the peppers.","Uzay istasyonunda acı biberler aylarca büyüdü; orada yapılan en uzun bitki deneyiydi. Ekip poleni taşımak için fanları çalıştırdı, astronotlar bazı çiçeklere elle yardım etti ve ekip biberleri yedi."
+Card_Pepper_Reveal_Cadet,"Peppers grew in space for months, and astronauts helped the flowers by hand.",Biberler uzayda aylarca büyüdü ve astronotlar çiçeklere elle yardım etti.
+Card_Pepper_Measure,"The Plant Habitat-04 experiment ended 137 days after it began; four plants gave 26 chile peppers, with the final harvest on 26 November 2021.",Plant Habitat-04 deneyi başladıktan 137 gün sonra bitti; dört bitki 26 acı biber verdi ve son hasat 26 Kasım 2021'de yapıldı.
+Card_LostTomatoes_Q,"Some tomatoes from the greenhouse have gone missing. Searching takes crew time, and growing new ones takes weeks.","Seradan birkaç domates kayboldu. Aramak ekibin zamanını alır, yenilerini yetiştirmek ise haftalar sürer."
+Card_LostTomatoes_Q_Cadet,Some tomatoes are missing; search now or grow new ones?,"Birkaç domates kayıp; şimdi mi arayalım, yenilerini mi yetiştirelim?"
+Card_LostTomatoes_A,Search the whole base,Bütün üssü arayın
+Card_LostTomatoes_B,Grow new tomatoes,Yeni domates yetiştirin
+Card_LostTomatoes_Reveal,"On the space station, tomatoes from a plant experiment went missing. Much later, crew members found them in a plastic bag, dry and a little squished.","Uzay istasyonunda bir bitki deneyinden domatesler kayboldu. Çok sonra ekip üyeleri onları plastik bir torbada, kurumuş ve biraz ezilmiş hâlde buldu."
+Card_LostTomatoes_Reveal_Cadet,"Lost space tomatoes were found much later, dry and squished.","Kayıp uzay domatesleri çok sonra, kurumuş ve ezilmiş hâlde bulundu."
+Card_LostTomatoes_Measure,"Two XROOTS tomatoes lost in 2022 were found nearly a year later, dehydrated and slightly squished, with no visible microbial or fungal growth.","2022'de kaybolan iki XROOTS domatesi yaklaşık bir yıl sonra bulundu; kurumuş ve biraz ezilmişlerdi, görünür mikrop ya da küf yoktu."
+UI_TimeCompression,"Game time is squeezed: 31 sols on Mars play in a few minutes, and Earth replies come one phase later instead of after 11 minutes.","Oyun zamanı sıkıştırılmıştır: Mars'ta 31 sol birkaç dakikada oynanır; Dünya'nın cevabı 11 dakika yerine bir evre sonra gelir."
+Shot_S02_EVA_A,The Flight Engineer suits up and plugs in the power line at the lander.,Uçuş Mühendisi tulumu giyip iniş aracındaki güç kablosunu takıyor.
+Shot_S02_EVA_B,The robot tries again while the Flight Engineer watches from the lander.,"Robot yeniden deniyor, Uçuş Mühendisi iniş aracının yanından izliyor."
+Shot_S03_STORM_A,Storm warning: the crew goes into the shelter and waits until it is safe.,Fırtına uyarısı: ekip sığınağa giriyor ve güvenli olana kadar bekliyor.
+Shot_S03_STORM_B,Storm warning: the crew keeps working while the warning lights stay on.,Fırtına uyarısı: uyarı ışıkları yanarken ekip çalışmaya devam ediyor.
+Shot_S04_GREEN,Look at the plants: their color shows how much power the greenhouse got.,Bitkilere bak: renkleri seraya ne kadar güç verildiğini gösteriyor.
+Shot_S05_COMMS,Your message is on its way to Earth. The answer will take a long time.,Mesajın Dünya'ya doğru yolda. Cevap uzun sürecek.
+Shot_S06_FAULT,A crew member works on the broken part at the power unit.,Bir ekip üyesi güç ünitesindeki bozuk parça üzerinde çalışıyor.
+Shot_S07_DEPART,The base is left safe. The crew heads to the ascent vehicle.,Üs güvenli bırakıldı. Ekip dönüş aracına gidiyor.
