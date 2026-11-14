@@ -30,6 +30,10 @@ public:
 	/** Mission Control opens on the tab that needs the player (decision, then power, then crew). */
 	void PickTab();
 	enum class ETab : uint8 { Power, Crew, Decision, Data };
+#if !UE_BUILD_SHIPPING
+	/** Dev hook for the screenshot tour (-TDShotTour). */
+	void DevSetTab(int32 InTab) { Tab = static_cast<ETab>(FMath::Clamp(InTab, 0, 3)); Rebuild(); }
+#endif
 	virtual bool SupportsKeyboardFocus() const override { return true; }
 	virtual FReply OnKeyDown(const FGeometry& MyGeometry, const FKeyEvent& InKeyEvent) override;
 	/** Rebuilds when the mission changes under it (a choice made elsewhere, a phase that ended). */

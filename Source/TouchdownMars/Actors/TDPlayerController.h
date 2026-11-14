@@ -92,6 +92,16 @@ private:
 	TSharedPtr<class STDSurfaceHud> SurfaceHud;
 	/** Pause menu (Esc / Menu): Slate, design-room style. */
 	TSharedPtr<class STDPauseMenu> PauseMenu;
+#if !UE_BUILD_SHIPPING
+	/** -TDShotTour [-TDLang=TR]: open each main screen in turn and save a screenshot with the UI (Saved/Tour/<lang>). */
+	void StartShotTour();
+	void RunShotTourStep();
+	TArray<TPair<FString, TFunction<void()>>> TourSteps;
+	int32 TourIndex = 0;
+	FString TourDir;
+	FTimerHandle TourTimer;
+	int32 TourLanguageBefore = 0;
+#endif
 	bool bPauseOpen = false;
 	void ShowPauseMenu();
 	void HidePauseMenu();

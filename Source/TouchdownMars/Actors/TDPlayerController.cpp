@@ -36,6 +36,9 @@
 #include "Systems/TDMissionSubsystem.h"
 #include "TouchdownMars.h"
 #include "UI/TDWidgets.h"
+#include "UnrealClient.h"
+#include "UI/TDDesignRoom.h"
+#include "UI/TDBaseComputer.h"
 
 ATDPlayerController::ATDPlayerController()
 {
@@ -322,6 +325,12 @@ void ATDPlayerController::OpenDesignRoom()
 		DesignRoom->Show(ETDDesignScreen::Objectives);
 	}
 	UE_LOG(LogTouchdownMars, Display, TEXT("Design: room open"));
+#if !UE_BUILD_SHIPPING
+	if (FParse::Param(FCommandLine::Get(), TEXT("TDShotTour")))
+	{
+		StartShotTour();
+	}
+#endif
 }
 
 void ATDPlayerController::ShowDebrief()
@@ -802,3 +811,110 @@ void ATDPlayerController::RunPadTest(int32 Step)
 	}
 }
 #endif
+
+#if !UE_BUILD_SHIPPING
+void ATDPlayerController::StartShotTour()
+{
+	UTDMissionSubsystem* Mission = GetWorld()->GetSubsystem<UTDMissionSubsystem>();
+	if (!Mission)
+	{
+		return;
+	}
+	FString Lang = TEXT("EN");
+	FParse::Value(FCommandLine::Get(), TEXT("TDLang="), Lang);
+	TourLanguageBefore = static_cast<int32>(Mission->GetLanguage());
+	Mission->SetLanguage(Lang == TEXT("TR") ? ETDLanguage::TR : ETDLanguage::EN);
+	TourDir = FPaths::ConvertRelativePathToFull(FPaths::ProjectSavedDir() / TEXT("Tour") / Lang);
+	TWeakObjectPtr<UTDMissionSubsystem> M(Mission);
+	auto Add = [this](const TCHAR* Name, TFunction<void()> Step) { TourSteps.Add(TPair<FString, TFunction<void()>>(Name, MoveTemp(Step))); };
+
+	Add(TEXT("01_cold_open"), [this]() { ShowDesignScreen(); if (DesignRoom.IsValid()) { DesignRoom->Show(ETDDesignScreen::Objectives); DesignRoom->DevSetBeat(0); } });
+	Add(TEXT("02_objectives"), [this]() { if (DesignRoom.IsValid()) { DesignRoom->DevSetBeat(1); DesignRoom->Show(ETDDesignScreen::Objectives); } });
+	Add(TEXT("03_first_flight_step"), [this, M]() { if (M.IsValid() && M->BeginDesign(TEXT("FirstLight"), false)) { DesignRoom->Show(ETDDesignScreen::Design); DesignRoom->DevSetBeat(1); } });
+	Add(TEXT("04_design_room_planner"), [this, M]()
+	{
+		if (!M.IsValid()) { return; }
+		M->FirstFlight.bSkipped = true;
+		M->UseRecommendedDesign();
+		DesignRoom->Show(ETDDesignScreen::Design);
+		DesignRoom->DevSetRole(0);
+	});
+	Add(TEXT("05_design_room_science"), [this]() { DesignRoom->DevSetRole(2); });
+	Add(TEXT("06_go_nogo_poll"), [this, M]() { if (M.IsValid()) { M->SetAllRolesGo(); } DesignRoom->DevSetRole(0); DesignRoom->DevStartPoll(); });
+	Add(TEXT("07_launch_transit"), [this, M]() { if (M.IsValid() && M->LaunchDesign()) { DesignRoom->Show(ETDDesignScreen::Transit); } });
+	Add(TEXT("08_surface_hud"), [this]() { HandleTransitDone(); });
+	Add(TEXT("09_hands_on_work"), [this, M]()
+	{
+		if (!M.IsValid()) { return; }
+		if (!M->PlanTask(TEXT("InspectCargo"), 0)) { M->DevGiveOwnTask(TEXT("InspectCargo")); }
+		if (ATDAstronautCharacter* A = Cast<ATDAstronautCharacter>(GetPawn())) { A->DevGoToNextSpot(TEXT("InspectCargo")); }
+	});
+	Add(TEXT("10_mission_control_power"), [this]()
+	{
+		if (ATDAstronautCharacter* A = Cast<ATDAstronautCharacter>(GetPawn())) { A->DevGoToStation(); }
+		if (!bBaseOpen) { ToggleBaseComputer(); }
+		if (BaseComputer.IsValid()) { BaseComputer->DevSetTab(0); }
+	});
+	Add(TEXT("11_mission_control_crew"), [this]() { if (BaseComputer.IsValid()) { BaseComputer->DevSetTab(1); } });
+	Add(TEXT("12_mission_control_sun_sources"), [this]() { if (BaseComputer.IsValid()) { BaseComputer->DevSetTab(3); } });
+	Add(TEXT("13_event_card_decision"), [this, M]()
+	{
+		for (int32 Guard = 0; M.IsValid() && M->IsMissionRunning() && M->GetState().CurrentEventId.IsNone() && Guard < 6; ++Guard)
+		{
+			M->DevFillPhase();
+			M->EndPhase();
+		}
+		if (!bBaseOpen) { ToggleBaseComputer(); }
+		if (BaseComputer.IsValid()) { BaseComputer->DevSetTab(2); }
+	});
+	Add(TEXT("14_pause_menu"), [this]() { if (bBaseOpen) { HideBaseComputer(); } ShowPauseMenu(); SetPause(false); });   // keep the menu up but let the tour timers run
+	Add(TEXT("15_debrief_report"), [this]()
+	{
+		HidePauseMenu();
+		GEngine->Exec(GetWorld(), TEXT("td.AutoPlay"));
+		ShowDebrief();
+	});
+	Add(TEXT(""), [this, M]()
+	{
+		// Second flight with a different instrument, so the debrief can compare two flights.
+		if (!M.IsValid() || !M->BeginDesign(TEXT("FirstLight"), true)) { return; }
+		M->UseRecommendedDesign();
+		M->SetDesignPick(TEXT("MastcamZ"), 0);
+		M->SetDesignPick(TEXT("SuperCam"), 1);
+		M->SetAllRolesGo();
+		if (M->LaunchDesign()) { HandleTransitDone(); GEngine->Exec(GetWorld(), TEXT("td.AutoPlay")); }
+	});
+	Add(TEXT("16_debrief_compare"), [this]() { ShowDebrief(); });
+	TourIndex = 0;
+	UE_LOG(LogTouchdownMars, Display, TEXT("ShotTour: %d steps, language %s, into %s"), TourSteps.Num(), *Lang, *TourDir);
+	GetWorldTimerManager().SetTimer(TourTimer, FTimerDelegate::CreateUObject(this, &ATDPlayerController::RunShotTourStep), 4.f, false);
+}
+
+void ATDPlayerController::RunShotTourStep()
+{
+	if (!TourSteps.IsValidIndex(TourIndex))
+	{
+		if (UTDMissionSubsystem* Mission = GetWorld()->GetSubsystem<UTDMissionSubsystem>())
+		{
+			Mission->SetLanguage(static_cast<ETDLanguage>(TourLanguageBefore));   // the tour does not change the saved setting
+		}
+		UE_LOG(LogTouchdownMars, Display, TEXT("ShotTour: done"));
+		return;
+	}
+	const FString Name = TourSteps[TourIndex].Key;
+	TourSteps[TourIndex].Value();
+	++TourIndex;
+	// Let the screen settle (bars ease, the poll reports appear), then shoot with the UI.
+	FTimerHandle Shot;
+	GetWorldTimerManager().SetTimer(Shot, FTimerDelegate::CreateWeakLambda(this, [this, Name]()
+	{
+		if (!Name.IsEmpty())
+		{
+			FScreenshotRequest::RequestScreenshot(TourDir / (Name + TEXT(".png")), true, false);
+			UE_LOG(LogTouchdownMars, Display, TEXT("ShotTour: %s"), *Name);
+		}
+		GetWorldTimerManager().SetTimer(TourTimer, FTimerDelegate::CreateUObject(this, &ATDPlayerController::RunShotTourStep), 1.5f, false);
+	}), Name.IsEmpty() ? 2.f : 3.5f, false);
+}
+#endif
+

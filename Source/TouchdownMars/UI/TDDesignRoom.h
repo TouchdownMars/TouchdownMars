@@ -40,6 +40,12 @@ public:
 	void Show(ETDDesignScreen InScreen);
 	ETDDesignScreen GetScreen() const { return Screen; }
 	void Rebuild();
+#if !UE_BUILD_SHIPPING
+	/** Dev hooks for the screenshot tour (-TDShotTour). */
+	void DevSetRole(int32 Role) { ActiveRole = static_cast<ETDRole>(FMath::Clamp(Role, 0, 3)); Rebuild(); }
+	void DevSetBeat(int32 Beat) { SetBeat(static_cast<EBeat>(Beat)); Rebuild(); }
+	void DevStartPoll() { PollStart = FPlatformTime::Seconds(); Rebuild(); }
+#endif
 
 	virtual void Tick(const FGeometry& AllottedGeometry, const double InCurrentTime, const float InDeltaTime) override;
 	virtual bool SupportsKeyboardFocus() const override { return true; }

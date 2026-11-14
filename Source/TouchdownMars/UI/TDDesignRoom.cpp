@@ -2635,7 +2635,7 @@ TSharedRef<SWidget> STDDesignRoom::BuildDebrief()
 			const int32 C = UTDDesignRules::GetPickCount(Now.Design, Id);
 			if (A != C)
 			{
-				Changes.Add(FString::Printf(TEXT("%s %d→%d"), *Txt(FName(*FString::Printf(TEXT("Opt_%s"), *Id.ToString()))).ToString(), A, C));
+				Changes.Add(FString::Printf(TEXT("%s %d -> %d"), *Txt(FName(*FString::Printf(TEXT("Opt_%s"), *Id.ToString()))).ToString(), A, C));
 			}
 		}
 		if (Prev.Design.bRealisticModel != Now.Design.bRealisticModel)

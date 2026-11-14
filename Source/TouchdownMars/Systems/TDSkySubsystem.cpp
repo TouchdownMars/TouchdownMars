@@ -6,6 +6,8 @@
 #include "Components/ExponentialHeightFogComponent.h"
 #include "Components/SkyAtmosphereComponent.h"
 #include "Components/SkyLightComponent.h"
+#include "Engine/Engine.h"
+#include "Engine/GameViewportClient.h"
 #include "EngineUtils.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMaterialLibrary.h"
@@ -60,6 +62,17 @@ void UTDSkySubsystem::OnWorldBeginPlay(UWorld& InWorld)
 #if !UE_BUILD_SHIPPING
 	FParse::Value(FCommandLine::Get(), TEXT("TDTime="), FixedHours);
 	FParse::Value(FCommandLine::Get(), TEXT("TDDust="), FixedDust);
+	// -TDHighRes=<seconds>: one 3840 x 2160 scene shot without UI (Saved/Screenshots), for press images.
+	float HighResAfter = -1.f;
+	if (FParse::Value(FCommandLine::Get(), TEXT("TDHighRes="), HighResAfter) && HighResAfter > 0.f)
+	{
+		FTimerHandle Shot;
+		InWorld.GetTimerManager().SetTimer(Shot, FTimerDelegate::CreateWeakLambda(this, [this]()
+		{
+			if (UGameViewportClient* View = GetWorld()->GetGameViewport()) { View->ConsoleCommand(TEXT("HighResShot 3840x2160")); }
+			UE_LOG(LogTemp, Display, TEXT("Sky: high-res shot requested"));
+		}), HighResAfter, false);
+	}
 #endif
 	if (FixedDust >= 0.f)
 	{
