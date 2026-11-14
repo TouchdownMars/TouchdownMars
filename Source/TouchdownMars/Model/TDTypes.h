@@ -6,7 +6,7 @@
 #include "Engine/DataTable.h"
 #include "TDTypes.generated.h"
 
-// Enums (technical_design.md §2.1)
+// Enums
 
 UENUM(BlueprintType)
 enum class ETDSystem : uint8
@@ -104,7 +104,7 @@ namespace TD
 	inline constexpr int32 NumPhases = 6;
 }
 
-// DataTable rows (technical_design.md §2.2). Imported from Data/Source/*.csv by Scripts/import_data.py.
+// DataTable rows. Imported from Data/Source/*.csv by Scripts/import_data.py.
 // The CSV row name is the key (PhaseId, EventId, Band, constant Key, SourceId, text Key, DONKI row id).
 
 USTRUCT(BlueprintType)

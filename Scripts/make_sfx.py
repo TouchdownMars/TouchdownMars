@@ -1,5 +1,5 @@
 # Copyright 2026 Team Touchdown. Licensed under the Apache License, Version 2.0.
-"""Synthesize the game's UI and scene sounds (design.md §5 sound tokens) as 16-bit mono WAV files.
+"""Synthesize the game's UI and scene sounds (sound tokens) as 16-bit mono WAV files.
 
 Run with any Python 3 (no packages needed):  python Scripts/make_sfx.py
 Output: Data/Audio/SFX_TD_*.wav. Import with Scripts/import_sfx.py inside the editor.
@@ -86,7 +86,7 @@ SOUNDS = {
     "SFX_TD_UI_Locked": tone([140], 0.12, 0.6, noise=0.3, release=0.08),
     "SFX_TD_CardFlip": whoosh(0.32),
     "SFX_TD_RadioIn": concat(tone([1500], 0.06, 0.35, noise=0.25), tone([1500], 0.06, 0.35, noise=0.25), tone([2000], 0.1, 0.35, noise=0.2), gap=0.04),
-    # Calm alarm: slow two-tone, no harsh square waves (never scary, design.md §11).
+    # Calm alarm: slow two-tone, no harsh square waves (never scary).
     "SFX_TD_Alarm": concat(tone([660], 0.28, 0.45, attack=0.04, release=0.1), tone([523], 0.32, 0.45, attack=0.04, release=0.15), gap=0.08),
     "SFX_TD_Stamp": concat(tone([90], 0.09, 0.8, noise=0.5, release=0.07), tone([600], 0.05, 0.2)),
     "SFX_TD_LiftOff": rumble(1.8),

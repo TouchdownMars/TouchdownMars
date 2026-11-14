@@ -5,7 +5,7 @@ Run inside the editor (MCP execute_python_code):
     exec(open(r"<ProjectDir>/Scripts/balance_check.py", encoding="utf-8").read())
 or headless:
     UnrealEditor-Cmd.exe TouchdownMars.uproject -run=pythonscript -script="<ProjectDir>/Scripts/balance_check.py"
-Targets (technical_design.md §4, designer values): phase 1 loss 0 %; random-play loss between 20 % and 50 %.
+Targets (designer values): phase 1 loss 0 %; random-play loss between 20 % and 50 %.
 The model runs in C++ (UTDMissionRules::SimulateFromTables), so this script only reads tables and prints.
 """
 

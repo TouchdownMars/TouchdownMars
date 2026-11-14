@@ -754,7 +754,6 @@ void UTDSettingsWidget::NativeOnInitialized()
 	ResumeButton->OnClicked.AddDynamic(this, &UTDSettingsWidget::HandleResume);
 	RestartButton->OnClicked.AddDynamic(this, &UTDSettingsWidget::HandleRestart);
 	NewMissionButton->OnClicked.AddDynamic(this, &UTDSettingsWidget::HandleNewMission);
-	BandButton->OnClicked.AddDynamic(this, &UTDSettingsWidget::HandleBand);
 	LanguageButton->OnClicked.AddDynamic(this, &UTDSettingsWidget::HandleLanguage);
 	SoundButton->OnClicked.AddDynamic(this, &UTDSettingsWidget::HandleSound);
 	MotionButton->OnClicked.AddDynamic(this, &UTDSettingsWidget::HandleMotion);
@@ -811,15 +810,6 @@ void UTDSettingsWidget::HandleNewMission()
 {
 	Close();
 	if (UTDMissionSubsystem* Mission = GetMission()) { Mission->StartNewMission(); }
-}
-
-void UTDSettingsWidget::HandleBand()
-{
-	if (UTDMissionSubsystem* Mission = GetMission())
-	{
-		Mission->SetPreferredBand(Mission->GetPreferredBand() == ETDAgeBand::Cadet ? ETDAgeBand::Commander : ETDAgeBand::Cadet);
-	}
-	RefreshTexts();
 }
 
 void UTDSettingsWidget::HandleLanguage()
@@ -955,7 +945,7 @@ void UTDHudWidget::HandlePhaseStarted(ETDPhase Phase)
 		if (ResultText) { ResultText->SetText(FText::GetEmpty()); ShowPanelOf(ResultText, false); }
 		if (!Mission->bOpeningShown)
 		{
-			// Opening minute (gdd.md §1 Walkthrough): dark base, one cell to AIR shown by the ghost hand.
+			// Opening minute: dark base, one cell to AIR shown by the ghost hand.
 			OpeningStep = 0;
 			SayCapcom(TEXT("Capcom_Opening_1"));
 			TWeakObjectPtr<UTDHudWidget> WeakThis(this);

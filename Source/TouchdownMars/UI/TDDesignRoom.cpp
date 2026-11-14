@@ -30,7 +30,7 @@ namespace
 {
 	const FSlateBrush* White() { return FCoreStyle::Get().GetBrush("GenericWhiteBox"); }
 
-	/** Design-room palette: docs/design.md "Mission screens" (NASA-punk: warm light panels, charcoal, one NASA red). */
+	/** Design-room palette (NASA-punk: warm light panels, charcoal, one NASA red). */
 	namespace Pal
 	{
 		inline FLinearColor Hex(const TCHAR* V, float A = 1.f) { FLinearColor C = FLinearColor(FColor::FromHex(V)); C.A = A; return C; }
@@ -1345,7 +1345,7 @@ TSharedRef<SWidget> STDDesignRoom::BuildPoll(const FTDDesignBudget& Budget)
 // First flight (onboarding). Research: D:\NASA\research_notes\Görev tasarım oyunu GDC dersleri\onboarding_logic.md.
 // Rules: beats follow the causal chains, not the panels; the player causes each red line before FLIGHT names it;
 // predict, then observe; the first failure is a free storm preview of the player's own design; the debrief asks
-// "which decision?" before it tells. docs/gdd.md "First flight" lists the beats.
+// "which decision?" before it tells.
 
 bool STDDesignRoom::IsFirstFlight() const
 {

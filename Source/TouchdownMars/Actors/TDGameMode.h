@@ -20,7 +20,7 @@ public:
 
 	virtual void StartPlay() override;
 
-	/** Default Commander (gdd.md §2 Mechanic 8, locked 13.11.2026). */
+	/** Default Commander (locked 13.11.2026). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Touchdown Mars")
 	ETDAgeBand StartBand = ETDAgeBand::Commander;
 

@@ -9,7 +9,7 @@
 #include "Styling/CoreStyle.h"
 
 /**
- * Shared look of the in-game screens (docs/design.md "Mission screens"): NASA-punk palette, Barlow Semi Condensed
+ * Shared look of the in-game screens: NASA-punk palette, Barlow Semi Condensed
  * and IBM Plex Mono. Header-only so the HUD, Mission Control and later screens draw with the same tokens.
  */
 namespace TDStyle

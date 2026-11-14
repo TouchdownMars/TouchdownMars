@@ -105,7 +105,7 @@ for path in unreal.EditorAssetLibrary.list_assets(f"{TRIPO}/Astronaut", recursiv
             if asset.get_name().endswith(key):
                 anims[key] = asset
 def srgb(hex_value):
-    """design.md system color (sRGB hex) to linear, mixed half with white for a light suit tint."""
+    """System color (sRGB hex) to linear, mixed half with white for a light suit tint."""
     channels = [int(hex_value[i:i + 2], 16) / 255.0 for i in (0, 2, 4)]
     linear = [((c + 0.055) / 1.055) ** 2.4 if c > 0.04045 else c / 12.92 for c in channels]
     return unreal.LinearColor(*[0.5 + 0.5 * c for c in linear], 1.0)

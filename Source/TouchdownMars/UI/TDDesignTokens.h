@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "Model/TDTypes.h"
 
-/** Colors and sizes from docs/design.md. FLinearColor(FColor) converts the sRGB hex to linear. */
+/** Shared colors and sizes. FLinearColor(FColor) converts the sRGB hex to linear. */
 namespace TDTokens
 {
 	inline FLinearColor Hex(const TCHAR* Value) { return FLinearColor(FColor::FromHex(Value)); }

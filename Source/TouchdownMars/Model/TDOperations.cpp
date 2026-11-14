@@ -35,7 +35,7 @@ namespace
 FTDOpsState UTDOps::MakeState()
 {
 	FTDOpsState Ops;
-	// Crew 0 is the player; the other three are AI crew with their own roles (gdd.md "Base operations").
+	// Crew 0 is the player; the other three are AI crew with their own roles.
 	const ETDRole Roles[] = { ETDRole::Engineer, ETDRole::Planner, ETDRole::Science, ETDRole::Comms };
 	for (int32 Index = 0; Index < 4; ++Index)
 	{

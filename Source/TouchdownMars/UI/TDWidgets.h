@@ -1,7 +1,7 @@
 // Copyright 2026 Team Touchdown. Licensed under the Apache License, Version 2.0.
 // C++ bases for the WBP_TD_* widgets. The Blueprint child holds the layout (built by Scripts/build_greybox_ui.py with
 // VibeUE); the names of the bound widgets below must match the designer names exactly. Colors and sizes come from
-// docs/design.md (TDTokens). Only UTDHudWidget listens to the mission subsystem; it refreshes its children.
+// TDTokens. Only UTDHudWidget listens to the mission subsystem; it refreshes its children.
 
 #pragma once
 
@@ -424,7 +424,6 @@ private:
 	UFUNCTION() void HandleResume();
 	UFUNCTION() void HandleRestart();
 	UFUNCTION() void HandleNewMission();
-	UFUNCTION() void HandleBand();
 	UFUNCTION() void HandleLanguage();
 	UFUNCTION() void HandleSound();
 	UFUNCTION() void HandleMotion();

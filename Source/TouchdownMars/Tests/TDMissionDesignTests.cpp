@@ -231,7 +231,7 @@ bool FTDDesignWalkNeedsInstrument::RunTest(const FString&)
 }
 
 
-/** The first-flight script (docs/gdd.md "First flight") can always be finished: each beat's red line appears and has a fix. */
+/** The first-flight script can always be finished: each beat's red line appears and has a fix. */
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDDesignFirstFlightPath, "TD.Design.FirstFlightIsSolvable", TDDesignTest::Flags)
 bool FTDDesignFirstFlightPath::RunTest(const FString&)
 {

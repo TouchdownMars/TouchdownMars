@@ -7,7 +7,7 @@
 #include "Model/TDTypes.h"
 #include "TDSaveGame.generated.h"
 
-/** Slot TD_Settings. No personal data, no names, no analytics (technical_design.md §9). */
+/** Slot TD_Settings. No personal data, no names, no analytics. */
 UCLASS()
 class TOUCHDOWNMARS_API UTDSaveGame : public USaveGame
 {

@@ -8,24 +8,24 @@ LightTimeMin,3.2,minutes,HorizonsSeries,False,"Minimum of daily series 2017-2032
 LightTimeMax,22.25,minutes,HorizonsSeries,False,"Maximum of daily series 2017-2032, 2019-08-29"
 LettuceDays,33,days,Veggie,False,VEG-01 red romaine lettuce grew for 33 days (fact sheet p. 3)
 PepperDays,137,days,Pepper2021,False,Plant Habitat-04 chile peppers
-StartLevelAir,3,level,,True,gdd.md 2 Mechanic 1
-StartLevelGreenhouse,2,level,,True,gdd.md 2 Mechanic 1
-StartLevelShelter,3,level,,True,gdd.md 2 Mechanic 1
-LevelMin,0,level,,True,gdd.md 2 Mechanic 1
-LevelMax,4,level,,True,gdd.md 2 Mechanic 1
-BaseDemand,2,cells,,True,gdd.md 2 Mechanic 1
-TutorialDemand,1,cells,,True,gdd.md 2 Mechanic 1 (phase 1)
-DemandDeltaNormal,1,cells,,True,gdd.md 2 Mechanic 2
-DemandDeltaSevere,2,cells,,True,gdd.md 2 Mechanic 2
-ShelterSafeLevel,2,level,,True,gdd.md 2 Mechanic 4 (below this a radiation card records an exposure)
-HarvestMinLevel,3,level,,True,gdd.md 2 Mechanic 5
-MissionSols,31,sols,,True,gdd.md 3 Game Flow
-SeedMin,1000,seed,,True,technical_design.md 4
-SeedMax,9999,seed,,True,technical_design.md 4
-IdleHintSecondsMin,6,seconds,,True,gdd.md 2 Mechanic 1 edge cases
-IdleHintSecondsMax,8,seconds,,True,gdd.md 2 Mechanic 1 edge cases
-DonkiTimeoutSeconds,5,seconds,,True,gdd.md 2 Mechanic 7
-DonkiRangeDays,30,days,,True,gdd.md 2 Mechanic 7
+StartLevelAir,3,level,,True,Designer value: AIR starts at level 3 of 4
+StartLevelGreenhouse,2,level,,True,"Designer value: GREENHOUSE starts at level 2 of 4, the weakest system at launch"
+StartLevelShelter,3,level,,True,Designer value: SHELTER starts at level 3 of 4
+LevelMin,0,level,,True,Designer value: lowest system level; a system at 0 ends the mission
+LevelMax,4,level,,True,Designer value: highest system level
+BaseDemand,2,cells,,True,Designer value: cells each system needs per phase before events
+TutorialDemand,1,cells,,True,Designer value: cells each system needs in phase 1 (first flight)
+DemandDeltaNormal,1,cells,,True,Designer value: extra cells a normal event card asks for
+DemandDeltaSevere,2,cells,,True,Designer value: extra cells a severe event card asks for
+ShelterSafeLevel,2,level,,True,Designer value: below this SHELTER level a radiation card records an exposure
+HarvestMinLevel,3,level,,True,Designer value: GREENHOUSE level needed for a harvest
+MissionSols,31,sols,,True,Designer value: length of one mission in sols
+SeedMin,1000,seed,,True,Designer value: lowest mission seed
+SeedMax,9999,seed,,True,Designer value: highest mission seed
+IdleHintSecondsMin,6,seconds,,True,Designer value: earliest idle hint after the player stops acting
+IdleHintSecondsMax,8,seconds,,True,Designer value: latest idle hint after the player stops acting
+DonkiTimeoutSeconds,5,seconds,,True,Designer value: wait for the DONKI request before the stored archive is used
+DonkiRangeDays,30,days,,True,Designer value: days of DONKI events asked for in one request
 MarsGravityRatio,0.38,ratio to Earth surface gravity,NSSDCMars,False,"Mars Fact Sheet, bulk parameters: surface gravity ratio (Mars/Earth) 0.380"
 FalconHeavyToLeo,63800,kg,SpaceXFalconHeavy,False,"Overview table, Payload to LEO 63,800 kg (mode not stated)"
 FalconHeavyToMars,16800,kg,SpaceXFalconHeavy,False,"Overview table, Payload to Mars 16,800 kg (mode not stated)"

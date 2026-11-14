@@ -11,7 +11,7 @@
 #include "TDOperations.generated.h"
 
 /**
- * Surface operations (docs/gdd.md "Base operations"): the crew of four sets up the landed cargo, runs science
+ * Surface operations: the crew of four sets up the landed cargo, runs science
  * traverses, prospects for water, keeps the solar arrays clean and the base running. Each phase the player plans
  * the crew's hours on the base computer; the phase then runs as a time-lapse in which the crew walk to the sites
  * and do the work. Pure rules here, no engine objects: tests in Tests/TDOperationsTests.cpp.

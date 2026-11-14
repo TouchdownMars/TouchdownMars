@@ -48,7 +48,7 @@ here = mound.get_actor_location()
 mound.set_actor_location(unreal.Vector(here.x, here.y, -40), False, False)
 place("TD_Art_ShelterDoor", unreal.load_asset("/Engine/BasicShapes/Cube"), (-200, 1100, 0), (0.6, 1.4, 2.0),
       material=unreal.load_asset(f"{ROOT}/Materials/MI_TD_Greybox_Dark"))
-# Greenhouse dome: half-buried sphere, 6 m wide (level-design.md scale standard).
+# Greenhouse dome: half-buried sphere, 6 m wide (scale: 1 unit = 1 cm).
 dome = place("TD_Art_GreenhouseDome", sphere, (100, -1150, 0), (6, 6, 6), material=white)
 here = dome.get_actor_location()
 dome.set_actor_location(unreal.Vector(here.x, here.y, 0), False, False)  # centre on the pad: half-buried dome

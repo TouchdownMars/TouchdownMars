@@ -1,5 +1,5 @@
 // Copyright 2026 Team Touchdown. Licensed under the Apache License, Version 2.0.
-// Automation tests TD.Model.* (technical_design.md §13). Run headless:
+// Automation tests TD.Model.*. Run headless:
 // UnrealEditor-Cmd.exe TouchdownMars.uproject -ExecCmds="Automation RunTests TD.Model;Quit" -unattended -nullrhi -log
 
 #if WITH_DEV_AUTOMATION_TESTS

@@ -23,7 +23,7 @@ namespace
 {
 	const FSlateBrush* White() { return FCoreStyle::Get().GetBrush("GenericWhiteBox"); }
 
-	/** Same NASA-punk palette as the design room (docs/design.md "Mission screens"). */
+	/** Same NASA-punk palette as the design room. */
 	namespace Pal
 	{
 		inline FLinearColor Hex(const TCHAR* V, float A = 1.f) { FLinearColor C = FLinearColor(FColor::FromHex(V)); C.A = A; return C; }

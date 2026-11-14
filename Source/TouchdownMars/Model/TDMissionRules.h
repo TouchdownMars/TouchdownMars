@@ -121,7 +121,7 @@ struct FTDBalanceReport
 };
 
 /**
- * Pure mission rules (gdd.md §2 Mechanics 1-8). No world, no UI; every function is deterministic for a given
+ * Pure mission rules. No world, no UI; every function is deterministic for a given
  * state and seed. UTDMissionSubsystem owns the state and calls these functions.
  */
 UCLASS()

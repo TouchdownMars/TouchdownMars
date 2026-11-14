@@ -1,4 +1,4 @@
-"""Base operations scene (gdd.md Main Mechanics 14): parts of the base that appear only when the crew has done
+"""Base operations scene: parts of the base that appear only when the crew has done
 the task. Actors carry OpsShow_<TaskId> (visible once the task is done) or OpsHide_<TaskId> (visible until it is
 done); UTDMissionSubsystem::RefreshOpsScene combines this with the design tags (DesignShow_<OptionId>_<N>).
 

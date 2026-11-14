@@ -1,5 +1,5 @@
 # Copyright 2026 Team Touchdown. Licensed under the Apache License, Version 2.0.
-"""Phase 5: greybox L_TD_Outpost at the level-design.md §3 positions (block meshes, real scale).
+"""Phase 5: greybox L_TD_Outpost at the planned positions (block meshes, real scale).
 
 Run inside the editor (MCP execute_python_code) after Scripts/setup_test_map.py (needs GM_TD):
     exec(open(r"<ProjectDir>/Scripts/setup_outpost.py", encoding="utf-8").read())
@@ -52,7 +52,7 @@ ground = material("MI_TD_Greybox_Ground", (0.30, 0.12, 0.05))   # Mars regolith 
 hull = material("MI_TD_Greybox_Hull", (0.55, 0.55, 0.52))
 dark = material("MI_TD_Greybox_Dark", (0.05, 0.05, 0.06))
 
-# Lighting: late-afternoon low sun, butterscotch haze (gdd.md §3 Theme 1). Dark at the opening comes from the
+# Lighting: late-afternoon low sun, butterscotch haze. Dark at the opening comes from the
 # system lights being off until their first cell.
 sun = actors.spawn_actor_from_class(unreal.DirectionalLight, unreal.Vector(0, 0, 3000), unreal.Rotator(pitch=-14, yaw=-35, roll=0))
 sun.set_actor_label("TD_Sun")

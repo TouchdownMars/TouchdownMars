@@ -3,7 +3,7 @@
 
 Run inside the editor through the MCP tool execute_python_code, with PIE stopped (poll is_pie_running):
     exec(open(r"<ProjectDir>/Scripts/build_greybox_ui.py", encoding="utf-8").read())
-Widget names must match the C++ BindWidget names. Colors and font sizes are applied by C++ from design.md tokens;
+Widget names must match the C++ BindWidget names. Colors and font sizes are applied by C++ from TDTokens;
 this script builds the hierarchy, layout and panel colors. Re-running deletes and rebuilds the widgets, so run
 Scripts/setup_test_map.py afterwards (PC_TD must point at the new WBP_TD_HUD class).
 """
@@ -14,7 +14,7 @@ UI = "/Game/TouchdownMars/UI"
 WS = unreal.WidgetService
 log = []
 
-# design.md tokens as linear colors (sRGB hex converted).
+# UI tokens as linear colors (sRGB hex converted).
 CORE_BACKGROUND = "(R=0.0044,G=0.0086,B=0.0194,A=0.92)"
 CORE_PRIMARY = "(R=0.0080,G=0.0176,B=0.0409,A=1.0)"
 SCRIM = "(R=0.0044,G=0.0086,B=0.0194,A=0.55)"

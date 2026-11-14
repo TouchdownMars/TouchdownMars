@@ -123,7 +123,7 @@ ATDPlantRack::ATDPlantRack()
 	RootComponent = Root;
 	for (int32 Shelf = 0; Shelf < ShelfCount; ++Shelf)
 	{
-		// 200 x 50 cm trays at 70 and 140 cm (level-design.md scale: 1 unit = 1 cm).
+		// 200 x 50 cm trays at 70 and 140 cm (scale: 1 unit = 1 cm).
 		UStaticMeshComponent* Tray = CreateDefaultSubobject<UStaticMeshComponent>(*FString::Printf(TEXT("Shelf%d"), Shelf));
 		Tray->SetupAttachment(Root);
 		Tray->SetRelativeLocation(FVector(0.f, 0.f, 70.f + Shelf * 70.f));
