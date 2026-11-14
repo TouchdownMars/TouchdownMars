@@ -1,0 +1,5 @@
+Name,NameKey,InfoKey,WeightSuccess,WeightScience,WeightEfficiency,WeightDecisions,MinInstruments,MinEndLevel,MinScienceWalks,BudgetKey,RequirementKeys,bSandbox,RecommendedPicks,ImageCredit
+FirstLight,Obj_FirstLight,Obj_FirstLight_Info,50,15,20,15,1,1,0,BudgetFirstLight,"(Req_CrewHome,Req_BaseRunning,Req_OneInstrument)",False,FalconHeavy:2;Kilopower:3;ShelterBasic:1;GreenhouseSmall:1;DirectLink:1;MastcamZ:1,AI illustration (Gemini)
+ScienceFirst,Obj_ScienceFirst,Obj_ScienceFirst_Info,30,40,15,15,3,1,2,BudgetScience,"(Req_CrewHome,Req_ThreeInstruments,Req_TwoWalks)",False,FalconHeavy:2;Kilopower:3;ShelterBasic:1;GreenhouseSmall:1;RelayOrbiter:1;MastcamZ:1;SuperCam:1;Pixl:1,AI illustration (Gemini)
+LastingBase,Obj_LastingBase,Obj_LastingBase_Info,35,10,25,30,1,2,0,BudgetLastingBase,"(Req_CrewHome,Req_BaseLow,Req_OneInstrument)",False,FalconHeavy:3;Kilopower:3;ShelterWaterWall:1;GreenhouseLarge:1;SparesKit:1;DirectLink:1;MastcamZ:1,AI illustration (Gemini)
+Sandbox,Obj_Sandbox,Obj_Sandbox_Info,25,25,25,25,0,0,0,,(Req_Sandbox),True,FalconHeavy:2;Kilopower:3;ShelterBasic:1;GreenhouseSmall:1;DirectLink:1;MastcamZ:1,AI illustration (Gemini)

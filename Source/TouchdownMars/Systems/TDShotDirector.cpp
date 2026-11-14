@@ -7,6 +7,7 @@
 #include "Engine/World.h"
 #include "EngineUtils.h"
 #include "GameFramework/GameModeBase.h"
+#include "GameFramework/Pawn.h"
 #include "GameFramework/PlayerController.h"
 #include "HAL/IConsoleManager.h"
 #include "InputCoreTypes.h"
@@ -117,6 +118,12 @@ const FOutcomeShot* UTDShotDirector::FindRowForShot(FName ShotId) const
 
 void UTDShotDirector::ActivateMainCamera()
 {
+	if (APlayerController* PC = GetPC(); PC && PC->GetPawn())
+	{
+		MainCamera = PC->GetPawn(); // first person: shots blend back to the astronaut's eyes
+		PC->SetViewTarget(MainCamera);
+		return;
+	}
 	MainCamera = FindTaggedActor(MainCameraTag);
 	if (!MainCamera)
 	{
@@ -242,9 +249,14 @@ void UTDShotDirector::StartShot(const FOutcomeShot& Row, AActor* Camera, FName E
 	ShotElapsed = 0.f;
 	ActiveEventId = EventId;
 	ActiveShotId = Row.ShotId;
-	if (MainCamera)
+	if (MainCamera && !MainCamera->IsA<APawn>())
 	{
 		MainCamera->SetActorLocation(MainCameraBase); // the drift never shows inside a shot
+	}
+	if (APlayerController* PC = GetPC())
+	{
+		PC->SetIgnoreMoveInput(true);
+		PC->SetIgnoreLookInput(true);
 	}
 
 	UE_LOG(LogTouchdownMars, Display, TEXT("ShotDirector: play %s (event %s) in %.2f + hold %.2f + out %.2f s"),
@@ -307,6 +319,11 @@ void UTDShotDirector::Finish()
 		return;
 	}
 	bFinishFired = true;
+	if (APlayerController* PC = GetPC())
+	{
+		PC->ResetIgnoreMoveInput();
+		PC->ResetIgnoreLookInput();
+	}
 	const FName EventId = ActiveEventId;
 	const FName ShotId = ActiveShotId;
 	ActiveEventId = NAME_None;
@@ -349,7 +366,7 @@ void UTDShotDirector::TickComponent(float DeltaTime, ELevelTick TickType, FActor
 
 void UTDShotDirector::ApplyDrift()
 {
-	if (!MainCamera || DriftDistance <= 0.f || DriftSeconds <= 0.f)
+	if (!MainCamera || MainCamera->IsA<APawn>() || DriftDistance <= 0.f || DriftSeconds <= 0.f)
 	{
 		return;
 	}

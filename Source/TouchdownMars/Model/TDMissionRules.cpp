@@ -141,6 +141,14 @@ FTDMissionState UTDMissionRules::NewMission(const FTDRulesConfig& Config, ETDAge
 	State.Band = Band;
 	State.Levels = Config.StartLevels;
 	State.CellsTotal = Config.BandRow.Cells;
+	if (Config.Design.bValid)
+	{
+		// The cargo the player designed sets the power cells and the start of the shelter and greenhouse.
+		State.CellsTotal = Config.Design.Cells;
+		State.Levels[ShelterIndex] = FMath::Clamp(State.Levels[ShelterIndex] + Config.Design.StartBonusShelter, Config.LevelMin, Config.LevelMax);
+		State.Levels[GreenhouseIndex] = FMath::Clamp(State.Levels[GreenhouseIndex] + Config.Design.StartBonusGreenhouse, Config.LevelMin, Config.LevelMax);
+		State.RepairChargesLeft = Config.Design.RepairCharges;
+	}
 	State.Allocation.Init(0, TD::NumSystems);
 	State.LowestEventLevel = Config.LevelMax;
 	const TArray<int32> Playable = GetPlayablePhases(Config, Band);
@@ -180,6 +188,14 @@ void UTDMissionRules::StartPhase(const FTDRulesConfig& Config, FTDMissionState& 
 	if (!State.CurrentEventId.IsNone())
 	{
 		State.DrawnEventIds.Add(State.CurrentEventId);
+	}
+
+	// Solar output falls in a dust-storm phase; fission does not care.
+	const FTDEventRow* Event = FindEvent(Deck, State.CurrentEventId);
+	State.bDustPhase = Event && Event->bDustStorm;
+	if (Config.Design.bValid)
+	{
+		State.CellsTotal = State.bDustPhase ? Config.Design.DustCells : Config.Design.Cells;
 	}
 }
 
@@ -221,6 +237,26 @@ TArray<int32> UTDMissionRules::GetDemand(const FTDRulesConfig& Config, const FTD
 		Demand[AirIndex] += bA ? Event->ChoiceADemandAir : Event->ChoiceBDemandAir;
 		Demand[GreenhouseIndex] += bA ? Event->ChoiceADemandGreenhouse : Event->ChoiceBDemandGreenhouse;
 		Demand[ShelterIndex] += bA ? Event->ChoiceADemandShelter : Event->ChoiceBDemandShelter;
+
+		// Design: better shielding needs less power in a radiation event; spares make a repair cheaper.
+		const FTDPhaseRow& Base = Config.Phases[State.PhaseIndex];
+		const int32 Relief = Config.Design.RadiationRelief + State.OpsRadiationRelief;
+		if (Event->Family == ETDEventFamily::Radiation && Relief > 0)
+		{
+			Demand[ShelterIndex] = FMath::Max(Base.DemandShelter, Demand[ShelterIndex] - Relief);
+		}
+		if (Event->Family == ETDEventFamily::Equipment && State.RepairChargesLeft > 0)
+		{
+			int32 Highest = AirIndex;
+			for (int32 Index = 0; Index < TD::NumSystems; ++Index)
+			{
+				const int32 Added = Demand[Index] - (Index == AirIndex ? Base.DemandAir : Index == GreenhouseIndex ? Base.DemandGreenhouse : Base.DemandShelter);
+				const int32 Best = Demand[Highest] - (Highest == AirIndex ? Base.DemandAir : Highest == GreenhouseIndex ? Base.DemandGreenhouse : Base.DemandShelter);
+				Highest = Added > Best ? Index : Highest;
+			}
+			const int32 BaseHighest = Highest == AirIndex ? Base.DemandAir : Highest == GreenhouseIndex ? Base.DemandGreenhouse : Base.DemandShelter;
+			Demand[Highest] = FMath::Max(BaseHighest, Demand[Highest] - 1);
+		}
 	}
 	for (int32 Index = 0; Index < TD::NumSystems; ++Index)
 	{
@@ -272,7 +308,8 @@ FTDPhaseOutcome UTDMissionRules::EndPhase(const FTDRulesConfig& Config, FTDMissi
 	{
 		const ETDChoiceExtra Extra = State.EventChoice == 0 ? Event->ChoiceAExtra : Event->ChoiceBExtra;
 		bExposure |= Extra == ETDChoiceExtra::StormExposure || Extra == ETDChoiceExtra::ScienceWithExposure;
-		State.bScienceDone |= Extra == ETDChoiceExtra::ScienceBonus || Extra == ETDChoiceExtra::ScienceWithExposure;
+		State.bScienceDone |= (!Config.Design.bValid || Config.Design.Instruments > 0)
+			&& (Extra == ETDChoiceExtra::ScienceBonus || Extra == ETDChoiceExtra::ScienceWithExposure);
 		bExposure |= Event->Family == ETDEventFamily::Radiation && State.Levels[ShelterIndex] < Config.ShelterSafeLevel;
 
 		const int32 ProjectedGreenhouse = FMath::Clamp(State.Levels[GreenhouseIndex] + State.PendingGreenhouseDelta, Config.LevelMin, Config.LevelMax);
@@ -283,6 +320,19 @@ FTDPhaseOutcome UTDMissionRules::EndPhase(const FTDRulesConfig& Config, FTDMissi
 	{
 		++State.StormExposures;
 		Outcome.bStormExposure = true;
+	}
+	if (Event && State.EventChoice >= 0)
+	{
+		const ETDChoiceExtra Extra = State.EventChoice == 0 ? Event->ChoiceAExtra : Event->ChoiceBExtra;
+		// A science walk only brings data back if an instrument flew (no instrument, no measurement).
+		const bool bCanMeasure = !Config.Design.bValid || Config.Design.Instruments > 0;
+		State.ScienceWalks += bCanMeasure && (Extra == ETDChoiceExtra::ScienceBonus || Extra == ETDChoiceExtra::ScienceWithExposure) ? 1 : 0;
+		++State.Decisions;
+		State.GoodDecisions += (!bExposure && State.LowestEventLevel >= Config.ShelterSafeLevel) ? 1 : 0;
+		if (Event->Family == ETDEventFamily::Equipment && State.RepairChargesLeft > 0)
+		{
+			--State.RepairChargesLeft;
+		}
 	}
 
 	const bool bMergedArrival = State.PhaseIndex == static_cast<int32>(ETDPhase::Arrival) && Config.BandRow.Phases < TD::NumPhases;
@@ -391,6 +441,7 @@ bool UTDMissionRules::ChoiceHasCost(const FTDEventRow& Row, bool bChoiceA)
 
 bool UTDMissionRules::CallHome(const FTDRulesConfig& Config, FTDMissionState& State)
 {
+	// Solar conjunction: the Sun blocks every Earth-Mars link, relay orbiters included.
 	if (State.Result != ETDMissionResult::InProgress || State.bCalledHomeThisPhase || Config.Phases[State.PhaseIndex].bIsBlackout)
 	{
 		return false;

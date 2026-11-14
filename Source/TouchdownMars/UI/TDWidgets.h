@@ -454,6 +454,13 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Touchdown Mars|UI")
 	void OpenSunPanel();
 
+	/** First person: true = mission console open (panel, card, buttons); false = walking (helmet view). */
+	UFUNCTION(BlueprintCallable, Category = "Touchdown Mars|UI")
+	void SetConsoleMode(bool bOpen);
+
+	UFUNCTION(BlueprintPure, Category = "Touchdown Mars|UI")
+	bool IsConsoleMode() const { return bConsoleMode; }
+
 protected:
 	virtual void NativeConstruct() override;
 	virtual void NativeDestruct() override;
@@ -521,6 +528,8 @@ private:
 
 	/** -1 = no opening, 0 = waiting for the first AIR cell, 1 = second cell, 2 = until all cells placed. */
 	int32 OpeningStep = -1;
+	bool bConsoleMode = true;
+	void ApplyConsoleMode();
 	FName ShotRequestedFor;
 	bool bAwaitingShot = false;
 	bool bPendingReport = false;

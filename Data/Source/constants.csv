@@ -28,3 +28,171 @@ IdleHintSecondsMin,6,seconds,,True,gdd.md 2 Mechanic 1 edge cases
 IdleHintSecondsMax,8,seconds,,True,gdd.md 2 Mechanic 1 edge cases
 DonkiTimeoutSeconds,5,seconds,,True,gdd.md 2 Mechanic 7
 DonkiRangeDays,30,days,,True,gdd.md 2 Mechanic 7
+MarsGravityRatio,0.38,ratio to Earth surface gravity,NSSDCMars,False,"Mars Fact Sheet, bulk parameters: surface gravity ratio (Mars/Earth) 0.380"
+SlsBlock1ToTli,27,t to trans-lunar injection,NasaSlsBlock1B,False,"Block 1B Progress comparison table: Block 1 mass to TLI 59,525 lb / 27 t"
+SlsBlock1BCrewToTli,38,t to trans-lunar injection,NasaSlsBlock1B,False,"Comparison table: Block 1B mass to TLI 84,000 lb / 38 t (crew configuration)"
+SlsBlock1BCargoToTli,42,t to trans-lunar injection,NasaSlsBlock1B,False,"Section Block 1B Cargo Configuration: approximately 42 t (93,000 lb) to the Moon"
+FalconHeavyToLeo,63800,kg,SpaceXFalconHeavy,False,"Overview table, Payload to LEO 63,800 kg (mode not stated)"
+FalconHeavyToMars,16800,kg,SpaceXFalconHeavy,False,"Overview table, Payload to Mars 16,800 kg (mode not stated)"
+Falcon9ToLeo,22800,kg,SpaceXFalcon9,False,"Overview table, Payload to LEO 22,800 kg"
+Falcon9ToMars,4020,kg,SpaceXFalcon9,False,"Overview table, Payload to Mars 4,020 kg"
+StarshipToOrbit,100,t (lower bound),SpaceXStarship,False,"Starship Overview: more than 100 t to orbit, fully reusable"
+StarshipMarsPricePerTonne,100,million USD per t,SpaceXStarship,False,"Mars Missions: surface cargo NET 2028 at $100 million per metric ton (advertised price, not contract)"
+VulcanVc6ToLeo,27200,kg,UlaVulcan,False,"Performance table, 6 Solids, LEO-REF 200 km 28.7 deg"
+NewGlennToLeo,45,t,BlueNewGlenn,False,Upper stage section: 45 metric tons to LEO
+SlsOrionCostPerLaunch,4.1,billion USD,OigIG22003,False,"Report p. 23 (PDF p. 29): SLS/Orion $4.1 billion per launch, Artemis I-IV (OIG estimate)"
+SlsBlock1CostPerLaunch,2.2,billion USD,OigIG22003,False,Report p. 23 (PDF p. 29): single-use SLS $2.2 billion to produce (OIG estimate)
+SlsBlock1BProductionCost,2.5,billion USD,OigIG24001,False,"Results in Brief and p. 8: SLS Block 1B at least $2.5 billion to produce, excl. SE&I (OIG estimate)"
+EuropaClipperLaunchContract,178,million USD,NasaEuropaClipperLaunch,False,"Contract value: total launch services award approx. $178 million, Falcon Heavy (23 Jul 2021)"
+PsycheLaunchContract,117,million USD,NasaPsycheLaunch,False,"Contract value: total cost to launch Psyche and secondary payloads approx. $117 million, Falcon Heavy (28 Feb 2020)"
+MarsCruiseDays,200,days,NasaMarsTimeline,False,"Section Cruise: The Trip to Mars, cruise lasts about 200 days"
+LaunchWindowMonths,26,months,NasaMarsTimeline,False,"Section Cruise: The Trip to Mars, aligned about once every 26 months"
+PerseveranceCruiseDays,213,days,JplM2020LaunchMission,False,"Trip section: 213 days, about 497 million km (20 Jul 2020 launch case)"
+MarsSynodicPeriod,779.94,days,NssdcMarsFact,False,"Orbital parameters table, synodic period"
+LightTimeMinNasaPage,4,minutes,NasaSpaceComms7,False,Delay about four minutes at closest approach
+LightTimeMaxNasaPage,24,minutes,NasaSpaceComms7,False,Delay around 24 minutes at greatest distance
+KilopowerMaxKwe,10,kWe,NasaKilopower2018,False,"Release 18-031: up to 10 kilowatts electrical, at least 10 years"
+KilopowerMinKwe,1,kWe,Krusty2018,False,p. 1 Introduction: reactor scalable from 1 to 10 kWe
+KilopowerUnitsForOutpost,4,units,NasaKilopower2018,False,Release 18-031: four Kilopower units to establish an outpost
+FissionSurfacePowerKwe,40,kWe,NasaFsp,False,"Project page: at least 40 kilowatts for ten years (target, early 2030s)"
+MmrtgPowerBol,110,W,MmrtgFactSheet,False,"p. 2 spec table, Beginning of Life Power 110 W"
+MmrtgPowerAt17Years,72,W,MmrtgFactSheet,False,"p. 2 spec table, est. end-of-design-life power at 17 years"
+MmrtgMass,45,kg,MmrtgFactSheet,False,p. 2 text: about 94 pounds (45 kilograms)
+MarsSolarIrradiance,586.2,W/m2,NssdcMarsFact,False,"Bulk parameters table, solar irradiance Mars (Earth 1361.0)"
+MarsSolarRatio,0.431,ratio Mars/Earth,NssdcMarsFact,False,"Bulk parameters table, solar irradiance ratio"
+InSightSolarWhPerSolStart,5000,Wh per sol,InSightPia25284,False,"Caption: roughly 5,000 Wh per sol after landing (Nov 2018)"
+InSightSolarWhPerSol2022,500,Wh per sol,InSightPia25284,False,Caption: about 500 Wh per sol by spring 2022 (dust on panels)
+InSightArrayWattsEarth,1300,W,JplInSightFacts,False,"Power: about 1,300 W on Earth on a clear day"
+InSightArrayWattsMarsClear,650,W,JplInSightFacts,False,Power: 600-700 W on Mars on a clear day (midpoint)
+OpportunityTauPeak2018,10.8,optical depth,JplOpportunityRecovery2018,False,"Last tau measured, 10 June 2018"
+MroMaxDownlinkMbps,6,Mbps,JplMro2010,False,"Up to 6 megabits per second to Earth, 3 m dish (peak)"
+RoverToOrbiterMaxMbps,2,Mbps,NasaMarsRelay,False,Body text: rover-to-orbiter data rates up to 2 Mbps
+RelayMroMbPerDay,447.5,Mb per day,NasaMarsRelay,False,"Relay Sessions and Data Volume table, MRO, average through 2025"
+RelayTgoMbPerDay,1562.7,Mb per day,NasaMarsRelay,False,"Relay Sessions and Data Volume table, ExoMars TGO, average through 2025"
+PerseveranceRelayShare,99.9,percent,JplM2020Telecom,False,Surface section: 99.9% of science data via UHF to orbiters
+DsnLargeDish,70,m,NasaDsn,False,One 70 m antenna per complex
+DsnMediumDish,34,m,NasaDsn,False,Multiple 34 m antennas per complex
+PerseveranceRoverMass,1025,kg,JplM2020LandingQF,False,"Spacecraft section: rover about 1,025 kg on Earth"
+CuriosityRoverMass,899,kg,MslLandingKit,False,p. 6 Quick Facts: 899 kg rover
+MslEdlSystemMass,2401,kg,MslLandingKit,False,"p. 6 Quick Facts: entry, descent and landing system (aeroshell plus fueled descent stage)"
+CrewedLanderPayload,20,t,Edlas2016,False,p. 1 Abstract: Phase A designs to deliver 20 t human class payloads
+CrewedLanderPayloadDra5,40,t,Edlas2016,False,p. 2 Sec. II: DRA 5 rigid mid L/D vehicle to deliver 40 t
+Mars2020BuildLaunchCost,2.4,billion USD,JplM2020LandingQF,False,Program section: approx. $2.4 billion to build and launch
+Mars2020PrimeOpsCost,300,million USD,JplM2020LandingQF,False,Program section: approx. $300 million to land and operate (prime mission)
+MslTotalCost,2.5,billion USD,MslLandingKit,False,p. 6 Quick Facts: cost $2.5 billion incl. $1.8 billion development and science (2012)
+InSightUsCost,813.8,million USD,JplInSightFacts,False,Costs: U.S. investment $813.8 million incl. $163.4 million launch (2018)
+Co2PerPersonDay,1.085,kg per crew member per day,BVAD2,False,Table 3-31 (PDF p. 72): carbon dioxide load
+FoodDryPerPersonDay,0.800,kg per crew member per day,BVAD2,False,"Table 3-31 (PDF p. 72): food solids, without packaging"
+FoodEnergyPerPersonDay,12.778,MJ per crew member per day,BVAD2,False,Table 3-31 (PDF p. 72): food energy content
+PotableWaterPerPersonDay,3.217,kg per crew member per day,BVAD2,False,Table 3-31 (PDF p. 72): potable water content
+WaterInFoodPerPersonDay,0.760,kg per crew member per day,BVAD2,False,Table 3-31 (PDF p. 72): water in food prior to rehydration
+FoodPackagedPerPersonDay,2.39,kg per crew member per day,BVAD2,False,Notes to Table 3-31 (PDF p. 73) and Sec. 4.5.5: ISS food supply planning value incl. packaging
+MastcamZMass,4,kg,M2020Instruments,False,Mastcam-Z: approximately 4 kg
+MastcamZPower,17.4,W,M2020Instruments,False,Mastcam-Z: approximately 17.4 W
+SuperCamMass,10.6,kg,M2020Instruments,False,SuperCam: 5.6 kg mast unit + 4.8 kg body unit + 0.2 kg calibration target (sum)
+SuperCamPower,17.9,W,M2020Instruments,False,SuperCam: 17.9 W
+SherlocMass,4.72,kg,M2020Instruments,False,SHERLOC: 3.11 kg turret + 1.61 kg body (sum)
+SherlocPower,48.8,W,M2020Instruments,False,SHERLOC: 32.2 W turret + 16.6 W body (sum)
+PixlMass,6.9,kg,M2020Instruments,False,PIXL: 4.3 kg sensor head + 2.6 kg electronics (sum)
+PixlPower,25,W,M2020Instruments,False,PIXL: about 25 W
+MedaMass,5.5,kg,M2020Instruments,False,MEDA: approximately 5.5 kg for all components
+MedaPower,17,W,M2020Instruments,False,MEDA: up to 17 W
+MoxieMass,17.1,kg,M2020Instruments,False,MOXIE: about 17.1 kg on Earth
+MoxiePower,300,W,M2020Instruments,False,MOXIE: 300 W
+RadMass,1.7,kg,MslLandingKit,False,"p. 20, RAD paragraph: 3.8-pound (1.7-kilogram) RAD instrument"
+CrewSize,4,crew,,True,Scenario: crew of four (NASA human-landing studies size cargo for a crew of four; Edlas2016)
+CellKw,5,kWe per power cell,,True,Game conversion: one power cell = 5 kWe of steady power
+MinCells,5,cells,,True,Lowest cell count a design may launch with
+DustStormSolarShare,0.1,share of clear-sky solar output,,True,"Game value for a dust-storm phase, scaled after InSight's fall from about 5,000 to 500 Wh per sol (InSightPia25284)"
+MassMarginGoal,0.1,share of launch capacity,,True,Planner goal: keep 10 % of launch capacity as margin
+ScienceGoal,60,science points,,True,Science Lead goal
+ScienceWalkValue,15,science points per walk,,True,Value of one completed science walk
+BudgetFirstLight,1500,million USD,,True,"Budget cap, objective First Light"
+BudgetScience,1800,million USD,,True,"Budget cap, objective Science First"
+BudgetLastingBase,1600,million USD,,True,"Budget cap, objective Lasting Base"
+Falcon9LaunchCost,70,million USD,,True,Game price for one Falcon 9 launch (no NASA contract value found for a Mars launch)
+KilopowerUnitMass,1500,kg,,True,Game mass of one 10 kWe fission unit with radiator and shielding
+KilopowerUnitCost,120,million USD,,True,Game price of one fission unit
+SolarFieldKwe,20,kWe (clear sky),,True,Game output of one deployable solar field
+SolarFieldMass,1200,kg,,True,Game mass of one solar field
+SolarFieldCost,40,million USD,,True,Game price of one solar field
+ShelterWaterWallMass,3000,kg,,True,Game mass: shelter with water-wall shielding
+ShelterWaterWallCost,90,million USD,,True,Game price
+ShelterRegolithMass,900,kg,,True,Game mass: inflatable shelter covered with regolith by a digging robot
+ShelterRegolithCost,110,million USD,,True,Game price (includes the digging robot)
+ShelterRegolithDraw,2,kWe,,True,Game power draw of the digging robot
+ShelterBasicMass,1500,kg,,True,Game mass: storm shelter with aluminium walls
+ShelterBasicCost,50,million USD,,True,Game price
+GreenhouseSmallMass,1000,kg,,True,Game mass: small greenhouse
+GreenhouseSmallCost,40,million USD,,True,Game price
+GreenhouseLargeMass,2500,kg,,True,Game mass: large greenhouse
+GreenhouseLargeCost,80,million USD,,True,Game price
+SparesKitMass,600,kg,,True,Game mass: spare parts kit
+SparesKitCost,30,million USD,,True,Game price
+SparesFullMass,1500,kg,,True,Game mass: full spares and tools
+SparesFullCost,60,million USD,,True,Game price
+DirectLinkMass,300,kg,,True,Game mass: high-gain antenna for direct-to-Earth links
+DirectLinkCost,20,million USD,,True,Game price
+DirectLinkMbPerSol,60,Mb per sol,,True,Game data volume of the direct-to-Earth link
+RelayOrbiterMass,2000,kg,,True,"Game mass: relay orbiter (stays in orbit, needs no landing system)"
+RelayOrbiterCost,250,million USD,,True,Game price
+MastcamZData,120,Mb per sol,,True,Game data volume
+SuperCamData,40,Mb per sol,,True,Game data volume
+PixlData,20,Mb per sol,,True,Game data volume
+SherlocData,20,Mb per sol,,True,Game data volume
+MedaData,2,Mb per sol,,True,Game data volume
+MoxieData,1,Mb per sol,,True,Game data volume
+RadData,1,Mb per sol,,True,Game data volume
+MastcamZScience,15,science points,,True,Game science value
+SuperCamScience,25,science points,,True,Game science value
+PixlScience,20,science points,,True,Game science value
+SherlocScience,20,science points,,True,Game science value
+MedaScience,10,science points,,True,Game science value
+MoxieScience,20,science points,,True,Game science value (oxygen-from-air demonstration)
+RadScience,15,science points,,True,Game science value (crew radiation dose)
+InstrumentCost,40,million USD,,True,Game price of one instrument
+MastcamZDrawKw,0.0174,kWe,M2020Instruments,False,Mastcam-Z: approximately 17.4 W (converted to kW)
+SuperCamDrawKw,0.0179,kWe,M2020Instruments,False,SuperCam: 17.9 W (converted to kW)
+PixlDrawKw,0.025,kWe,M2020Instruments,False,PIXL: about 25 W (converted to kW)
+SherlocDrawKw,0.0488,kWe,M2020Instruments,False,SHERLOC: 32.2 W turret + 16.6 W body (sum) (converted to kW)
+MedaDrawKw,0.017,kWe,M2020Instruments,False,MEDA: up to 17 W (converted to kW)
+MoxieDrawKw,0.3,kWe,M2020Instruments,False,MOXIE: 300 W (converted to kW)
+RadDose20170910,197.4,"microgray per day (absorbed, silicon)",MSL_RAD_L2,False,"MSL RAD Level 2 daily mean, 10 Sep 2017, MMRTG-corrected B detector (via CDAWeb)"
+RadDose20170911,443.4,"microgray per day (absorbed, silicon)",MSL_RAD_L2,False,"MSL RAD Level 2 daily mean, 11 Sep 2017, MMRTG-corrected B detector (via CDAWeb)"
+MarsquakeS1222aMw,4.6,moment magnitude,MQS_CAT_V14,False,"Marsquake Service catalogue V14, event S1222a, 2022-05-04T23:23Z (Kawamura et al. 2023 give 4.7)"
+MarsquakeS1222aDistanceKm,2189,km,MQS_CAT_V14,False,"Epicentral distance 37.01 degrees in the catalogue, converted with the Mars mean radius (NSSDC)"
+MarsquakeCatalogueEvents,2715,events,MQS_CAT_V14,False,Number of events in the Marsquake Service catalogue V14
+LandingHardwarePerPayloadKg,2.67,kg of cruise and landing hardware per kg of landed payload,,True,"Game assumption (Advanced model) for each landed package; not a NASA landing efficiency. For scale only: MSL sent about 3,839 kg of which 899 kg was the rover"
+DataStorageMb,4000,Mb,,True,Game value: data storage on the surface; data waits here for an open link
+ConjunctionSolStart,21,sol,,True,Game scenario: solar conjunction during the hard week (phases.csv)
+ConjunctionSolEnd,27,sol,,True,Game scenario: solar conjunction during the hard week (phases.csv)
+MslCruiseStageMass,539,kg,MslLandingKit,False,"p. 6 Quick Facts: fueled cruise stage 1,188 lb (539 kg)"
+MslLaunchMassSumOfParts,3839,kg,MslLandingKit,False,"Sum of rover 899 + entry, descent and landing system 2,401 + cruise stage 539 kg (p. 6). The kit prints 3,893 kg; its pound total 8,463 lb equals about 3,839 kg, so the printed figure is read as a digit swap (team inference)"
+MslRoverShareOfLaunch,23,percent,MslLandingKit,False,"899 / 3,839 kg, derived from MslLandingKit p. 6"
+FlownEdlLandedMinT,0.3,t,NasaMarsEdl2025,False,p. 4 System Scalability: all flown EDL systems landed 0.3 to 1 metric tons
+FlownEdlLandedMaxT,1,t,NasaMarsEdl2025,False,p. 4 System Scalability
+HumanEdlLandedT,20,t,NasaMarsEdl2025,False,"p. 4: human-class Mars EDL needs over 20 metric tons, beyond a scaled-up Viking design"
+CrewWorkHoursPerSol,8.5,h per crew member per sol,NasaHeomd415,False,"Crew day: 8.5 h sleep, meals and personal time, exercise; 8.5 h of work per sol"
+EvaHoursPerEvaSol,4,h,NasaHeomd415,False,Sol 4 first EVA: 4 h preparing cargo off-load (typical EVA length in the timeline)
+EvaSuitCheckoutHours,2.5,h,NasaHeomd415,False,Sol 4: 2.5 h suit checkout and descent from the lander deck
+OffloadRoverEvaHours,2.5,h,NasaHeomd415,False,Sol 5: 2.5 h EVA to off-load the pressurized rover
+OffloadCargoEvaHours,1.5,h,NasaHeomd415,False,"Sol 5: 1.5 h to off-load remaining deck cargo (science instruments, utilization equipment)"
+ReconEvaHours,2.5,h,NasaHeomd415,False,Sol 7: 2.5 h reconnaissance EVA
+ScienceEvaHours,4,h,NasaHeomd415,False,Science EVA length used in the timeline (Sol 4 EVA 4 h)
+LogisticsEvaHours,3,h,NasaHeomd415,False,Sol 12: 3 h logistics restock and trash EVA
+FirstEvaSol,4,sol,NasaHeomd415,False,Sols 1-3 no EVA (gravity re-adaptation); first EVA on sol 4
+TaskHoursInspectCargo,2,h,,True,"Game value: telerobotic inspection of the landed cargo on sols 1-3 (HEOMD-415 names the activity, not its length)"
+TaskHoursGreenhouseSetup,4,h,,True,Game value: unpack and start the plant growth units
+TaskHoursDeployMast,2,h,,True,Game value: carry out and stand up the weather mast
+TaskHoursWaterExtraction,6,h,,True,Game value: run the extractor on dug clay-bearing regolith
+TaskHoursBerm,4,h,,True,Game value: pile regolith on the shelter with the digging robot
+TaskHoursCleanArrays,2,h,,True,Game value: brush dust off one solar field
+TaskHoursMaintenance,3,h,,True,"Game value: one sol of life-support maintenance at EclssMaintHoursPerDayMin (3.0 crew-h per day, RussellKlaus2007)"
+TaskHoursHarvest,1.5,h,,True,Game value: harvest the first crop
+WaterPerExtractionKg,12,kg,,True,Game value derived from sourced rates: 4 h of digging at Rassor2KgPerHour (112 kg/h) x ClayYieldPercent (2.7 %)
+RegolithPerBermTaskKg,450,kg,,True,Game value derived: TaskHoursBerm (4 h) x Rassor2KgPerHour (112 kg/h)
+SolarDustCellsAfterStorm,2,cells,,True,Game value: cells lost to dust on the arrays after a dust storm until cleaned (weather station warning halves it)
+ClayYieldPercent,2.7,wt% water,Kleinhenz2017Isru,False,"Slide 13: NASA generic Mars clay case (40% smectite), water released at 300 C; no published value for Jezero itself"
+Rassor2TonnesPerDay,2.7,t of regolith per day (minimum),Mueller2016Rassor,False,Abstract: RASSOR 2.0 excavation robot (66 kg) digs at least 2.7 t per day
+Rassor2KgPerHour,112,kg per hour,Mueller2016Rassor,True,Derived: 2.7 t / 24 h
+EclssMaintHoursPerDayMin,3.0,crew-hours per day,RussellKlaus2007,False,"Abstract: planning value for life-support maintenance, crews of 2-3"

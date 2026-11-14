@@ -60,11 +60,12 @@ def camera(tag, location, target, focal_mm):
     return cam
 
 
-def stage(tag, x, y, yaw):
+def stage(tag, x, y, yaw, anim=None):
+    """TargetPoint the crew member stands on during the shot; anim "Walk" or "Work" picks the suit animation."""
     point = actors.spawn_actor_from_class(unreal.TargetPoint, unreal.Vector(x, y, ground(x, y) + 1), unreal.Rotator(pitch=0, yaw=yaw, roll=0))
     point.set_actor_label(tag)
     point.set_folder_path("Cameras/Stage")
-    point.set_editor_property("tags", [unreal.Name(tag)])
+    point.set_editor_property("tags", [unreal.Name(tag)] + ([unreal.Name(f"Anim_{anim}")] if anim else []))
     return point
 
 
@@ -124,14 +125,14 @@ def framed(tag, subject, yaw, pitch, dist, focal, screen_x=0.5, screen_y=0.42):
 # S02_EVA: over the Flight Engineer's shoulder at the cargo lander, terrain behind.
 fe_x, fe_y = 2450, -600
 fe_yaw = math.degrees(math.atan2(-1800 - fe_y, 4000 - fe_x))
-stage("Stage_CAM_S02_EVA_Air", fe_x, fe_y, fe_yaw)
-framed("CAM_S02_EVA", (fe_x, fe_y, ground(fe_x, fe_y) + 150), fe_yaw - 16, -6, 640, 24.0, screen_x=0.30, screen_y=0.46)
+stage("Stage_CAM_S02_EVA_Air", fe_x, fe_y, fe_yaw, "Work")
+framed("CAM_S02_EVA", (fe_x, fe_y, ground(fe_x, fe_y) + 150), fe_yaw - 16, -7, 900, 24.0, screen_x=0.32, screen_y=0.42)
 
 # S03_STORM: low angle at the SHELTER door; on choice A the crew stands at the door (going in).
 framed("CAM_S03_STORM", (-360, 1090, 110), 22, -6, 1200, 24.0, screen_y=0.40)
-stage("Stage_CAM_S03_STORM_Shelter_A", -245, 1100, 0)      # first one already at the door
-stage("Stage_CAM_S03_STORM_Air_A", -420, 990, 30)
-stage("Stage_CAM_S03_STORM_Greenhouse_A", -560, 1190, 10)
+stage("Stage_CAM_S03_STORM_Shelter_A", -245, 1100, 0, "Walk")      # first one already at the door
+stage("Stage_CAM_S03_STORM_Air_A", -420, 990, 30, "Walk")
+stage("Stage_CAM_S03_STORM_Greenhouse_A", -560, 1190, 10, "Walk")
 
 # S04_GREEN: close on the plant racks in front of the greenhouse dome.
 rack = actors.spawn_actor_from_class(unreal.TDPlantRack, unreal.Vector(-320, -1240, 0), unreal.Rotator(pitch=0, yaw=38, roll=0))
@@ -153,7 +154,7 @@ framed("CAM_S05_COMMS", (380, 520, 330), -4, 12, 950, 24.0, screen_y=0.45)
 # S06_FAULT: a crew member (Flight Engineer, choice A) outside reconnecting a cable at the power unit.
 unit = find("TD_FissionUnit").get_actor_location()
 cx, cy = unit.x - 160, unit.y - 90
-stage("Stage_CAM_S06_FAULT_Air_A", cx, cy, math.degrees(math.atan2(unit.y - cy, unit.x - cx)))
+stage("Stage_CAM_S06_FAULT_Air_A", cx, cy, math.degrees(math.atan2(unit.y - cy, unit.x - cx)), "Work")
 cable = actors.spawn_actor_from_class(unreal.TDShotProp, unreal.Vector((unit.x + cx) / 2, (unit.y + cy) / 2, ground(cx, cy) + 8))
 cable.set_actor_label("TD_Shot_Cable")
 cable.set_folder_path("Cameras/Props")

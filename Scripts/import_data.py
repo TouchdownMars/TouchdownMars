@@ -26,6 +26,11 @@ TABLES = [
     ("text.csv", "DT_TD_Text", "/Script/TouchdownMars.TDTextRow"),
     ("donki_archive.csv", "DT_TD_DonkiArchive", "/Script/TouchdownMars.TDDonkiRow"),
     ("outcome_shots.csv", "DT_OutcomeShots", "/Script/TouchdownMars.OutcomeShot"),
+    ("mission_options.csv", "DT_TD_MissionOptions", "/Script/TouchdownMars.TDDesignOptionRow"),
+    ("objectives.csv", "DT_TD_Objectives", "/Script/TouchdownMars.TDObjectiveRow"),
+    ("mars_weather.csv", "DT_TD_MarsWeather", "/Script/TouchdownMars.TDWeatherRow"),
+    ("sites.csv", "DT_TD_Sites", "/Script/TouchdownMars.TDSiteRow"),
+    ("tasks.csv", "DT_TD_Tasks", "/Script/TouchdownMars.TDTaskRow"),
 ]
 
 

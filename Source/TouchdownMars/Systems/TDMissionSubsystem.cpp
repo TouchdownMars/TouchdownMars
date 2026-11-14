@@ -3,6 +3,13 @@
 #include "Systems/TDMissionSubsystem.h"
 
 #include "Engine/DataTable.h"
+#include "Actors/TDSceneActors.h"
+#include "TimerManager.h"
+#include "Systems/TDWalkGrid.h"
+#include "HAL/FileManager.h"
+#include "Misc/FileHelper.h"
+#include "Misc/Paths.h"
+#include "EngineUtils.h"
 #include "Engine/World.h"
 #include "GameFramework/GameUserSettings.h"
 #include "Engine/Engine.h"
@@ -51,6 +58,11 @@ bool UTDMissionSubsystem::LoadTables(FString& OutError)
 	TextTable = LoadTable<UDataTable>(TEXT("DT_TD_Text"));
 	SourcesTable = LoadTable<UDataTable>(TEXT("DT_TD_Sources"));
 	DonkiArchiveTable = LoadTable<UDataTable>(TEXT("DT_TD_DonkiArchive"));
+	OptionsTable = LoadTable<UDataTable>(TEXT("DT_TD_MissionOptions"));
+	ObjectivesTable = LoadTable<UDataTable>(TEXT("DT_TD_Objectives"));
+	WeatherTable = LoadTable<UDataTable>(TEXT("DT_TD_MarsWeather"));
+	TasksTable = LoadTable<UDataTable>(TEXT("DT_TD_Tasks"));
+	SitesTable = LoadTable<UDataTable>(TEXT("DT_TD_Sites"));
 	if (!PhasesTable || !AgeBandsTable || !ConstantsTable || !EventsTable || !TextTable || !SourcesTable || !DonkiArchiveTable)
 	{
 		OutError = TEXT("DT_TD_* tables missing; run Scripts/import_data.py");
@@ -68,12 +80,19 @@ bool UTDMissionSubsystem::StartMission(ETDAgeBand Band, int32 Seed)
 		return false;
 	}
 	Deck = UTDMissionRules::MakeDeck(EventsTable);
+	if (bHasFlownDesign)
+	{
+		Config.Design = UTDDesignRules::MakeEffects(FlownBudget);
+	}
 	if (Seed < 1000 || Seed > 9999)
 	{
 		Seed = FMath::RandRange(1000, 9999);
 	}
 	State = UTDMissionRules::NewMission(Config, Band, Seed);
 	bHasMission = true;
+	Ops = UTDOps::MakeState();
+	OpsReport.Reset();
+	bOpsRunning = false;
 	if (Settings)
 	{
 		Settings->LastSeed = Seed;
@@ -159,6 +178,7 @@ bool UTDMissionSubsystem::EndPhase()
 	{
 		return false;
 	}
+	const bool bWasDustPhase = State.bDustPhase;
 	const FName EventId = State.CurrentEventId;
 	const FTDPhaseOutcome Outcome = UTDMissionRules::EndPhase(Config, State, UTDMissionRules::FindEvent(Deck, EventId));
 
@@ -189,6 +209,14 @@ bool UTDMissionSubsystem::EndPhase()
 	}
 	if (UTDMissionRules::AdvancePhase(Config, State, Deck))
 	{
+		// Dust settles on the solar arrays after a storm: cells stay down until the crew cleans them.
+		const FTDMissionDesign OpsDesign = bHasFlownDesign ? FlownDesign : UTDDesignRules::MakeDefaultDesign(OptionsTable, TEXT("FirstLight"));
+		if (bWasDustPhase && UTDDesignRules::GetPickCount(OpsDesign, TEXT("SolarField")) > 0)
+		{
+			const double PerStorm = GetConstant(TEXT("SolarDustCellsAfterStorm"));
+			Ops.SolarDustCells = FMath::Max(1, FMath::RoundToInt(PerStorm * (Ops.bWeatherStation ? 0.5 : 1.0)));
+		}
+		ApplySolarDust();
 		BeginCurrentPhase();
 	}
 	else
@@ -204,6 +232,22 @@ void UTDMissionSubsystem::HandleMissionEnded()
 {
 	const FTDMissionReport Report = GetReport();
 	if (State.Result != ETDMissionResult::LostAir) { PlaySfx(TEXT("LiftOff")); }
+	if (bHasFlownDesign)
+	{
+		// Keep the flight for the post-mission comparison (this session only; nothing leaves the machine).
+		FTDFlightRecord& Flight = Flights.AddDefaulted_GetRef();
+		Flight.DesignCode = GetDesignCode();
+		Flight.ObjectiveId = FlownDesign.ObjectiveId;
+		Flight.Seed = State.Seed;
+		Flight.Score = GetScore();
+		Flight.Budget = FlownBudget;
+		Flight.Design = FlownDesign;
+		Flight.ScienceWalks = State.ScienceWalks;
+		Flight.GoodDecisions = State.GoodDecisions;
+		Flight.Decisions = State.Decisions;
+		UE_LOG(LogTouchdownMars, Display, TEXT("Design: flight %s scored %d (success %d, science %d, efficiency %d, decisions %d)"),
+			*Flight.DesignCode, Flight.Score.Total, Flight.Score.Success, Flight.Score.Science, Flight.Score.Efficiency, Flight.Score.Decisions);
+	}
 	OnMissionEnded.Broadcast(State.Result);
 	// Store after broadcasting so the report screen can still compare with the mission before this one.
 	if (Settings)
@@ -510,4 +554,625 @@ FString UTDMissionSubsystem::GetDebugString() const
 		State.Levels[2], State.Allocation[2], Demand[2],
 		*State.CurrentEventId.ToString(), State.EventChoice, State.StormExposures, State.PendingMessages.Num(),
 		*StaticEnum<ETDMissionResult>()->GetNameStringByValue(static_cast<int64>(State.Result)));
+}
+
+const FTDWeatherRow* UTDMissionSubsystem::GetWeather(int32 MissionSol) const
+{
+	return WeatherTable ? WeatherTable->FindRow<FTDWeatherRow>(FName(*FString::Printf(TEXT("Sol%d"), MissionSol)), TEXT("TDMissionSubsystem"), false) : nullptr;
+}
+
+// Mission design (Act 1)
+
+void UTDMissionSubsystem::RefreshDesignScene(const FTDMissionDesign& ForDesign) const
+{
+	UWorld* World = GetWorld();
+	if (!World || !World->IsGameWorld())
+	{
+		return;
+	}
+	static const FString Prefix(TEXT("DesignShow_"));
+	int32 Shown = 0;
+	int32 Hidden = 0;
+	for (TActorIterator<AActor> It(World); It; ++It)
+	{
+		AActor* Actor = *It;
+		bool bTagged = false;
+		bool bShow = false;
+		for (const FName& Tag : Actor->Tags)
+		{
+			FString Rest = Tag.ToString();
+			if (!Rest.RemoveFromStart(Prefix))
+			{
+				continue;
+			}
+			bTagged = true;
+			FString OptionId, Index;
+			if (Rest.Split(TEXT("_"), &OptionId, &Index, ESearchCase::IgnoreCase, ESearchDir::FromEnd))
+			{
+				bShow |= UTDDesignRules::GetPickCount(ForDesign, FName(*OptionId)) >= FCString::Atoi(*Index);
+			}
+		}
+		if (bTagged)
+		{
+			// The surface shows the base the team designed: fission units, solar fields, relay antenna, shelter, spares.
+			Actor->SetActorHiddenInGame(!bShow);
+			Actor->SetActorEnableCollision(bShow);
+			(bShow ? Shown : Hidden) += 1;
+		}
+	}
+	UE_LOG(LogTouchdownMars, Display, TEXT("Design: base scene %d parts shown, %d hidden"), Shown, Hidden);
+}
+
+bool UTDMissionSubsystem::BeginDesign(FName ObjectiveId, bool bRedesign)
+{
+	FString Error;
+	if (!LoadTables(Error) || !OptionsTable || !ObjectivesTable)
+	{
+		UE_LOG(LogTouchdownMars, Error, TEXT("BeginDesign failed: %s"), Error.IsEmpty() ? TEXT("design tables missing") : *Error);
+		return false;
+	}
+	if (ObjectivesTable->FindRow<FTDObjectiveRow>(ObjectiveId, TEXT("TDMissionSubsystem"), false) == nullptr)
+	{
+		return false;
+	}
+	const bool bRealistic = Design.bRealisticModel;
+	// A redesign starts from the last flown design, so the team changes what the report pointed at.
+	if (bRedesign && bHasFlownDesign && FlownDesign.ObjectiveId == ObjectiveId)
+	{
+		Design = FlownDesign;
+		Design.SignedOff.Init(false, TD::NumRoles);
+	}
+	else
+	{
+		Design = UTDDesignRules::MakeDefaultDesign(OptionsTable, ObjectiveId);
+		Design.bRealisticModel = bRealistic;
+	}
+	DesignSeed = bRedesign && bHasMission ? State.Seed : FMath::RandRange(1000, 9999);
+	bDesigning = true;
+	RefreshDesignScene(Design);
+	UE_LOG(LogTouchdownMars, Display, TEXT("Design: begin %s, seed %d"), *ObjectiveId.ToString(), DesignSeed);
+	OnDesignChanged.Broadcast();
+	return true;
+}
+
+void UTDMissionSubsystem::ApplyFirstFlightStart()
+{
+	if (!bDesigning)
+	{
+		return;
+	}
+	UTDDesignRules::SetPick(Design, OptionsTable, TEXT("FalconHeavy"), 0);
+	UTDDesignRules::SetPick(Design, OptionsTable, TEXT("Kilopower"), 0);
+	UTDDesignRules::SetPick(Design, OptionsTable, TEXT("MastcamZ"), 0);
+	UTDDesignRules::SetPick(Design, OptionsTable, TEXT("SolarField"), 1);
+	Design.bRealisticModel = true;
+	Design.SignedOff.Init(false, TD::NumRoles);
+	RefreshDesignScene(Design);
+	OnDesignChanged.Broadcast();
+}
+
+void UTDMissionSubsystem::LogOnboarding(const FString& Event, const FString& Detail) const
+{
+	const double Seconds = FirstFlight.StartSeconds > 0.0 ? FPlatformTime::Seconds() - FirstFlight.StartSeconds : 0.0;
+	const FString Line = FString::Printf(TEXT("%s,%.1f,%d,%s,%s\n"), *FDateTime::Now().ToIso8601(), Seconds, Flights.Num(), *Event, *Detail.Replace(TEXT(","), TEXT(";")));
+	const FString Path = FPaths::ProjectSavedDir() / TEXT("Logs/TD_FirstFlight.csv");
+	FFileHelper::SaveStringToFile(Line, *Path, FFileHelper::EEncodingOptions::ForceUTF8WithoutBOM, &IFileManager::Get(), FILEWRITE_Append);
+	UE_LOG(LogTouchdownMars, Display, TEXT("FirstFlight: %s %s (%.1f s)"), *Event, *Detail, Seconds);
+}
+
+bool UTDMissionSubsystem::SetDesignPick(FName OptionId, int32 Count)
+{
+	if (!bDesigning || !UTDDesignRules::SetPick(Design, OptionsTable, OptionId, Count))
+	{
+		return false;
+	}
+	PlaySfx(Count > 0 ? TEXT("UI_Confirm") : TEXT("UI_Back"));
+	RefreshDesignScene(Design);
+	OnDesignChanged.Broadcast();
+	return true;
+}
+
+void UTDMissionSubsystem::SetRealisticModel(bool bRealistic)
+{
+	if (Design.bRealisticModel != bRealistic)
+	{
+		Design.bRealisticModel = bRealistic;
+		Design.SignedOff.Init(false, TD::NumRoles);
+		OnDesignChanged.Broadcast();
+	}
+}
+
+void UTDMissionSubsystem::SetRoleGo(ETDRole Role, bool bGo)
+{
+	const int32 Index = static_cast<int32>(Role);
+	if (Design.SignedOff.Num() != TD::NumRoles)
+	{
+		Design.SignedOff.Init(false, TD::NumRoles);
+	}
+	// A role can only call GO on a design that fits the hard limits.
+	Design.SignedOff[Index] = bGo && GetDesignBudget().bLaunchable;
+	PlaySfx(Design.SignedOff[Index] ? TEXT("UI_Confirm") : TEXT("UI_Back"));
+	OnDesignChanged.Broadcast();
+}
+
+FTDDesignBudget UTDMissionSubsystem::GetDesignBudget() const
+{
+	return UTDDesignRules::Evaluate(Design, OptionsTable, ObjectivesTable, ConstantsTable);
+}
+
+bool UTDMissionSubsystem::LaunchDesign()
+{
+	const FTDDesignBudget Budget = GetDesignBudget();
+	if (!bDesigning || Budget.ConceptMaturity < 4)
+	{
+		return false;
+	}
+	FlownDesign = Design;
+	FlownBudget = Budget;
+	bHasFlownDesign = true;
+	bDesigning = false;
+	const ETDAgeBand Band = Design.bRealisticModel ? ETDAgeBand::Commander : ETDAgeBand::Cadet;
+	UE_LOG(LogTouchdownMars, Display, TEXT("Design: launch %s, %.1f t of %.1f t, %d cells (%d in dust), %.0f of %.0f MUSD"),
+		*GetDesignCode(), Budget.MassKg / 1000.0, Budget.CapacityKg / 1000.0, Budget.Cells, Budget.DustCells, Budget.CostM, Budget.BudgetM);
+	OnDesignLaunched.Broadcast();
+	return StartMission(Band, DesignSeed);
+}
+
+const FTDObjectiveRow* UTDMissionSubsystem::GetObjective() const
+{
+	const FName Id = bDesigning || !bHasFlownDesign ? Design.ObjectiveId : FlownDesign.ObjectiveId;
+	return ObjectivesTable ? ObjectivesTable->FindRow<FTDObjectiveRow>(Id, TEXT("TDMissionSubsystem"), false) : nullptr;
+}
+
+double UTDMissionSubsystem::GetConstant(FName Key) const
+{
+	return UTDDesignRules::Constant(ConstantsTable, Key);
+}
+
+const FTDConstantRow* UTDMissionSubsystem::GetConstantRow(FName Key) const
+{
+	return ConstantsTable && !Key.IsNone() ? ConstantsTable->FindRow<FTDConstantRow>(Key, TEXT("TDMissionSubsystem"), false) : nullptr;
+}
+
+FTDMissionScore UTDMissionSubsystem::GetScore() const
+{
+	return UTDDesignRules::Score(FlownDesign, FlownBudget, GetObjective(), State, GetReport(), State.ScienceWalks,
+		State.GoodDecisions, State.Decisions, ConstantsTable);
+}
+
+FString UTDMissionSubsystem::GetDesignCode() const
+{
+	return UTDDesignRules::MakeDesignCode(bDesigning ? Design : FlownDesign, OptionsTable);
+}
+
+bool UTDMissionSubsystem::IsRoleGoalMet(ETDRole Role) const
+{
+	return UTDDesignRules::IsRoleGoalMet(Role, GetDesignBudget(), GetObjective(), ConstantsTable);
+}
+
+#if !UE_BUILD_SHIPPING
+#include "HAL/IConsoleManager.h"
+namespace
+{
+	/** td.AutoPlay: play the rest of the mission with the cheaper event choice and cover-the-lowest cell policy (tests only). */
+	FAutoConsoleCommandWithWorld GTDAutoPlayCommand(TEXT("td.AutoPlay"), TEXT("Play the current mission to the end (development builds)"),
+		FConsoleCommandWithWorldDelegate::CreateLambda([](UWorld* World)
+		{
+			UTDMissionSubsystem* Mission = World ? World->GetSubsystem<UTDMissionSubsystem>() : nullptr;
+			for (int32 Guard = 0; Mission && Mission->IsMissionRunning() && Guard < 20; ++Guard)
+			{
+				const FTDMissionState& S = Mission->GetState();
+				if (const FTDEventRow* Event = Mission->GetCurrentEvent(); Event && S.EventChoice < 0)
+				{
+					const int32 CostA = Event->ChoiceADemandAir + Event->ChoiceADemandGreenhouse + Event->ChoiceADemandShelter;
+					const int32 CostB = Event->ChoiceBDemandAir + Event->ChoiceBDemandGreenhouse + Event->ChoiceBDemandShelter;
+					Mission->ChooseEventOption(CostA <= CostB);
+				}
+				for (int32 Cell = 0; Cell < 20 && !Mission->CanEndPhase(); ++Cell)
+				{
+					const TArray<int32> Demand = Mission->GetDemand();
+					const FTDMissionState& Now = Mission->GetState();
+					int32 Best = 0;
+					int32 BestGap = INT32_MIN;
+					for (int32 Index = 0; Index < TD::NumSystems; ++Index)
+					{
+						const int32 Gap = Demand[Index] - Now.Allocation[Index] - Now.Levels[Index];
+						if (!Mission->IsSystemLocked(static_cast<ETDSystem>(Index)) && Gap > BestGap)
+						{
+							BestGap = Gap;
+							Best = Index;
+						}
+					}
+					if (!Mission->PlaceCell(static_cast<ETDSystem>(Best)))
+					{
+						break;
+					}
+				}
+				Mission->EndPhase();
+			}
+		}));
+}
+#endif
+
+void UTDMissionSubsystem::UseRecommendedDesign()
+{
+	if (!bDesigning)
+	{
+		return;
+	}
+	Design = UTDDesignRules::MakeRecommendedDesign(OptionsTable, ObjectivesTable, Design.ObjectiveId, Design.bRealisticModel);
+	PlaySfx(TEXT("UI_Confirm"));
+	RefreshDesignScene(Design);
+	OnDesignChanged.Broadcast();
+}
+
+bool UTDMissionSubsystem::ApplyFix(const FTDDesignIssueLine& Issue)
+{
+	const FTDDesignFix Fix = UTDDesignRules::SuggestFix(Issue, Design, OptionsTable, ConstantsTable);
+	if (!Fix.bValid)
+	{
+		return false;
+	}
+	if (Fix.OptionId == TEXT("FalconHeavy"))
+	{
+		UTDDesignRules::SetPick(Design, OptionsTable, TEXT("Falcon9"), 0);
+	}
+	return SetDesignPick(Fix.OptionId, Fix.NewCount);
+}
+
+void UTDMissionSubsystem::SetAllRolesGo()
+{
+	const bool bOk = GetDesignBudget().bLaunchable;
+	Design.SignedOff.Init(bOk, TD::NumRoles);
+	PlaySfx(bOk ? TEXT("UI_Confirm") : TEXT("UI_Back"));
+	OnDesignChanged.Broadcast();
+}
+
+// ---------------------------------------------------------------- Base operations (gdd.md "Base operations")
+
+namespace
+{
+	FTDMissionDesign OpsDesignOf(bool bFlown, const FTDMissionDesign& Flown, const UDataTable* Options)
+	{
+		return bFlown ? Flown : UTDDesignRules::MakeDefaultDesign(Options, TEXT("FirstLight"));
+	}
+}
+
+int32 UTDMissionSubsystem::GetCurrentPhaseSols() const
+{
+	int32 Start = 0;
+	int32 End = 0;
+	GetPhaseSols(State.PhaseIndex, Start, End);
+	return FMath::Max(1, End - Start + 1);
+}
+
+float UTDMissionSubsystem::GetPhaseHours() const
+{
+	return UTDOps::PhaseHours(GetCurrentPhaseSols(), ConstantsTable);
+}
+
+float UTDMissionSubsystem::GetPhaseEvaHours() const
+{
+	int32 Start = 0;
+	int32 End = 0;
+	GetPhaseSols(State.PhaseIndex, Start, End);
+	const int32 FirstEva = FMath::RoundToInt(GetConstant(TEXT("FirstEvaSol")));
+	const int32 EvaSols = FMath::Max(0, End - FMath::Max(Start, FirstEva) + 1);
+	return UTDOps::PhaseEvaHours(EvaSols, ConstantsTable);
+}
+
+float UTDMissionSubsystem::GetPlannedHours(int32 CrewIndex, bool bEvaOnly) const
+{
+	float Hours = 0.f;
+	if (!Ops.Crew.IsValidIndex(CrewIndex) || !TasksTable)
+	{
+		return 0.f;
+	}
+	for (const FName& Id : Ops.Crew[CrewIndex].Tasks)
+	{
+		if (const FTDTaskRow* Row = TasksTable->FindRow<FTDTaskRow>(Id, TEXT("TDMissionSubsystem"), false))
+		{
+			if (!bEvaOnly || Row->bEva)
+			{
+				Hours += UTDOps::TaskHours(*Row, ConstantsTable);
+			}
+		}
+	}
+	return Hours;
+}
+
+ETDTaskBlock UTDMissionSubsystem::GetTaskBlock(FName TaskId, int32 CrewIndex) const
+{
+	if (!HasOps())
+	{
+		return ETDTaskBlock::WrongPhase;
+	}
+	return UTDOps::CanPlan(Ops, TasksTable, TaskId, CrewIndex, OpsDesignOf(bHasFlownDesign, FlownDesign, OptionsTable), OptionsTable,
+		State.PhaseIndex, GetCurrentPhaseSols(), State.bDustPhase, ConstantsTable);
+}
+
+bool UTDMissionSubsystem::PlanTask(FName TaskId, int32 CrewIndex)
+{
+	if (!HasOps() || bOpsRunning)
+	{
+		return false;
+	}
+	const bool bOk = UTDOps::Plan(Ops, TasksTable, TaskId, CrewIndex, OpsDesignOf(bHasFlownDesign, FlownDesign, OptionsTable), OptionsTable,
+		State.PhaseIndex, GetCurrentPhaseSols(), State.bDustPhase, ConstantsTable);
+	PlaySfx(bOk ? TEXT("UI_Confirm") : TEXT("UI_Back"));
+	OnOpsChanged.Broadcast();
+	return bOk;
+}
+
+void UTDMissionSubsystem::UnplanTask(FName TaskId)
+{
+	if (bOpsRunning)
+	{
+		return;
+	}
+	UTDOps::Unplan(Ops, TaskId);
+	PlaySfx(TEXT("UI_Back"));
+	OnOpsChanged.Broadcast();
+}
+
+void UTDMissionSubsystem::AutoPlanTasks()
+{
+	if (!HasOps() || bOpsRunning)
+	{
+		return;
+	}
+	UTDOps::AutoPlan(Ops, TasksTable, OpsDesignOf(bHasFlownDesign, FlownDesign, OptionsTable), OptionsTable, State.PhaseIndex,
+		GetCurrentPhaseSols(), State.bDustPhase, ConstantsTable);
+	PlaySfx(TEXT("UI_Confirm"));
+	OnOpsChanged.Broadcast();
+}
+
+void UTDMissionSubsystem::ClearPlan()
+{
+	if (bOpsRunning)
+	{
+		return;
+	}
+	for (FTDCrewPlan& Crew : Ops.Crew)
+	{
+		Crew.Tasks.Reset();
+	}
+	OnOpsChanged.Broadcast();
+}
+
+FText UTDMissionSubsystem::GetCrewName(int32 CrewIndex) const
+{
+	return GetText(FName(*FString::Printf(TEXT("CrewName_%d"), CrewIndex)));
+}
+
+FVector UTDMissionSubsystem::GetSitePosition(FName Site) const
+{
+	const FTDSiteRow* Row = SitesTable ? SitesTable->FindRow<FTDSiteRow>(Site, TEXT("TDMissionSubsystem"), false) : nullptr;
+	return Row ? FVector(Row->X, Row->Y, 0.f) : FVector::ZeroVector;
+}
+
+void UTDMissionSubsystem::ApplySolarDust()
+{
+	if (Ops.SolarDustCells > 0 && !State.bDustPhase)
+	{
+		State.CellsTotal = FMath::Max(1, State.CellsTotal - Ops.SolarDustCells);
+	}
+}
+
+bool UTDMissionSubsystem::RunPhase()
+{
+	if (bOpsRunning || !CanEndPhase())
+	{
+		return false;
+	}
+	float MaxHours = 0.f;
+	for (int32 Index = 0; Index < Ops.Crew.Num(); ++Index)
+	{
+		MaxHours = FMath::Max(MaxHours, GetPlannedHours(Index, false));
+	}
+	if (!HasOps() || MaxHours <= 0.f)
+	{
+		OpsReport.Reset();
+		return EndPhase();
+	}
+	// Time-lapse: the busiest crew member's plan takes about 14 s; walking is sped up to match.
+	const float SecondsPerHour = FMath::Clamp(14.f / MaxHours, 0.4f, 2.5f);
+	const float WalkCmPerSec = 450.f;
+	{
+		TArray<FString> Plan;
+		for (int32 Index = 0; Index < Ops.Crew.Num(); ++Index)
+		{
+			TArray<FString> Ids;
+			for (const FName& Id : Ops.Crew[Index].Tasks) { Ids.Add(Id.ToString()); }
+			Plan.Add(FString::Printf(TEXT("%d:[%s]"), Index, *FString::Join(Ids, TEXT(","))));
+		}
+		UE_LOG(LogTouchdownMars, Display, TEXT("Ops: run phase %d (dust %d): %s"), State.PhaseIndex, State.bDustPhase ? 1 : 0, *FString::Join(Plan, TEXT(" ")));
+	}
+	bOpsRunning = true;
+	OpsReport.Reset();
+	OpsCrewRunning = 0;
+	OnOpsChanged.Broadcast();
+
+	// AI crew 1-3 are the level's crew members (the AIR, GREENHOUSE and SHELTER keepers).
+	TMap<ETDSystem, ATDCrewMember*> ByCrewSystem;
+	for (TActorIterator<ATDCrewMember> It(GetWorld()); It; ++It)
+	{
+		ByCrewSystem.Add(It->System, *It);
+	}
+	const ETDSystem CrewSystems[] = { ETDSystem::Air, ETDSystem::Air, ETDSystem::Greenhouse, ETDSystem::Shelter };
+	TWeakObjectPtr<UTDMissionSubsystem> WeakThis(this);
+	for (int32 CrewIndex = 1; CrewIndex < Ops.Crew.Num() && CrewIndex < 4; ++CrewIndex)
+	{
+		ATDCrewMember* Actor = ByCrewSystem.FindRef(CrewSystems[CrewIndex]);
+		if (!Actor || Ops.Crew[CrewIndex].Tasks.Num() == 0)
+		{
+			continue;
+		}
+		const float Z = Actor->GetActorLocation().Z;
+		if (!WalkGrid.IsValid())
+		{
+			WalkGrid = MakeShared<FTDWalkGrid>();
+			WalkGrid->Build(GetWorld(), FBox2D(FVector2D(-2600.f, -4200.f), FVector2D(7600.f, 4200.f)), 100.f);
+		}
+		TSharedPtr<FTDWalkGrid> Grid = WalkGrid;
+		auto PathPoints = [Grid, Z](const FVector2D& From, const FVector2D& To)
+		{
+			TArray<FVector> Points;
+			for (const FVector2D& P : Grid->FindPath(From, To))
+			{
+				Points.Add(FVector(P.X, P.Y, Z));
+			}
+			if (Points.Num() == 0)
+			{
+				Points.Add(FVector(To.X, To.Y, Z)); // no path: walk straight
+			}
+			return Points;
+		};
+		TArray<FTDCrewStep> Steps;
+		FVector2D At(Actor->GetActorLocation().X, Actor->GetActorLocation().Y);
+		for (const FName& Id : Ops.Crew[CrewIndex].Tasks)
+		{
+			const FTDTaskRow* Row = TasksTable->FindRow<FTDTaskRow>(Id, TEXT("TDMissionSubsystem"), false);
+			const FTDSiteRow* Site = Row ? SitesTable->FindRow<FTDSiteRow>(Row->Site, TEXT("TDMissionSubsystem"), false) : nullptr;
+			if (!Row || !Site)
+			{
+				continue;
+			}
+			const FVector2D SitePos(Site->X, Site->Y);
+			FTDCrewStep& Step = Steps.AddDefaulted_GetRef();
+			Step.Points = PathPoints(At, SitePos);
+			Step.Look = FVector(Site->LookX, Site->LookY, Z);
+			Step.WorkSeconds = UTDOps::TaskHours(*Row, ConstantsTable) * SecondsPerHour;
+			Step.bInside = Site->bInside;
+			Step.Status = GetText(Row->NameKey);
+			At = SitePos;
+		}
+		const FVector Home = Actor->GetHomeLocation();
+		FTDCrewStep& Back = Steps.AddDefaulted_GetRef();
+		Back.Points = PathPoints(At, FVector2D(Home.X, Home.Y));
+		Back.Status = GetText(TEXT("Ops_Returning"));
+		++OpsCrewRunning;
+		Actor->Say(GetText(FName(*FString::Printf(TEXT("Bark_Start_%d"), CrewIndex))), 4.f);
+		Actor->RunSteps(MoveTemp(Steps), WalkCmPerSec, [WeakThis]()
+		{
+			if (WeakThis.IsValid() && --WeakThis->OpsCrewRunning <= 0)
+			{
+				WeakThis->FinishRun();
+			}
+		});
+	}
+	if (OpsCrewRunning == 0)
+	{
+		FinishRun();
+		return true;
+	}
+	GetWorld()->GetTimerManager().SetTimer(OpsSafetyTimer, FTimerDelegate::CreateWeakLambda(this, [this]() { FinishRun(); }), 90.f, false);
+	return true;
+}
+
+void UTDMissionSubsystem::FinishRun()
+{
+	if (!bOpsRunning)
+	{
+		return;
+	}
+	bOpsRunning = false;
+	GetWorld()->GetTimerManager().ClearTimer(OpsSafetyTimer);
+	TMap<FName, TArray<int32>> Who;
+	for (int32 Index = 0; Index < Ops.Crew.Num(); ++Index)
+	{
+		for (const FName& Id : Ops.Crew[Index].Tasks)
+		{
+			Who.FindOrAdd(Id).Add(Index);
+		}
+	}
+	const TArray<FName> Finished = UTDOps::Finish(Ops, TasksTable);
+	OpsReport.Reset();
+	for (const FName& Id : Finished)
+	{
+		const FTDTaskRow* Row = TasksTable ? TasksTable->FindRow<FTDTaskRow>(Id, TEXT("TDMissionSubsystem"), false) : nullptr;
+		if (!Row)
+		{
+			continue;
+		}
+		UTDOps::ApplyEffect(*Row, Ops, State, ConstantsTable);
+		TArray<FString> Names;
+		for (int32 Index : Who.FindRef(Id))
+		{
+			Names.Add(GetCrewName(Index).ToString());
+		}
+		const FString EffectName = StaticEnum<ETDTaskEffect>()->GetNameStringByValue(static_cast<int64>(Row->Effect));
+		OpsReport.Add(FText::Format(GetText(TEXT("Ops_Done")), FText::FromString(FString::Join(Names, TEXT(", "))), GetText(Row->NameKey),
+			GetText(FName(*FString::Printf(TEXT("Effect_%s"), *EffectName)))));
+	}
+	UE_LOG(LogTouchdownMars, Display, TEXT("Ops: phase %d finished %d task(s)"), State.PhaseIndex, Finished.Num());
+	TArray<ETDSystem> All = { ETDSystem::Air, ETDSystem::Greenhouse, ETDSystem::Shelter };
+	OnLevelsChanged.Broadcast(State, All);
+	OnOpsReport.Broadcast(OpsReport);
+	EndPhase();
+	OnOpsChanged.Broadcast();
+}
+
+bool UTDMissionSubsystem::CompleteOwnTask(FName TaskId)
+{
+	if (bOpsRunning || !Ops.Crew.IsValidIndex(0) || !Ops.Crew[0].Tasks.Contains(TaskId) || !TasksTable)
+	{
+		return false;
+	}
+	const FTDTaskRow* Row = TasksTable->FindRow<FTDTaskRow>(TaskId, TEXT("TDMissionSubsystem"), false);
+	if (!Row)
+	{
+		return false;
+	}
+	TArray<FString> Names;
+	for (int32 Index : UTDOps::CrewOn(Ops, TaskId))
+	{
+		Names.Add(GetCrewName(Index).ToString());
+	}
+	UTDOps::Unplan(Ops, TaskId);
+	Ops.Done.FindOrAdd(TaskId) += 1;
+	UTDOps::ApplyEffect(*Row, Ops, State, ConstantsTable);
+	const FString EffectName = StaticEnum<ETDTaskEffect>()->GetNameStringByValue(static_cast<int64>(Row->Effect));
+	const FText Line = FText::Format(GetText(TEXT("Ops_Done")), FText::FromString(FString::Join(Names, TEXT(", "))), GetText(Row->NameKey),
+		GetText(FName(*FString::Printf(TEXT("Effect_%s"), *EffectName))));
+	OpsReport.Add(Line);
+	PlaySfx(TEXT("SystemUp"));
+	TArray<ETDSystem> All = { ETDSystem::Air, ETDSystem::Greenhouse, ETDSystem::Shelter };
+	OnLevelsChanged.Broadcast(State, All);
+	OnMessageArrived.Broadcast(Line);
+	OnOpsChanged.Broadcast();
+	return true;
+}
+
+void UTDMissionSubsystem::DevFillPhase()
+{
+	if (!IsMissionRunning())
+	{
+		return;
+	}
+	if (const FTDEventRow* Event = GetCurrentEvent(); Event && State.EventChoice < 0)
+	{
+		const int32 CostA = Event->ChoiceADemandAir + Event->ChoiceADemandGreenhouse + Event->ChoiceADemandShelter;
+		const int32 CostB = Event->ChoiceBDemandAir + Event->ChoiceBDemandGreenhouse + Event->ChoiceBDemandShelter;
+		ChooseEventOption(CostA <= CostB);
+	}
+	for (int32 Cell = 0; Cell < 20 && !CanEndPhase(); ++Cell)
+	{
+		const TArray<int32> Demand = GetDemand();
+		int32 Best = 0;
+		int32 BestGap = INT32_MIN;
+		for (int32 Index = 0; Index < TD::NumSystems; ++Index)
+		{
+			const int32 Gap = Demand[Index] - State.Allocation[Index] - State.Levels[Index];
+			if (!IsSystemLocked(static_cast<ETDSystem>(Index)) && Gap > BestGap)
+			{
+				BestGap = Gap;
+				Best = Index;
+			}
+		}
+		if (!PlaceCell(static_cast<ETDSystem>(Best)))
+		{
+			break;
+		}
+	}
 }

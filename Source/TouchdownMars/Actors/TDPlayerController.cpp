@@ -2,9 +2,24 @@
 
 #include "Actors/TDPlayerController.h"
 
+#include "UI/TDDesignRoom.h"
+#include "UI/TDBaseComputer.h"
+#include "Misc/CommandLine.h"
+#include "Camera/CameraActor.h"
+#include "Camera/CameraComponent.h"
+#include "TimerManager.h"
+#include "Engine/GameViewportClient.h"
+
+#include "Actors/TDAstronautCharacter.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "Engine/Engine.h"
+#include "Engine/GameViewportClient.h"
+#include "Framework/Application/SlateApplication.h"
+#include "Widgets/SWindow.h"
 #include "Engine/LocalPlayer.h"
+#include "Framework/Application/NavigationConfig.h"
+#include "Framework/Application/SlateApplication.h"
 #include "Engine/World.h"
 #include "Systems/TDMissionSubsystem.h"
 #include "TouchdownMars.h"
@@ -32,6 +47,14 @@ void ATDPlayerController::BeginPlay()
 		}
 	}
 
+	// Tab toggles the mission console in first person; keep Slate from using it for focus navigation.
+	if (FSlateApplication::IsInitialized())
+	{
+		TSharedRef<FNavigationConfig> Navigation = MakeShared<FNavigationConfig>();
+		Navigation->bTabNavigation = false;
+		FSlateApplication::Get().SetNavigationConfig(Navigation);
+	}
+
 	if (HudWidgetClass)
 	{
 		Hud = CreateWidget<UTDHudWidget>(this, HudWidgetClass);
@@ -46,6 +69,18 @@ void ATDPlayerController::BeginPlay()
 	InputMode.SetHideCursorDuringCapture(false);
 	InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
 	SetInputMode(InputMode);
+
+	// macOS can start the game behind the launching app; then the first click only activates the window.
+	// Bring the game window to the front and give the viewport keyboard and mouse focus.
+	if (FSlateApplication::IsInitialized() && GEngine && GEngine->GameViewport)
+	{
+		if (TSharedPtr<SWindow> Window = GEngine->GameViewport->GetWindow())
+		{
+			Window->BringToFront(true);
+			Window->HACK_ForceToFront();
+		}
+		FSlateApplication::Get().SetAllUserFocusToGameViewport();
+	}
 }
 
 void ATDPlayerController::SetupInputComponent()
@@ -64,11 +99,271 @@ void ATDPlayerController::SetupInputComponent()
 	}
 }
 
+void ATDPlayerController::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	if (DesignRoom.IsValid() && GEngine && GEngine->GameViewport)
+	{
+		GEngine->GameViewport->RemoveViewportWidgetContent(DesignRoom.ToSharedRef());
+	}
+	DesignRoom.Reset();
+	if (BaseComputer.IsValid() && bBaseOpen && GEngine && GEngine->GameViewport)
+	{
+		GEngine->GameViewport->RemoveViewportWidgetContent(BaseComputer.ToSharedRef());
+	}
+	BaseComputer.Reset();
+	Super::EndPlay(EndPlayReason);
+}
+
+void ATDPlayerController::ShowDesignScreen()
+{
+	UTDMissionSubsystem* Mission = GetWorld()->GetSubsystem<UTDMissionSubsystem>();
+	if (!Mission || !GEngine || !GEngine->GameViewport)
+	{
+		return;
+	}
+	if (!DesignRoom.IsValid())
+	{
+		SAssignNew(DesignRoom, STDDesignRoom)
+			.Mission(Mission)
+			.OnTransitDone(FTDDesignScreenAction::CreateUObject(this, &ATDPlayerController::HandleTransitDone));
+	}
+	if (!bDesignScreenOpen)
+	{
+		GEngine->GameViewport->AddViewportWidgetContent(DesignRoom.ToSharedRef(), 50);
+		bDesignScreenOpen = true;
+	}
+	// The design room takes the mouse; the astronaut stands still and the mission HUD hides.
+	if (Hud)
+	{
+		Hud->SetVisibility(ESlateVisibility::Collapsed);
+	}
+	SetIgnoreMoveInput(true);
+	SetIgnoreLookInput(true);
+	FInputModeUIOnly Mode;
+	Mode.SetWidgetToFocus(DesignRoom);
+	Mode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+	SetInputMode(Mode);
+	SetShowMouseCursor(true);
+}
+
+void ATDPlayerController::HideDesignScreen()
+{
+	if (DesignRoom.IsValid() && bDesignScreenOpen && GEngine && GEngine->GameViewport)
+	{
+		GEngine->GameViewport->RemoveViewportWidgetContent(DesignRoom.ToSharedRef());
+	}
+	bDesignScreenOpen = false;
+	ResetIgnoreMoveInput();
+	ResetIgnoreLookInput();
+	if (Hud)
+	{
+		Hud->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+	}
+	if (ATDAstronautCharacter* Astronaut = Cast<ATDAstronautCharacter>(GetPawn()))
+	{
+		Astronaut->SetConsoleOpen(false); // back to walking: game input, cursor hidden
+	}
+	else
+	{
+		FInputModeGameAndUI Mode;
+		Mode.SetHideCursorDuringCapture(false);
+		Mode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+		SetInputMode(Mode);
+	}
+	if (FSlateApplication::IsInitialized())
+	{
+		FSlateApplication::Get().SetAllUserFocusToGameViewport();
+	}
+}
+
+void ATDPlayerController::OpenDesignRoom()
+{
+#if !UE_BUILD_SHIPPING
+	// Screenshot runs (-TDCam=x,y,z,pitch,yaw): no design room, a fixed camera over the base.
+	FString CamSpec;
+	if (FParse::Value(FCommandLine::Get(), TEXT("TDCam="), CamSpec, false))
+	{
+		TArray<FString> Parts;
+		CamSpec.ParseIntoArray(Parts, TEXT(","));
+		if (Parts.Num() == 5)
+		{
+			const FVector Location(FCString::Atof(*Parts[0]), FCString::Atof(*Parts[1]), FCString::Atof(*Parts[2]));
+			const FRotator Rotation(FCString::Atof(*Parts[3]), FCString::Atof(*Parts[4]), 0.f);
+			if (ACameraActor* Cam = GetWorld()->SpawnActor<ACameraActor>(Location, Rotation))
+			{
+				Cam->GetCameraComponent()->SetFieldOfView(70.f);
+				SetIgnoreMoveInput(true);
+				SetIgnoreLookInput(true);
+				SetViewTarget(Cam);
+				if (Hud)
+				{
+					Hud->SetVisibility(ESlateVisibility::Collapsed);
+				}
+				UE_LOG(LogTouchdownMars, Display, TEXT("Design: screenshot camera %s"), *CamSpec);
+				// -TDOpsDemo with a fixed camera: fly the reference design and watch the crew work.
+				UTDMissionSubsystem* Mission = GetWorld()->GetSubsystem<UTDMissionSubsystem>();
+				if (FParse::Param(FCommandLine::Get(), TEXT("TDOpsDemo")) && Mission && Mission->BeginDesign(TEXT("FirstLight"), false))
+				{
+					Mission->FirstFlight.bSkipped = true;
+					Mission->UseRecommendedDesign();
+					Mission->SetAllRolesGo();
+					if (Mission->LaunchDesign())
+					{
+						HandleTransitDone();
+					}
+				}
+				return;
+			}
+		}
+	}
+#endif
+
+	ShowDesignScreen();
+	if (DesignRoom.IsValid())
+	{
+		DesignRoom->Show(ETDDesignScreen::Objectives);
+	}
+	UE_LOG(LogTouchdownMars, Display, TEXT("Design: room open"));
+}
+
+void ATDPlayerController::ShowDebrief()
+{
+	const UTDMissionSubsystem* Mission = GetWorld()->GetSubsystem<UTDMissionSubsystem>();
+	if (!Mission || !Mission->HasFlownDesign())
+	{
+		return;
+	}
+	ShowDesignScreen();
+	if (DesignRoom.IsValid())
+	{
+		DesignRoom->Show(ETDDesignScreen::Debrief);
+	}
+	UE_LOG(LogTouchdownMars, Display, TEXT("Design: debrief open"));
+}
+
+void ATDPlayerController::HandleTransitDone()
+{
+	HideDesignScreen();
+	UE_LOG(LogTouchdownMars, Display, TEXT("Design: landed, surface mission running"));
+#if !UE_BUILD_SHIPPING
+	// Automated test runs (-TDAutoPlay): play the surface mission to the end to reach the debrief.
+	if (FParse::Param(FCommandLine::Get(), TEXT("TDOpsDemo")))
+	{
+		GetWorldTimerManager().SetTimer(OpsDemoTimer, FTimerDelegate::CreateWeakLambda(this, [this]()
+		{
+			UTDMissionSubsystem* Mission = GetWorld()->GetSubsystem<UTDMissionSubsystem>();
+			if (!Mission || !Mission->IsMissionRunning() || Mission->IsRunningPhase())
+			{
+				return;
+			}
+			Mission->AutoPlanTasks();
+			Mission->DevFillPhase();
+			RunPhase();
+		}), 6.f, true, 3.f);
+	}
+	if (FParse::Param(FCommandLine::Get(), TEXT("TDAutoPlay")) && GEngine)
+	{
+		FTimerHandle Handle;
+		GetWorldTimerManager().SetTimer(Handle, FTimerDelegate::CreateWeakLambda(this, [this]()
+		{
+			GEngine->Exec(GetWorld(), TEXT("td.AutoPlay"));
+		}), 2.f, false);
+	}
+#endif
+}
+
 void ATDPlayerController::HandleNextPhase()
 {
-	if (UTDMissionSubsystem* Mission = GetWorld()->GetSubsystem<UTDMissionSubsystem>())
+	if (bDesignScreenOpen)
 	{
-		Mission->EndPhase();
+		return;
+	}
+	if (const ATDAstronautCharacter* Astronaut = Cast<ATDAstronautCharacter>(GetPawn()); Astronaut && !Astronaut->IsConsoleOpen())
+	{
+		return; // Space is jump while walking
+	}
+	RunPhase();
+}
+
+void ATDPlayerController::RunPhase()
+{
+	UTDMissionSubsystem* Mission = GetWorld()->GetSubsystem<UTDMissionSubsystem>();
+	if (!Mission || !Mission->CanEndPhase() || Mission->IsRunningPhase())
+	{
+		return;
+	}
+	// Watch the crew work: close the overlays and give the view back.
+	HideBaseComputer();
+	if (ATDAstronautCharacter* Astronaut = Cast<ATDAstronautCharacter>(GetPawn()))
+	{
+		Astronaut->SetConsoleOpen(false);
+	}
+	Mission->RunPhase();
+}
+
+void ATDPlayerController::ToggleBaseComputer()
+{
+	if (bDesignScreenOpen)
+	{
+		return;
+	}
+	if (bBaseOpen)
+	{
+		HideBaseComputer();
+		return;
+	}
+	UTDMissionSubsystem* Mission = GetWorld()->GetSubsystem<UTDMissionSubsystem>();
+	if (!Mission || !Mission->HasOps() || !GEngine || !GEngine->GameViewport)
+	{
+		return;
+	}
+	if (!BaseComputer.IsValid())
+	{
+		SAssignNew(BaseComputer, STDBaseComputer)
+			.Mission(Mission)
+			.OnClose(FTDBaseComputerAction::CreateUObject(this, &ATDPlayerController::HideBaseComputer))
+			.OnRun(FTDBaseComputerAction::CreateUObject(this, &ATDPlayerController::RunPhase));
+	}
+	BaseComputer->Rebuild();
+	GEngine->GameViewport->AddViewportWidgetContent(BaseComputer.ToSharedRef(), 45);
+	bBaseOpen = true;
+	if (Hud)
+	{
+		Hud->SetVisibility(ESlateVisibility::Collapsed);
+	}
+	SetIgnoreMoveInput(true);
+	SetIgnoreLookInput(true);
+	FInputModeUIOnly Mode;
+	Mode.SetWidgetToFocus(BaseComputer);
+	Mode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+	SetInputMode(Mode);
+	SetShowMouseCursor(true);
+}
+
+void ATDPlayerController::HideBaseComputer()
+{
+	if (!bBaseOpen)
+	{
+		return;
+	}
+	if (BaseComputer.IsValid() && GEngine && GEngine->GameViewport)
+	{
+		GEngine->GameViewport->RemoveViewportWidgetContent(BaseComputer.ToSharedRef());
+	}
+	bBaseOpen = false;
+	ResetIgnoreMoveInput();
+	ResetIgnoreLookInput();
+	if (Hud)
+	{
+		Hud->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+	}
+	if (ATDAstronautCharacter* Astronaut = Cast<ATDAstronautCharacter>(GetPawn()))
+	{
+		Astronaut->SetConsoleOpen(Astronaut->IsConsoleOpen());
+	}
+	if (FSlateApplication::IsInitialized())
+	{
+		FSlateApplication::Get().SetAllUserFocusToGameViewport();
 	}
 }
 

@@ -2,7 +2,9 @@
 
 #include "Actors/TDGameMode.h"
 
+#include "Actors/TDAstronautCharacter.h"
 #include "Actors/TDPlayerController.h"
+#include "UI/TDHelmetHUD.h"
 #include "Actors/TDSceneActors.h"
 #include "EngineUtils.h"
 #include "Kismet/GameplayStatics.h"
@@ -15,6 +17,12 @@ ATDGameMode::ATDGameMode()
 	DefaultPawnClass = nullptr;
 	PlayerControllerClass = ATDPlayerController::StaticClass();
 	ShotDirector = CreateDefaultSubobject<UTDShotDirector>(TEXT("ShotDirector"));
+	HUDClass = ATDHelmetHUD::StaticClass();
+}
+
+UClass* ATDGameMode::GetDefaultPawnClassForController_Implementation(AController* InController)
+{
+	return bFirstPerson ? ATDAstronautCharacter::StaticClass() : nullptr;
 }
 
 void ATDGameMode::StartPlay()
@@ -28,6 +36,13 @@ void ATDGameMode::StartPlay()
 	if (UTDMissionSubsystem* Mission = GetWorld()->GetSubsystem<UTDMissionSubsystem>())
 	{
 		Mission->RequestSpaceWeather();
-		Mission->StartMission(bUseSavedBand ? Mission->GetPreferredBand() : StartBand, StartSeed);
+		if (!bMissionDesign)
+		{
+			Mission->StartMission(bUseSavedBand ? Mission->GetPreferredBand() : StartBand, StartSeed);
+		}
+		else if (ATDPlayerController* PC = Cast<ATDPlayerController>(GetWorld()->GetFirstPlayerController()))
+		{
+			PC->OpenDesignRoom();
+		}
 	}
 }

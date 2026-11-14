@@ -3,7 +3,10 @@
 #include "Actors/TDSceneActors.h"
 
 #include "Actors/TDSystemModule.h"
+#include "Animation/AnimSequence.h"
 #include "CineCameraComponent.h"
+#include "Components/SkeletalMeshComponent.h"
+#include "Engine/SkeletalMesh.h"
 #include "Components/StaticMeshComponent.h"
 #include "Engine/StaticMesh.h"
 #include "Engine/World.h"
@@ -11,6 +14,8 @@
 #include "GameFramework/PlayerController.h"
 #include "Kismet/GameplayStatics.h"
 #include "Materials/MaterialInstanceDynamic.h"
+#include "NavigationPath.h"
+#include "NavigationSystem.h"
 #include "Systems/TDMissionSubsystem.h"
 #include "Systems/TDShotDirector.h"
 #include "TimerManager.h"
@@ -105,6 +110,11 @@ void ATDPowerUnit::BeginPlay()
 		}
 	}
 	LayOutLines();
+	for (UStaticMeshComponent* Line : Lines)
+	{
+		Line->SetVisibility(bShowEnergyLines);
+		Line->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	}
 	if (UTDMissionSubsystem* Mission = GetWorld()->GetSubsystem<UTDMissionSubsystem>())
 	{
 		Mission->OnAllocationChanged.AddDynamic(this, &ATDPowerUnit::HandleAllocation);
@@ -151,6 +161,13 @@ ATDCrewMember::ATDCrewMember()
 	}
 	// 180 cm crew in suits (level-design.md scale standard).
 	Body->SetRelativeScale3D(FVector(0.6f, 0.6f, 1.8f));
+	// Crew never carve the nav mesh and never block ground traces of other crew.
+	Body->SetCanEverAffectNavigation(false);
+	Body->SetCollisionObjectType(ECC_WorldDynamic);
+	Suit = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Suit"));
+	Suit->SetupAttachment(Body);
+	Suit->SetUsingAbsoluteScale(true);
+	Suit->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
 void ATDCrewMember::OnConstruction(const FTransform& Transform)
@@ -161,12 +178,58 @@ void ATDCrewMember::OnConstruction(const FTransform& Transform)
 	{
 		Material->SetVectorParameterValue(TEXT("Color"), TDTokens::System(System));
 	}
+	Suit->SetSkeletalMesh(SuitMesh);
+	Suit->SetVisibility(SuitMesh != nullptr);
+	Body->SetVisibility(SuitMesh == nullptr, false);
+	if (SuitMesh)
+	{
+		const FBoxSphereBounds Bounds = SuitMesh->GetBounds();
+		const float MeshHeight = FMath::Max(1.f, Bounds.BoxExtent.Z * 2.f);
+		Suit->SetWorldScale3D(FVector(SuitHeight / MeshHeight));
+		Suit->SetRelativeLocation(FVector::ZeroVector); // both pivots are at the feet
+		SuitMaterials.Reset();
+		for (int32 Index = 0; Index < Suit->GetNumMaterials(); ++Index)
+		{
+			if (SuitMaterial)
+			{
+				Suit->SetMaterial(Index, SuitMaterial);
+			}
+			SuitMaterials.Add(Suit->CreateAndSetMaterialInstanceDynamic(Index));
+		}
+		ApplySuitTint(TDTokens::System(System));
+	}
+}
+
+void ATDCrewMember::ApplySuitTint(const FLinearColor& Color)
+{
+	// A system-color tint on the white suit keeps the color coding (and hides any printed patch).
+	const FLinearColor Tint = FMath::Lerp(FLinearColor::White, Color, 0.55f);
+	for (UMaterialInstanceDynamic* SuitMID : SuitMaterials)
+	{
+		if (SuitMID)
+		{
+			SuitMID->SetVectorParameterValue(TEXT("Color"), Tint);           // MI_TD_Suit_* (BasicShapeMaterial)
+			SuitMID->SetVectorParameterValue(TEXT("DiffuseColor"), Tint);    // imported FBX material
+			SuitMID->SetVectorParameterValue(TEXT("BaseColorFactor"), Tint); // imported glTF material
+		}
+	}
+}
+
+void ATDCrewMember::PlayClip(UAnimSequence* Clip, float Rate)
+{
+	if (!SuitMesh || !Clip)
+	{
+		return;
+	}
+	Suit->PlayAnimation(Clip, true);
+	Suit->SetPlayRate(Rate);
 }
 
 void ATDCrewMember::BeginPlay()
 {
 	Super::BeginPlay();
 	HomeLocation = GetActorLocation();
+	FeetOffset = GetActorLocation().Z - GroundZ(GetActorLocation());
 	IdleSeed = static_cast<float>(static_cast<int32>(System)) * 2.1f; // fixed phase per crew member, no random stream
 	SetBasePose(GetActorLocation(), GetActorRotation());
 	GetWorldTimerManager().SetTimer(IdleTimer, this, &ATDCrewMember::StepIdle, 1.f / 30.f, true);
@@ -203,6 +266,7 @@ void ATDCrewMember::HandleShotStarted(FName ShotId, FName CameraTag, int32 Outco
 				PreShotTransform = FTransform(BaseRotation, BaseLocation);
 				bStaged = true;
 				SetBasePose(It->GetActorLocation(), It->GetActorRotation());
+				PlayClip(It->ActorHasTag(TEXT("Anim_Walk")) ? WalkAnim.Get() : (It->ActorHasTag(TEXT("Anim_Work")) ? WorkAnim.Get() : IdleAnim.Get()));
 				return;
 			}
 		}
@@ -215,11 +279,16 @@ void ATDCrewMember::HandleShotEnded(FName ShotId)
 	{
 		bStaged = false;
 		SetBasePose(PreShotTransform.GetLocation(), PreShotTransform.Rotator());
+		PlayBehaviour(Current);
 	}
 }
 
 void ATDCrewMember::HandlePhaseStarted(ETDPhase Phase)
 {
+	if (bOnTask)
+	{
+		return;
+	}
 	SetBasePose(HomeLocation, BaseRotation);
 }
 
@@ -233,10 +302,19 @@ void ATDCrewMember::SetBasePose(const FVector& Location, const FRotator& Rotatio
 void ATDCrewMember::StepIdle()
 {
 	IdleTime += 1.f / 30.f;
+	if (IsWalking())
+	{
+		StepWalk(1.f / 30.f);
+		return;
+	}
 	const UTDMissionSubsystem* Mission = GetWorld()->GetSubsystem<UTDMissionSubsystem>();
-	if (Mission && Mission->IsReduceMotion())
+	if ((Mission && Mission->IsReduceMotion()) || SuitMesh)
 	{
 		SetActorLocationAndRotation(BaseLocation, BaseRotation);
+		if (SuitMesh && Mission)
+		{
+			Suit->bPauseAnims = Mission->IsReduceMotion();
+		}
 		return;
 	}
 	float SwayDegrees = 7.f;
@@ -296,9 +374,216 @@ void ATDCrewMember::PlayBehaviour(ETDCrewBehaviour Behaviour)
 	{
 		Material->SetVectorParameterValue(TEXT("Color"), Color);
 	}
+	ApplySuitTint(Color);
+	if (bOnTask)
+	{
+		OnBehaviour(Behaviour);
+		return; // busy with a task: keep walking/working where they are
+	}
+	switch (Behaviour)
+	{
+	case ETDCrewBehaviour::Worried: PlayClip(WorriedAnim); break;
+	case ETDCrewBehaviour::Alarm: PlayClip(WorriedAnim, 1.6f); break;
+	case ETDCrewBehaviour::Celebrate: PlayClip(CelebrateAnim); break;
+	case ETDCrewBehaviour::AtLander: PlayClip(FarewellAnim); break;
+	default: PlayClip(IdleAnim); break;
+	}
 	if (!bStaged)
 	{
 		SetBasePose(Location, BaseRotation);
 	}
 	OnBehaviour(Behaviour);
+}
+
+// Crew walking and tasks (surface operations)
+
+float ATDCrewMember::GroundZ(const FVector& At) const
+{
+	FHitResult Hit;
+	FCollisionQueryParams Params(TEXT("TDCrewGround"), false, this);
+	const FVector Start(At.X, At.Y, At.Z + 3000.f);
+	const FVector End(At.X, At.Y, At.Z - 6000.f);
+	if (GetWorld() && GetWorld()->LineTraceSingleByObjectType(Hit, Start, End, FCollisionObjectQueryParams(ECC_WorldStatic), Params))
+	{
+		return Hit.ImpactPoint.Z;
+	}
+	return At.Z - FeetOffset;
+}
+
+void ATDCrewMember::WalkTo(const FVector& Target, float SpeedCmPerSec, TFunction<void()> OnArrived)
+{
+	SetInside(false);
+	PathPoints.Reset();
+	PathIndex = 0;
+	WalkSpeed = FMath::Max(10.f, SpeedCmPerSec);
+	ArriveCallback = MoveTemp(OnArrived);
+	const FVector Start = BaseLocation;
+	if (UNavigationSystemV1* Nav = FNavigationSystem::GetCurrent<UNavigationSystemV1>(GetWorld()))
+	{
+		const FVector From(Start.X, Start.Y, GroundZ(Start));
+		const FVector To(Target.X, Target.Y, GroundZ(Target));
+		if (UNavigationPath* Path = Nav->FindPathToLocationSynchronously(GetWorld(), From, To, this))
+		{
+			if (Path->IsValid() && Path->PathPoints.Num() > 1)
+			{
+				PathPoints = Path->PathPoints;
+			}
+		}
+	}
+	if (PathPoints.Num() == 0)
+	{
+		PathPoints = { Start, Target }; // no nav mesh: walk straight
+	}
+	PathIndex = 1;
+	PlayClip(WalkAnim, FMath::Clamp(WalkSpeed / 140.f, 0.6f, 3.f));
+}
+
+void ATDCrewMember::WalkPath(const TArray<FVector>& Points, float SpeedCmPerSec, TFunction<void()> OnArrived)
+{
+	SetInside(false);
+	WalkSpeed = FMath::Max(10.f, SpeedCmPerSec);
+	ArriveCallback = MoveTemp(OnArrived);
+	PathPoints.Reset();
+	PathPoints.Add(BaseLocation);
+	PathPoints.Append(Points);
+	PathIndex = 1;
+	PlayClip(WalkAnim, FMath::Clamp(WalkSpeed / 140.f, 0.6f, 3.f));
+}
+
+void ATDCrewMember::StopWalking()
+{
+	PathPoints.Reset();
+	PathIndex = 0;
+	ArriveCallback = nullptr;
+	PlayClip(IdleAnim);
+}
+
+void ATDCrewMember::StepWalk(float DeltaSeconds)
+{
+	if (!PathPoints.IsValidIndex(PathIndex))
+	{
+		TFunction<void()> Done = MoveTemp(ArriveCallback);
+		PathPoints.Reset();
+		PathIndex = 0;
+		PlayClip(IdleAnim);
+		if (Done)
+		{
+			Done();
+		}
+		return;
+	}
+	const FVector Goal = PathPoints[PathIndex];
+	FVector Flat = FVector(Goal.X - BaseLocation.X, Goal.Y - BaseLocation.Y, 0.f);
+	const float Distance = Flat.Size();
+	const float Step = WalkSpeed * DeltaSeconds;
+	FVector Next = BaseLocation;
+	if (Distance <= Step)
+	{
+		Next.X = Goal.X;
+		Next.Y = Goal.Y;
+		++PathIndex;
+	}
+	else
+	{
+		Flat /= Distance;
+		Next += Flat * Step;
+		// Turn smoothly toward the walking direction.
+		const float TargetYaw = Flat.Rotation().Yaw;
+		BaseRotation.Yaw = FMath::FixedTurn(BaseRotation.Yaw, TargetYaw, 360.f * DeltaSeconds);
+	}
+	Next.Z = GroundZ(Next) + FeetOffset;
+	BaseLocation = Next;
+	SetActorLocationAndRotation(BaseLocation, BaseRotation);
+}
+
+void ATDCrewMember::WorkAt(const FVector& LookAt)
+{
+	FVector Dir = LookAt - BaseLocation;
+	Dir.Z = 0.f;
+	if (!Dir.IsNearlyZero())
+	{
+		BaseRotation.Yaw = Dir.Rotation().Yaw;
+		SetActorLocationAndRotation(BaseLocation, BaseRotation);
+	}
+	PlayClip(WorkAnim ? WorkAnim.Get() : IdleAnim.Get());
+}
+
+void ATDCrewMember::SetInside(bool bInside)
+{
+	bInsideModule = bInside;
+	SetActorHiddenInGame(bInside);
+	SetActorEnableCollision(!bInside);
+}
+
+void ATDCrewMember::Say(const FText& Line, float Seconds)
+{
+	Bark = Line;
+	BarkUntil = FPlatformTime::Seconds() + Seconds;
+}
+
+FText ATDCrewMember::GetBark() const
+{
+	return FPlatformTime::Seconds() < BarkUntil ? Bark : FText::GetEmpty();
+}
+
+void ATDCrewMember::RunSteps(TArray<FTDCrewStep> Steps, float WalkSpeedCmPerSec, TFunction<void()> OnAllDone)
+{
+	StepQueue = MoveTemp(Steps);
+	StepsDone = MoveTemp(OnAllDone);
+	StepSpeed = WalkSpeedCmPerSec;
+	bOnTask = true;
+	RunNextStep();
+}
+
+void ATDCrewMember::RunNextStep()
+{
+	GetWorldTimerManager().ClearTimer(WorkTimer);
+	if (StepQueue.Num() == 0)
+	{
+		bOnTask = false;
+		StatusText = FText::GetEmpty();
+		StatusProgress = -1.f;
+		SetInside(false);
+		SetBasePose(HomeLocation, BaseRotation);
+		PlayClip(IdleAnim);
+		TFunction<void()> Done = MoveTemp(StepsDone);
+		if (Done)
+		{
+			Done();
+		}
+		return;
+	}
+	const FTDCrewStep Step = StepQueue[0];
+	StepQueue.RemoveAt(0);
+	UE_LOG(LogTemp, Display, TEXT("Crew %s: step '%s', %d points, from %s to %s, work %.1f s%s"), *GetActorLabel(), *Step.Status.ToString(), Step.Points.Num(),
+		*BaseLocation.ToCompactString(), Step.Points.Num() > 0 ? *Step.Points.Last().ToCompactString() : TEXT("-"), Step.WorkSeconds, Step.bInside ? TEXT(" inside") : TEXT(""));
+	StatusText = Step.Status;
+	StatusProgress = Step.WorkSeconds > 0.f ? 0.f : -1.f;
+	WalkPath(Step.Points, StepSpeed, [this, Step]()
+	{
+		if (Step.WorkSeconds <= 0.f)
+		{
+			RunNextStep();
+			return;
+		}
+		if (Step.bInside)
+		{
+			SetInside(true);
+		}
+		else
+		{
+			WorkAt(Step.Look);
+		}
+		WorkStart = FPlatformTime::Seconds();
+		WorkLength = Step.WorkSeconds;
+		GetWorldTimerManager().SetTimer(WorkTimer, FTimerDelegate::CreateWeakLambda(this, [this]()
+		{
+			StatusProgress = FMath::Clamp(static_cast<float>((FPlatformTime::Seconds() - WorkStart) / FMath::Max(0.1f, WorkLength)), 0.f, 1.f);
+			if (StatusProgress >= 1.f)
+			{
+				SetInside(false);
+				RunNextStep();
+			}
+		}), 0.1f, true);
+	});
 }

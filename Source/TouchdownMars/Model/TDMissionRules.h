@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "UObject/Object.h"
 #include "Model/TDTypes.h"
+#include "Model/TDMissionDesign.h"
 #include "TDMissionRules.generated.h"
 
 class UDataTable;
@@ -41,6 +42,9 @@ struct FTDRulesConfig
 	/** Cadet-locked systems are held at this level. */
 	UPROPERTY(BlueprintReadOnly, Category = "Rules")
 	int32 LockedSystemLevel = 3;
+
+	/** Effects of the player's mission design (Act 1). Not valid = the band's fixed cells (no design). */
+	FTDDesignEffects Design;
 
 	bool IsValid() const { return Phases.Num() == TD::NumPhases && StartLevels.Num() == TD::NumSystems; }
 };

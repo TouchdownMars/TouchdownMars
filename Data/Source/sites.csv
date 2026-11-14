@@ -1,0 +1,15 @@
+Name,X,Y,Links,bInside,LookX,LookY,NameKey
+Hab,-1000,200,(),False,-470,0,Site_Hab
+HabInside,-760,0,(),True,-470,0,Site_Hab
+AirlockInside,2025,-1300,(),True,2025,-1050,Site_Airlock
+Rover,3050,-2400,(),False,3300,-2550,Site_Rover
+LZ2,5250,-2350,(),False,5600,-2600,Site_LZ2
+Greenhouse,-420,-1150,(),True,100,-1150,Site_Greenhouse
+Meda,650,-800,(),False,650,-600,Site_Meda
+Delta,-2200,-3300,(),False,-2700,-3900,Site_Delta
+Survey,-1800,2700,(),False,-2300,3300,Site_Survey
+IsruInside,3000,700,(),True,3300,950,Site_Isru
+Berm,650,650,(),False,250,1100,Site_Berm
+Solar1,2650,2450,(),False,2900,2650,Site_Solar
+EclssInside,1380,250,(),True,1650,250,Site_Eclss
+LabInside,1750,1480,(),True,1750,1750,Site_Lab

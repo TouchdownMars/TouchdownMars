@@ -143,6 +143,9 @@ ATDPlantRack::ATDPlantRack()
 			Plants.Add(Plant);
 		}
 	}
+	RackVisual = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("RackVisual"));
+	RackVisual->SetupAttachment(Root);
+	RackVisual->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	GrowLight = CreateDefaultSubobject<UPointLightComponent>(TEXT("GrowLight"));
 	GrowLight->SetupAttachment(Root);
 	GrowLight->SetRelativeLocation(FVector(-60.f, 0.f, 200.f));
@@ -165,6 +168,18 @@ void ATDPlantRack::OnConstruction(const FTransform& Transform)
 	for (UStaticMeshComponent* Plant : Plants)
 	{
 		Plant->CreateAndSetMaterialInstanceDynamic(0);
+	}
+	RackVisual->SetStaticMesh(RackMesh);
+	RackVisual->SetVisibility(RackMesh != nullptr);
+	for (UStaticMeshComponent* Tray : Shelves) { Tray->SetVisibility(RackMesh == nullptr); }
+	for (UStaticMeshComponent* Plant : Plants) { Plant->SetVisibility(RackMesh == nullptr); }
+	if (RackMesh)
+	{
+		const FBoxSphereBounds Bounds = RackMesh->GetBounds();
+		const float Scale = RackHeight / FMath::Max(1.f, Bounds.BoxExtent.Z * 2.f);
+		RackVisual->SetRelativeScale3D(FVector(Scale));
+		RackVisual->SetRelativeLocation(FVector(0.f, 0.f, (Bounds.BoxExtent.Z - Bounds.Origin.Z) * Scale));
+		RackMaterial = RackVisual->CreateAndSetMaterialInstanceDynamic(0);
 	}
 	ShowHealth(true);
 }
@@ -199,6 +214,10 @@ void ATDPlantRack::HandleShotStarted(FName ShotId, FName CameraTag, int32 Outcom
 
 void ATDPlantRack::ShowHealth(bool bHealthy)
 {
+	if (RackMaterial)
+	{
+		RackMaterial->SetVectorParameterValue(TEXT("BaseColorFactor"), bHealthy ? FLinearColor::White : FLinearColor(1.f, 0.78f, 0.35f, 1.f));
+	}
 	// Same size either way: stress shows as color and droop only, plants never grow inside one turn.
 	for (int32 Index = 0; Index < Plants.Num(); ++Index)
 	{

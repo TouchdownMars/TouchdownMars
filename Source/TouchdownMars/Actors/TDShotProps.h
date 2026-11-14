@@ -7,7 +7,9 @@
 #include "GameFramework/Actor.h"
 #include "TDShotProps.generated.h"
 
+class UMaterialInstanceDynamic;
 class UPointLightComponent;
+class UStaticMesh;
 class UStaticMeshComponent;
 
 /**
@@ -80,6 +82,14 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Touchdown Mars|Camera")
 	void ShowHealth(bool bHealthy);
 
+	/** Optional detailed rack (Tripo model). When set, it replaces the placeholder shelves; stress shows as a yellow tint. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Touchdown Mars|Camera")
+	TObjectPtr<UStaticMesh> RackMesh;
+
+	/** Height the detailed rack is scaled to (cm). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Touchdown Mars|Camera")
+	float RackHeight = 190.f;
+
 protected:
 	virtual void BeginPlay() override;
 	virtual void OnConstruction(const FTransform& Transform) override;
@@ -95,6 +105,12 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Touchdown Mars|Camera")
 	TObjectPtr<UPointLightComponent> GrowLight;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Touchdown Mars|Camera")
+	TObjectPtr<UStaticMeshComponent> RackVisual;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UMaterialInstanceDynamic> RackMaterial;
 
 private:
 	UFUNCTION()

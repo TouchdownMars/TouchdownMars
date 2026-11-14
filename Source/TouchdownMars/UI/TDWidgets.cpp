@@ -2,6 +2,8 @@
 
 #include "UI/TDWidgets.h"
 
+#include "Actors/TDPlayerController.h"
+
 #include "Blueprint/WidgetTree.h"
 #include "Components/Border.h"
 #include "Components/Button.h"
@@ -244,16 +246,20 @@ void UTDNextPhaseButtonWidget::NativeOnInitialized()
 
 void UTDNextPhaseButtonWidget::HandleClicked()
 {
-	if (UTDMissionSubsystem* Mission = GetMission())
+	if (ATDPlayerController* PC = Cast<ATDPlayerController>(GetOwningPlayer()))
 	{
-		Mission->EndPhase();
+		PC->RunPhase();
+	}
+	else if (UTDMissionSubsystem* Mission = GetMission())
+	{
+		Mission->RunPhase();
 	}
 }
 
 void UTDNextPhaseButtonWidget::RefreshFromState(const FTDMissionState& State)
 {
 	const UTDMissionSubsystem* Mission = GetMission();
-	const bool bReady = Mission && Mission->CanEndPhase();
+	const bool bReady = Mission && Mission->CanEndPhase() && !Mission->IsRunningPhase();
 	Button->SetIsEnabled(bReady);
 	StyleButton(Button, bReady ? TDTokens::CoreAccent() : TDTokens::SemDisabled());
 	SetLabel(Label, Txt(TEXT("UI_NextPhase")), TDTokens::SizeBody, bReady ? TDTokens::CorePrimary() : TDTokens::CoreText());
@@ -1008,6 +1014,7 @@ void UTDHudWidget::HandleEventDrawn(FName EventId)
 	{
 		EventCard->ShowEvent(EventId);
 	}
+	ApplyConsoleMode(); // walking: the card waits for the console
 }
 
 void UTDHudWidget::HandlePhaseResolved(const FText& Cause)
@@ -1045,7 +1052,13 @@ void UTDHudWidget::HandleEnded(ETDMissionResult Result)
 	if (EventCard) { EventCard->HideCard(); }
 	if (Result == ETDMissionResult::LostAir)
 	{
-		if (BackToLander) { BackToLander->ShowLost(); }
+		ATDPlayerController* PC = Cast<ATDPlayerController>(GetOwningPlayer());
+		const UTDMissionSubsystem* EndMission = GetMission();
+		if (PC && EndMission && EndMission->HasFlownDesign())
+		{
+			PC->ShowDebrief(); // the debrief explains what broke and offers the redesign
+		}
+		else if (BackToLander) { BackToLander->ShowLost(); }
 	}
 	else if (MissionReport)
 	{
@@ -1077,10 +1090,34 @@ void UTDHudWidget::ShowReportNow()
 {
 	bPendingReport = false;
 	ShowPanelOf(ResultText, false);
+	ATDPlayerController* PC = Cast<ATDPlayerController>(GetOwningPlayer());
+	const UTDMissionSubsystem* EndMission = GetMission();
+	if (PC && EndMission && EndMission->HasFlownDesign())
+	{
+		PC->ShowDebrief();
+		return;
+	}
 	if (MissionReport)
 	{
 		MissionReport->ShowReport();
 		if (UTDMissionSubsystem* Mission = GetMission()) { Mission->PlaySfx(TEXT("Stamp")); }
+	}
+}
+
+void UTDHudWidget::SetConsoleMode(bool bOpen)
+{
+	bConsoleMode = bOpen;
+	ApplyConsoleMode();
+}
+
+void UTDHudWidget::ApplyConsoleMode()
+{
+	const ESlateVisibility Shown = ESlateVisibility::SelfHitTestInvisible;
+	if (PowerPanel) { PowerPanel->SetVisibility(bConsoleMode ? Shown : ESlateVisibility::Collapsed); }
+	if (EventCard && EventCard->IsOpen()) { EventCard->SetVisibility(bConsoleMode ? Shown : ESlateVisibility::Hidden); }
+	for (UWidget* Corner : TArray<UWidget*>{ SettingsButton, LanguageButton, MuteButton, SourcesButton, CallHomeButton })
+	{
+		if (Corner) { Corner->SetVisibility(bConsoleMode ? ESlateVisibility::Visible : ESlateVisibility::Collapsed); }
 	}
 }
 

@@ -178,3 +178,41 @@ Every color, margin or motion value used in code or UMG carries a token comment,
 | 11 Accessibility | FILLED |
 | 12 Traceability | FILLED |
 | Header north stars | reference game MISSING |
+
+
+## Mission screens (design room and debrief), 14.11.2026 (NASA-punk revision)
+
+Direction: NASA's own 1970s graphic language (1975 NASA Graphics Standards Manual, flight-hardware stencils, control-panel labels), the "NASA-punk" look players know from recent space games, used as a mood reference only (no game's logos, fonts or screens are copied). Research: `D:\NASA\research_notes\Görev tasarım oyunu GDC dersleri\ui_ux_onboarding.md` (NASA-STD-3001 Vol. 2 App. F, Into the Breach, Hodent, Xbox accessibility guidelines).
+
+| Role | Hex | Use |
+| :-- | :-- | :-- |
+| Scene dim | `#080A0D` @ 55 % | behind the panels |
+| Panel | `#EFEDE8` | panels |
+| Raised | `#FAF9F6` | cards, guide strip |
+| Well | `#E2DFD8` | value chips |
+| Line | `#C8C4BA` | rules, idle borders, secondary buttons |
+| Track | `#D9D5CC` | empty bar |
+| Text | `#15181C` | main text |
+| Text 2 | `#5C636E` | secondary text |
+| Charcoal | `#22272E` | ordinary buttons (white text) |
+| NASA red | `#E03C31` | primary actions only (Choose, Fix, Launch), section labels, the guide highlight (pulses at 0.8 Hz) |
+| GO | `#1E8E4E` | passed, picked, GO |
+| Caution | `#B7791F` | risk, below target |
+| NO-GO | `#D7261E` | blocks launch, failed (always with a word, never colour alone) |
+
+- **Fonts:** Barlow Semi Condensed (text; headings SemiBold with wide tracking) and IBM Plex Mono Medium (every number). SIL OFL 1.1, raw TTF files in `Content/TouchdownMars/UI/Fonts`, staged as non-UFS, loaded by `TeamFont()`. No automatic upper-casing (Turkish İ/I).
+- **Pictures:** Google Gemini illustrations in one locked style: 1970s technical illustration and mission-poster look, flat matte shapes, light screen-print grain and halftone shadows, the UI palette (rust and ochre ground, cream sky, charcoal, off-white hardware, one red accent), low sun from the left, eye-level three-quarter view, the subject on Mars at our base. Never text, logos, insignia, flags, patches or faces (visors down). Each card shows the tag "AI illustration (Gemini)" (`ImageCredit`). Sources and crops: `D:\NASA\_kaynaklar\gemini_style` (cards 512 x 256, objectives 768 x 412, cold open 1024 x 512); the earlier NASA photos are kept in `D:\NASA\_kaynaklar\nasa_ui_photos_backup`.
+- **Cards:** photo, name, value chips (mass violet, power orange, cost yellow, data blue, science green), one control; details in the hover tooltip.
+- **Status:** colour + bar + word. Bars ease to the new value in about 300 ms.
+- **Guide (flight 2+):** warnings only: shown when a line is red; "Start from a working design" loads a design that launches.
+
+### First flight (onboarding) look
+Rules and steps: `gdd.md` §1 Main Mechanics 13.
+- **Step strip** (Raised panel under the header): red badge `n/7` (IBM Plex Mono), a red `FLIGHT` tag with the one-line cause of the step just finished (Text 2, 14 pt), the instruction (Text, 19 pt bold), the causal map, and the actions on the right (prediction buttons in charcoal; fix choices in NASA red when they solve the line, charcoal when they are "not enough alone").
+- **Causal map:** chips 11 pt bold. Unmet: Track fill, Text 2. Met: chain colour with dark text (science blue `#3A8DDE`, cargo violet `#B58CF0`, power orange `#F07F2E`, GO red). Failing: NO-GO fill, white text. Current: pulsing red outline. Arrows in IBM Plex Mono (Barlow has no arrow glyphs).
+- **Power cells:** square tokens (16-26 px), GO green when on, NO-GO at 28 % for a missing required cell, Track for spare slots; a 3 px charcoal line after the required count. Rows: clear sky and dust storm. The cold open and the storm preview use the same tokens.
+- **Mission calendar:** 31 sol squares at the top of the dashboard; orange = dust storm possible, amber = solar storm possible, grey = breakdown, charcoal = no link; a legend under it, never colour alone.
+- **Locked card:** photo washed out, charcoal `LOCKED` tag, disabled button with the reason ("Unlocks when you need it"). Flight 2: red `NEW` tag, the reason in the tooltip.
+- **Cold open:** charcoal panel (inverse of the light room), red `REPLAY` tag, Gemini illustration of the Ares-0 outpost darkening under a dust tint, cells draining from 8 to 1; white text, warm orange for the storm line, light red for the failure.
+- **Poll the room:** the four role reports appear one by one (0.75 s apart) under the poll buttons in IBM Plex Mono, each with a GO chip (amber "GO · goal open" when the role goal is not met).
+- **Debrief question:** a panel with a pulsing red outline until the player picks; the right decision turns GO green, a wrong pick NO-GO; then the trace in IBM Plex Mono and the causal map with the path in red.

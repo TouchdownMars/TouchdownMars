@@ -25,7 +25,10 @@ public class TouchdownMars : ModuleRules
 			"Json",
 			"JsonUtilities",
 			"DeveloperSettings",
-			"CinematicCamera"
+			"CinematicCamera",
+			"NavigationSystem",
+			"AIModule",
+			"Landscape"
 		});
 	}
 }

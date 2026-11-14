@@ -9,6 +9,8 @@
 class UInputAction;
 class UInputMappingContext;
 class UTDHudWidget;
+class STDDesignRoom;
+class STDBaseComputer;
 
 /** Mouse cursor always visible; all play goes through the HUD. Space/Enter = Next phase, Esc = Back. */
 UCLASS()
@@ -34,13 +36,44 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Touchdown Mars|UI")
 	UTDHudWidget* GetMissionHud() const { return Hud; }
 
+	/** Mission Design Room (Act 1): objective cards first. */
+	UFUNCTION(BlueprintCallable, Category = "Touchdown Mars|Design")
+	void OpenDesignRoom();
+
+	/** Mission Debrief (Act 3) after lift-off or loss, when a designed mission flew. */
+	UFUNCTION(BlueprintCallable, Category = "Touchdown Mars|Design")
+	void ShowDebrief();
+
+	UFUNCTION(BlueprintPure, Category = "Touchdown Mars|Design")
+	bool IsDesignScreenOpen() const { return bDesignScreenOpen; }
+
+	/** Base computer (key B): crew plan and task board for the current phase. */
+	void ToggleBaseComputer();
+	bool IsBaseComputerOpen() const { return bBaseOpen; }
+
+	/** Runs the phase as a time-lapse (base computer button, Next phase, Space). */
+	void RunPhase();
+
 protected:
 	virtual void BeginPlay() override;
 	virtual void SetupInputComponent() override;
 
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+
 private:
 	void HandleNextPhase();
 	void HandleBack();
+	void ShowDesignScreen();
+	void HideDesignScreen();
+	void HandleTransitDone();
+
+	TSharedPtr<STDDesignRoom> DesignRoom;
+	bool bDesignScreenOpen = false;
+
+	void HideBaseComputer();
+	TSharedPtr<STDBaseComputer> BaseComputer;
+	FTimerHandle OpsDemoTimer;
+	bool bBaseOpen = false;
 
 	UPROPERTY(Transient)
 	TObjectPtr<UTDHudWidget> Hud;

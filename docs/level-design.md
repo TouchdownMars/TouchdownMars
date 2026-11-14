@@ -42,19 +42,25 @@
 
 **Site:** LOCKED 13.11.2026 (team kept the proposal): Jezero crater floor near the Perseverance landing area, terrain shape from NASA Mars Trek elevation data (MISSING: exact Mars Trek product name, resolution and URL; Role C downloads it on 14 Nov and records it in `sources.csv`).
 
-### Layout
+### Layout (14.11.2026: connected base, `Scripts/setup_base.py`)
+Hub-and-spoke base, about 70 m x 60 m plus the power yard 60 m out. All positions are `[DESIGNER VALUE]` layout choices.
 ```
-                [Lander]                 [Fission unit]
-                    \                       /
-                     \---- energy lines ---/
-                              |
-   [Greenhouse dome] ---- [Habitat + antenna] ---- [Shelter]
-          (left)               (centre)             (right)
-                    [Crew: Engineer · Science · Health]
-                    [Rover path: left-front, phase 3]
-   ------------------------- camera (fixed, 3/4 view) -------------------------
-   [ UI bottom third: cells | AIR | GREENHOUSE | SHELTER | Next phase ]
+                         [LZ-2 cargo pad + logistics crates]
+        [LZ-1 ascent pad + ascent vehicle + RASSOR]
+                 \ graded road
+   [Spares]--[B4 AIRLOCK]--(rover SEV parked)        [Solar fields x3]   [POWER YARD: fission units 1-4]
+                 |                                         ^                     |
+   [Greenhouse 2]-[Greenhouse]==[B1 COMMAND hub]==[B2 LIFE SUPPORT]==pipe==[ISRU plant + MOXIE]
+                                    ||    (dish)            ||          ^ cable trays from the power yard
+                              [Shelter + water wall      [B3 SCIENCE LAB]   [UHF relay antenna]
+                               or regolith berm]
+   player start (-X) ---> faces the hub
 ```
+- **Corridors:** pressurised tubes, 2 m across, ribs every 3 m on supports (hub-greenhouse, hub-shelter, hub-life support, life support-lab, life support-airlock, greenhouse-greenhouse 2).
+- **Design-driven parts** (tag `DesignShow_<OptionId>_<N>`, shown when the flown design has at least N): fission units 1-4, solar fields 1-3, water wall, regolith berm, second greenhouse, UHF relay antenna, MEDA mast, MOXIE unit, spare-part stacks. The scene behind the design room updates with every pick.
+- **Labels:** B1 COMMAND, B2 LIFE SUPPORT, B3 SCIENCE LAB, B4 AIRLOCK, ISRU PLANT, LZ-1 ASCENT, LZ-2 CARGO, POWER YARD. The helmet names each part (Inspect_* keys in text.csv).
+- **Rocks** inside the base footprint are hidden (tag `HiddenByBase`). The diorama's floating energy lines are off (`ATDPowerUnit::bShowEnergyLines`); cable trays carry the power.
+- **Rebuild order:** setup_cameras → setup_props → setup_tripo → setup_base → setup_fps.
 
 ### Progression
 - **1. Introduce:** phase 1 Arrival (sol 1-3). Opening minute: dark base, "You are Stay", one cell to AIR with the ghost hand, three systems named, second cell with two valid slots, Call home, first card question. Nearly impossible to lose.

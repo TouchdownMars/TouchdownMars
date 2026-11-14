@@ -8,7 +8,11 @@
 #include "Model/TDTypes.h"
 #include "TDSceneActors.generated.h"
 
+class UAnimSequence;
+class UMaterialInterface;
 class UCineCameraComponent;
+class USkeletalMesh;
+class USkeletalMeshComponent;
 class UStaticMeshComponent;
 class UMaterialInstanceDynamic;
 
@@ -59,6 +63,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Touchdown Mars")
 	float MinThickness = 0.03f;
 
+	/** The diorama's floating energy lines. Off in the first-person base, which has real cable trays (setup_base.py). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Touchdown Mars")
+	bool bShowEnergyLines = false;
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -75,6 +83,16 @@ private:
 	void LayOutLines();
 
 	TArray<FVector> Targets;
+};
+
+/** One step of a crew member's phase plan: walk the points, then work (or stay inside) for WorkSeconds. */
+struct FTDCrewStep
+{
+	TArray<FVector> Points;
+	FVector Look = FVector::ZeroVector;
+	float WorkSeconds = 0.f;
+	bool bInside = false;
+	FText Status;
 };
 
 /** Crew member placeholder (BP_TD_FlightEngineer etc. derive from this): reacts to its system's level. */
@@ -104,6 +122,69 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Touchdown Mars")
 	ETDCrewBehaviour GetBehaviour() const { return Current; }
 
+	/** Optional rigged suit (Tripo astronaut). When set, it replaces the static body and plays the animations below. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Touchdown Mars|Suit")
+	TObjectPtr<USkeletalMesh> SuitMesh;
+
+	/** Optional material for every suit slot (system-color suit, no printed patches). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Touchdown Mars|Suit")
+	TObjectPtr<UMaterialInterface> SuitMaterial;
+
+	/** Height the suit is scaled to (cm). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Touchdown Mars|Suit")
+	float SuitHeight = 180.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Touchdown Mars|Suit")
+	TObjectPtr<UAnimSequence> IdleAnim;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Touchdown Mars|Suit")
+	TObjectPtr<UAnimSequence> WorriedAnim;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Touchdown Mars|Suit")
+	TObjectPtr<UAnimSequence> WalkAnim;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Touchdown Mars|Suit")
+	TObjectPtr<UAnimSequence> WorkAnim;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Touchdown Mars|Suit")
+	TObjectPtr<UAnimSequence> CelebrateAnim;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Touchdown Mars|Suit")
+	TObjectPtr<UAnimSequence> FarewellAnim;
+
+	/** Crew name shown over the head and on the base computer (fictional adult crew). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Touchdown Mars|Crew")
+	FString CrewName = TEXT("Crew");
+
+	/** Walks along a navigation path to Target (straight line when there is no nav mesh), then calls OnArrived. */
+	void WalkTo(const FVector& Target, float SpeedCmPerSec, TFunction<void()> OnArrived = nullptr);
+	/** Walks through the given points (from the base path graph), then calls OnArrived. */
+	void WalkPath(const TArray<FVector>& Points, float SpeedCmPerSec, TFunction<void()> OnArrived = nullptr);
+	void StopWalking();
+	bool IsWalking() const { return PathPoints.Num() > 0; }
+
+	/** Plays the work clip on the spot, facing LookAt. */
+	void WorkAt(const FVector& LookAt);
+
+	/** Indoor task: the suit is hidden while the crew member is inside a module. */
+	void SetInside(bool bInside);
+	bool IsInside() const { return bInsideModule; }
+
+	/** One-line status for the HUD label ("Deploying solar field 2") and task progress 0-1 (negative: none). */
+	FText StatusText;
+	float StatusProgress = -1.f;
+
+	/** Short spoken line shown over the head for a few seconds (barks). */
+	void Say(const FText& Line, float Seconds = 4.f);
+	FText GetBark() const;
+
+	FVector GetHomeLocation() const { return HomeLocation; }
+
+	/** Runs the steps in order (walk, work, next), then calls OnAllDone. Status and progress feed the HUD label. */
+	void RunSteps(TArray<FTDCrewStep> Steps, float WalkSpeedCmPerSec, TFunction<void()> OnAllDone);
+	bool IsOnTask() const { return bOnTask; }
+
+
 protected:
 	virtual void BeginPlay() override;
 	virtual void OnConstruction(const FTransform& Transform) override;
@@ -111,7 +192,17 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Touchdown Mars")
 	TObjectPtr<UStaticMeshComponent> Body;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Touchdown Mars|Suit")
+	TObjectPtr<USkeletalMeshComponent> Suit;
+
 private:
+	/** Plays the clip (looping) on the rigged suit; no-op without a suit. */
+	void PlayClip(UAnimSequence* Clip, float Rate = 1.f);
+	void ApplySuitTint(const FLinearColor& Color);
+
+	UPROPERTY(Transient)
+	TArray<TObjectPtr<UMaterialInstanceDynamic>> SuitMaterials;
+
 	UFUNCTION()
 	void HandleLevels(const FTDMissionState& State, const TArray<ETDSystem>& Changed);
 
@@ -137,6 +228,26 @@ private:
 	/** Idle life (timer, no Tick): slow look-around and breathing; worried/alarm sway faster; celebrate hops. */
 	void SetBasePose(const FVector& Location, const FRotator& Rotation);
 	void StepIdle();
+
+	/** Walking: path points from the navigation system, advanced in StepIdle at 30 Hz. */
+	void StepWalk(float DeltaSeconds);
+	float GroundZ(const FVector& At) const;
+	TArray<FVector> PathPoints;
+	int32 PathIndex = 0;
+	float WalkSpeed = 140.f;
+	float FeetOffset = 0.f;
+	TFunction<void()> ArriveCallback;
+	void RunNextStep();
+	TArray<FTDCrewStep> StepQueue;
+	TFunction<void()> StepsDone;
+	float StepSpeed = 300.f;
+	bool bOnTask = false;
+	FTimerHandle WorkTimer;
+	double WorkStart = 0.0;
+	float WorkLength = 0.f;
+	bool bInsideModule = false;
+	FText Bark;
+	double BarkUntil = 0.0;
 
 	FVector HomeLocation;
 	FVector BaseLocation;

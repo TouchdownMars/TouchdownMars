@@ -32,6 +32,16 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Touchdown Mars")
 	int32 StartSeed = 0;
 
+	/** True: the game opens in the Mission Design Room (Act 1); the surface mission starts at launch. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Touchdown Mars")
+	bool bMissionDesign = true;
+
+	/** True: the player walks the outpost as a first-person astronaut; false: fixed commander camera only. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Touchdown Mars")
+	bool bFirstPerson = true;
+
+	virtual UClass* GetDefaultPawnClassForController_Implementation(AController* InController) override;
+
 	/** Main camera (CAM_Main) and Outcome Shots. */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Touchdown Mars|Camera")
 	TObjectPtr<UTDShotDirector> ShotDirector;

@@ -107,6 +107,13 @@ All DataTables are imported from `Data/Source/*.csv` by `Scripts/import_data.py`
 - **Current state:** ✅ Greybox (Phase 3): C++ `ATDGameMode` (no pawn, starts the mission in `StartPlay` after every actor bound), `ATDPlayerController` (cursor, Game and UI input, `IMC_TD_Default`: Space/Enter → `IA_TD_NextPhase`, Esc → `IA_TD_Back`; Esc after the mission ends restarts the same seed until the pause menu exists). Blueprints `GM_TD`, `PC_TD` in `Content/TouchdownMars/Blueprints`; `L_TD_Test` uses `GM_TD` as its World Settings override. Camera rig comes in Phase 5.
 - **Required work:** create `PC_TD`, `GM_TD`, `IMC_TD_Default`, camera rig; set as defaults in Project Settings → Maps & Modes.
 
+### 3.0 First-person mode (14.11.2026, team decision)
+- `ATDAstronautCharacter` (default pawn while `ATDGameMode::bFirstPerson` is true): capsule 38 x 92 cm, eyes about 1.62 m, FOV 90, no head bob; suited walk 140 cm/s; gravity scale from `constants.csv` `MarsGravityRatio` (0.38, NASA NSSDC), read once the tables load. Input actions and the mapping context are created in code: WASD/arrows move, mouse looks, Space hops, Tab or right mouse button toggles the mission console.
+- Mission console: open = Game-and-UI input, cursor on, the UMG decision panel, card and corner buttons shown (`UTDHudWidget::SetConsoleMode`); closed = Game-only input, helmet view. Slate Tab navigation is off so Tab always reaches the game.
+- `ATDHelmetHUD` (Canvas): centre dot, the name of what the helmet looks at (actor tags `Inspect_*`, crew members by system; text.csv) and the console hint (urgent when an event card waits).
+- Outcome Shots blend from the astronaut's eyes to the shot camera and back; movement and look are locked during a shot. `bFirstPerson = false` restores the fixed `CAM_Main` commander view.
+- Level: `Scripts/setup_fps.py` (player start, complex-as-simple collision on NASA and Tripo meshes, Inspect tags). Tripo props and rigged crew: `Scripts/import_tripo_assets.py`, `setup_tripo.py`.
+
 ### 3.1 Camera System (14.11.2026, team decision)
 - **Rule:** one fixed main gameplay camera for every decision, plus short non-interactive Outcome Shots (2-3 s) only at loop step 4 (the outcome). No free camera, no first or third person control, no cutscenes. The player can never pan, rotate, zoom or move the camera.
 - **Main camera:** `CAM_Main` (CineCameraActor, Actor Tag `CAM_Main`) in `L_TD_Outpost`: pitch -38, yaw 0, 41.4 mm on a 23.76 x 13.365 mm filmback (hFOV 32 deg), perspective, no depth of field, no letterbox. The habitat turns to yaw 135 so the camera sits at 45 deg to its long axis while GREENHOUSE, AIR and SHELTER read left to right. Position solved so all three systems and all three crew sit in the top two thirds of a 16:9 frame and clear of the CAPCOM box, phase strip and corner buttons (checked at 1920x1080 and 1366x768). Idle drift: 30 cm along the camera's right axis over 10 s, ping-pong, no rotation; off with Reduce motion and inside shots. The old `TD_CameraRig` push-in is removed from the outpost (the test map keeps it as a fallback).
@@ -120,6 +127,16 @@ All DataTables are imported from `Data/Source/*.csv` by `Scripts/import_data.py`
 ---
 
 ## 4. Mission Model System
+
+### 4.0 Mission Design layer (14.11.2026, challenge switch to "Space Mission Design Game")
+- **Model** (`Model/TDMissionDesign.h/.cpp`, pure, no world): `FTDDesignOptionRow` (DT_TD_MissionOptions: slot, role, text keys, constant keys for mass / power out / power draw / cost / capacity / data / science, effects: dust-sensitive, relay, start-level bonus, radiation relief, repair charges, not landed, max count, default, code, based-on), `FTDObjectiveRow` (DT_TD_Objectives: score weights, minimum instruments, minimum end level, science walks, budget key, requirement keys, sandbox), `FTDMissionDesign` (objective, picks with counts, GO per role, realistic model), `FTDDesignBudget` (dashboard numbers, review issues, CML, launchable), `FTDDesignEffects` (what the surface rules read), `FTDMissionScore` (four axes, total, role goals met, why keys).
+- **Rules** (`UTDDesignRules`): `Evaluate` (mass = hardware + BVAD consumables x CrewSize x MissionSols + landing system = landed mass x LandingSystemPerLandedKg in the realistic model, orbiter excluded; cells = round((power out - draw) / CellKw), dust cells with DustStormSolarShare on solar output; review list; CML 1-4), `SetPick` (single-pick slots replace, multi-pick for power and instruments, clamp to MaxCount, any change clears GO), `IsRoleGoalMet`, `MakeEffects`, `Score` (efficiency only after lift-off), `MakeDesignCode`.
+- **Surface link** (`FTDRulesConfig::Design`): `NewMission` takes cells, shelter / greenhouse start bonus and repair charges from the design; `StartPhase` sets `bDustPhase` from the event row's `bDustStorm` and uses the dust cells; `GetDemand` applies radiation relief and one repair charge; `EndPhase` counts decisions, good decisions and science walks. Solar conjunction blocks every link (relay included), as in reality.
+- **Subsystem API**: `BeginDesign(Objective, bRedesign)`, `SetDesignPick`, `SetRealisticModel`, `SetRoleGo`, `LaunchDesign` (needs CML 4; realistic = Commander band, simplified = Cadet band), `GetDesignBudget`, `GetFlownBudget`, `GetScore`, `GetFlights` (session only), `GetWeather(MissionSol)`; delegates `OnDesignChanged`, `OnDesignLaunched`.
+- **UI** (`UI/TDDesignRoom.h/.cpp`, Slate): one `STDDesignRoom` widget with four screens (Objectives, Design, Transit, Debrief) on a 1920 x 1080 canvas in an `SScaleBox`; rebuilt after every click. `ATDPlayerController::OpenDesignRoom` / `ShowDebrief` add it to the game viewport with UI-only input; the astronaut and helmet HUD stand down while it is open. `ATDGameMode::bMissionDesign` (default true) opens the design room instead of starting the mission at once.
+- **Data sets**: `DT_TD_MarsWeather` (Perseverance MEDA, mission sol N = Perseverance sol 304 + N), shown by `ATDHelmetHUD` as ARCHIVE; RAD Level 2 daily dose and the MQS catalogue values live in `constants.csv`.
+- **Tests**: `TD.Design.*` (6). Development builds: `td.AutoPlay` console command and `-TDAutoPlay` (plays the surface mission after landing, for the debrief test).
+
 - **GDD basis:** gdd.md §2 Mechanics 1, 4, 5, 6, 8; §3 Game Flow.
 - **Architecture:** `UTDMissionSubsystem` holds state and calls pure `UTDMissionRules`. UI and scene never change state directly; they call subsystem functions and listen to delegates.
 - **Class spec:**
@@ -163,8 +180,14 @@ All DataTables are imported from `Data/Source/*.csv` by `Scripts/import_data.py`
 - **States:** crew behaviours Working, Worried, Alarm, Shelter, AtLander, Celebrate.
 - **Perception:** none.
 - **Classes:** `ATDCrewMember` + three Blueprints; each listens to `OnLevelsChanged` for its system and to `OnEventResolved` for radiation (Shelter) and `OnMissionEnded` (AtLander / Celebrate). Movement only along fixed splines placed in the level.
-- **Current state:** 🔲 Not started.
-- **Required work:** crew skeletal mesh and animations (see gdd.md §5); behaviour map: level 3-4 Working, level 2 Worried, level 0-1 Alarm.
+- **Current state (14.11.2026):** ✅ Surface crew AI and base operations (gdd.md Main Mechanics 14).
+  - `Model/TDOperations.h/.cpp` (`UTDOps`, pure rules): `FTDTaskRow` (tasks.csv → DT_TD_Tasks), `FTDSiteRow` (sites.csv → DT_TD_Sites), `FTDOpsState` (crew plans, done tasks, water, regolith, dust on the arrays, weather mast), `CanPlan` (phase mask, design option, prerequisite, hours, spacewalk hours with the rest-sol rule, dust storm, buddy), `Plan`/`Unplan`/`AutoPlan` (role priorities), `Finish`, `ApplyEffect` (levels, `FTDMissionState::OpsRadiationRelief`, science walks, harvest).
+  - `UTDMissionSubsystem`: `PlanTask`, `AutoPlanTasks`, `GetTaskBlock`, `RunPhase` (builds each AI crew member's steps: walk path, work seconds, inside or not; the busiest plan runs about 14 s), `FinishRun` (effects, report, `EndPhase`), `CompleteOwnTask` (player at the site, E), solar dust after a storm phase, `OnOpsChanged`/`OnOpsReport`.
+  - `Systems/TDWalkGrid.h/.cpp`: walkable grid (100 cm cells over the base) built once from the landscape height and chest-height overlap tests; A* with no corner cutting, then straight-line shortening. No nav mesh needed.
+  - `ATDCrewMember`: `WalkPath`, `RunSteps` (walk → work timer with progress → next step), `SetInside`, `Say` (barks), `StatusText`/`StatusProgress` for the HUD; level reactions do not teleport a crew member who is on a task.
+  - `UI/TDBaseComputer.h/.cpp` (Slate, NASA-punk palette): crew cards, task board, setup checklist, base status, run button. `ATDPlayerController::ToggleBaseComputer`/`RunPhase`; B and E bound in `ATDAstronautCharacter`.
+  - `ATDHelmetHUD::DrawOps`: crew labels over the heads (name, task, progress, bark), your task markers, the E prompt, the time-lapse banner.
+- **Required work (later):** escort-follow on spacewalks, multi-sol rover expeditions, fatigue, crate → deployed facility swap.
 
 ---
 

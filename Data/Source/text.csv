@@ -105,7 +105,7 @@ Card_Storm2017_A,Go to the shelter now,Hemen sığınağa geçin
 Card_Storm2017_B,Finish the rock sample,Taş örneğini bitirin
 Card_Storm2017_Reveal,A real solar storm reached Mars. Curiosity's radiation detector measured more than ever before since the rover landed.,"Gerçek bir Güneş fırtınası Mars'a ulaştı. Curiosity'nin radyasyon ölçeri, gezgin indiğinden beri gördüğü en yüksek değeri ölçtü."
 Card_Storm2017_Reveal_Cadet,"A real solar storm reached Mars, and the Curiosity rover measured it.",Gerçek bir Güneş fırtınası Mars'a ulaştı ve Curiosity gezgini onu ölçtü.
-Card_Storm2017_Measure,"On 11 September 2017, radiation on the Martian surface was more than double any level Curiosity's RAD had measured before, and the high readings lasted more than two days.","11 Eylül 2017'de Mars yüzeyindeki radyasyon, Curiosity'nin RAD aletinin daha önce ölçtüğü her değerin iki katından fazlaydı ve yüksek değerler iki günden uzun sürdü."
+Card_Storm2017_Measure,On 11 September 2017 radiation on the Martian surface was more than double any level Curiosity's RAD had measured before. RAD's daily absorbed dose went from 197 to 443 microgray (10 to 11 September).,"11 Eylül 2017'de Mars yüzeyindeki radyasyon, Curiosity'nin RAD aletinin daha önce ölçtüğü her değerin iki katından fazlaydı. RAD'ın günlük soğurulan dozu 197'den 443 mikrograya çıktı (10-11 Eylül)."
 Card_DoseSpike2024_Q,Space weather watchers saw a giant flare on the Sun. Its fast particles will reach the base soon.,Uzay havası gözcüleri Güneş'te dev bir patlama gördü. Hızlı parçacıkları yakında üsse ulaşacak.
 Card_DoseSpike2024_Q_Cadet,A giant flare on the Sun is sending particles our way.,Güneş'teki dev bir patlama bize doğru parçacıklar gönderiyor.
 Card_DoseSpike2024_A,Gather in the shelter,Sığınakta toplanın
@@ -197,7 +197,7 @@ Card_LostTomatoes_B,Grow new tomatoes,Yeni domates yetiştirin
 Card_LostTomatoes_Reveal,"On the space station, tomatoes from a plant experiment went missing. Much later, crew members found them in a plastic bag, dry and a little squished.","Uzay istasyonunda bir bitki deneyinden domatesler kayboldu. Çok sonra ekip üyeleri onları plastik bir torbada, kurumuş ve biraz ezilmiş hâlde buldu."
 Card_LostTomatoes_Reveal_Cadet,"Lost space tomatoes were found much later, dry and squished.","Kayıp uzay domatesleri çok sonra, kurumuş ve ezilmiş hâlde bulundu."
 Card_LostTomatoes_Measure,"Two XROOTS tomatoes lost in 2022 were found nearly a year later, dehydrated and slightly squished, with no visible microbial or fungal growth.","2022'de kaybolan iki XROOTS domatesi yaklaşık bir yıl sonra bulundu; kurumuş ve biraz ezilmişlerdi, görünür mikrop ya da küf yoktu."
-UI_TimeCompression,"Game time is squeezed: 31 sols on Mars play in a few minutes, and Earth replies come one phase later instead of after 11 minutes.","Oyun zamanı sıkıştırılmıştır: Mars'ta 31 sol birkaç dakikada oynanır; Dünya'nın cevabı 11 dakika yerine bir evre sonra gelir."
+UI_TimeCompression,"Game time is squeezed: 31 sols on Mars play in a few minutes, and Earth replies come one phase later instead of after 11 minutes.",Oyun zamanı sıkıştırılmıştır: Mars'ta 31 sol birkaç dakikada oynanır; Dünya'nın cevabı 11 dakika yerine bir evre sonra gelir.
 Shot_S02_EVA_A,The Flight Engineer suits up and plugs in the power line at the lander.,Uçuş Mühendisi tulumu giyip iniş aracındaki güç kablosunu takıyor.
 Shot_S02_EVA_B,The robot tries again while the Flight Engineer watches from the lander.,"Robot yeniden deniyor, Uçuş Mühendisi iniş aracının yanından izliyor."
 Shot_S03_STORM_A,Storm warning: the crew goes into the shelter and waits until it is safe.,Fırtına uyarısı: ekip sığınağa giriyor ve güvenli olana kadar bekliyor.
@@ -206,3 +206,528 @@ Shot_S04_GREEN,Look at the plants: their color shows how much power the greenhou
 Shot_S05_COMMS,Your message is on its way to Earth. The answer will take a long time.,Mesajın Dünya'ya doğru yolda. Cevap uzun sürecek.
 Shot_S06_FAULT,A crew member works on the broken part at the power unit.,Bir ekip üyesi güç ünitesindeki bozuk parça üzerinde çalışıyor.
 Shot_S07_DEPART,The base is left safe. The crew heads to the ascent vehicle.,Üs güvenli bırakıldı. Ekip dönüş aracına gidiyor.
+UI_ConsoleHint,TAB: mission console · B: base computer,TAB: görev konsolu · B: üs bilgisayarı
+Crew_Air,Flight Engineer · AIR,Uçuş Mühendisi · HAVA
+Crew_Greenhouse,Science Officer · GREENHOUSE,Bilim Sorumlusu · SERA
+Crew_Shelter,Health Officer · SHELTER,Sağlık Sorumlusu · SIĞINAK
+Inspect_Habitat,B1 Command hub · AIR (life support) and mission operations,B1 Komuta merkezi · HAVA (yaşam desteği) ve görev operasyonları
+Inspect_Greenhouse,Greenhouse · food,Sera · yiyecek
+Inspect_Shelter,Radiation shelter,Radyasyon sığınağı
+Inspect_Fission,Fission power unit · your power cells come from here,Fisyon güç ünitesi · enerji hücreleri buradan gelir
+Inspect_Ascent,Ascent vehicle · the ride home on Sol 31,Dönüş aracı · 31. solda eve dönüş
+Inspect_Rover,Pressurized rover,Basınçlı gezgin araç
+Inspect_Robot,Excavation robot,Kazı robotu
+Inspect_Dish,Antenna to Earth · messages take minutes to arrive,Dünya anteni · mesajlar dakikalar sonra ulaşır
+Inspect_Cargo,Cargo from the supply lander,İkmal aracından gelen kargo
+UI_ConsoleHintCard,New event! TAB or right click: open the mission console,Yeni olay! TAB ya da sağ tık: görev konsolunu aç
+Design_Title,Mission Design Room,Görev Tasarım Odası
+Obj_Intro,"Choose the mission. The cargo you design lands before the crew: power, shelter, greenhouse, spares, instruments and the radio link. Then you fly it and live it.","Görevi seç. Tasarladığın kargo ekipten önce iner: güç, sığınak, sera, yedek parça, cihazlar ve telsiz bağlantısı. Sonra onu uçurur ve içinde yaşarsın."
+Obj_Requirements,REQUIREMENTS,GEREKSİNİMLER
+Obj_Budget,Budget: {0} million USD (game value),Bütçe: {0} milyon USD (oyun değeri)
+Obj_NoBudget,No budget limit (sandbox),Bütçe sınırı yok (serbest mod)
+Obj_Weights,"Score weights: success {0} %, science {1} %, efficiency {2} %, decisions {3} %","Puan ağırlıkları: başarı %{0}, bilim %{1}, verimlilik %{2}, kararlar %{3}"
+Obj_Choose,Design this mission,Bu görevi tasarla
+Obj_FirstLight,First Light,İlk Işık
+Obj_FirstLight_Info,The first crew of four lives 31 sols at Jezero. Bring everyone home and leave the base running.,Dört kişilik ilk ekip Jezero'da 31 sol yaşar. Herkesi eve getir ve üssü çalışır bırak.
+Obj_ScienceFirst,Science First,Önce Bilim
+Obj_ScienceFirst_Info,The crew comes to answer one question: was Jezero ever home to life? Fly more instruments and get their data home.,Ekip tek bir soruyu yanıtlamaya gelir: Jezero bir zamanlar yaşama ev oldu mu? Daha çok cihaz uçur ve verilerini eve ulaştır.
+Obj_LastingBase,Lasting Base,Kalıcı Üs
+Obj_LastingBase_Info,The next crew lands here in 26 months. Leave every system at Low or better and spend wisely.,Sonraki ekip 26 ay sonra buraya iner. Her sistemi en az Düşük seviyede bırak ve akıllı harca.
+Obj_Sandbox,Sandbox,Serbest Mod
+Obj_Sandbox_Info,No budget cap. Try any design and see what it changes on the surface.,Bütçe sınırı yok. Her tasarımı dene ve yüzeyde neyi değiştirdiğini gör.
+Req_CrewHome,Crew home safe: lift-off with no unsheltered storm,Ekip eve sağ döner: korunmasız fırtına olmadan kalkış
+Req_BaseRunning,Base running at lift-off (no system failed),Kalkışta üs çalışıyor (hiçbir sistem çökmemiş)
+Req_BaseLow,Every system at Low or better at lift-off,Kalkışta her sistem en az Düşük seviyede
+Req_OneInstrument,At least 1 science instrument,En az 1 bilim cihazı
+Req_ThreeInstruments,At least 3 science instruments,En az 3 bilim cihazı
+Req_TwoWalks,At least 2 science walks on the surface,Yüzeyde en az 2 bilim yürüyüşü
+Req_Sandbox,None: explore the trade-offs,Yok: ödünleşimleri keşfet
+Cml_Title,CONCEPT MATURITY (JPL),KONSEPT OLGUNLUĞU (JPL)
+Cml_1,1 Objective,1 Hedef
+Cml_2,2 All systems,2 Tüm sistemler
+Cml_3,3 Fits the limits,3 Sınırlara uyuyor
+Cml_4,4 Point design: GO,4 Nokta tasarım: GO
+Model_Simplified,Guided model,Rehberli model
+Model_Realistic,Advanced model,Gelişmiş model
+Role_Planner,Mission Planner,Görev Planlayıcı
+Role_Engineer,Systems Engineer,Sistem Mühendisi
+Role_Science,Science Lead,Bilim Lideri
+Role_Comms,Comms & Budget,İletişim ve Bütçe
+Goal_Planner,Goal: keep 10 % of launch capacity spare,Hedef: fırlatma kapasitesinin %10'u boş kalsın
+Goal_Engineer,Goal: at least 5 power cells even in a dust storm,Hedef: toz fırtınasında bile en az 5 güç hücresi
+Goal_Science,Goal: 60 science points and the objective's instruments,Hedef: 60 bilim puanı ve hedefin istediği cihazlar
+Goal_Comms,"Goal: at least 95 % of the data home, stay in budget","Hedef: verinin en az %95'i eve, bütçede kal"
+Goal_Planner_Missed,Mission Planner: less than 10 % launch margin. A design that grows a little will not fit.,Görev Planlayıcı: fırlatma payı %10'dan az. Biraz büyüyen bir tasarım sığmaz.
+Goal_Engineer_Missed,Systems Engineer: in a dust storm the outpost drops below 5 cells.,Sistem Mühendisi: toz fırtınasında üs 5 hücrenin altına düşer.
+Goal_Science_Missed,Science Lead: not enough science value for the objective.,Bilim Lideri: hedef için bilim değeri yetersiz.
+Goal_Comms_Missed,"Comms & Budget: less than 95 % of the data reaches Earth, or the money runs out.",İletişim ve Bütçe: verinin %95'inden azı Dünya'ya ulaşıyor ya da para yetmiyor.
+Role_State,{0} · {1},{0} · {1}
+Role_GoalMet,goal met,hedef tamam
+Role_GoalOpen,goal open,hedef açık
+Role_Turn,"{0} has the console. In a team, pass the mouse to the role whose decision it is; only that role changes its own systems.",Konsol {0} rolünde. Takım halinde fareyi kararı veren role verin; her rol yalnızca kendi sistemlerini değiştirir.
+Slot_Launcher,Launch: rocket and number of launches,Fırlatma: roket ve fırlatma sayısı
+Slot_Launcher_Hint,Every launch sends a fixed mass toward Mars. More launches cost more.,Her fırlatma Mars'a sabit bir kütle gönderir. Daha çok fırlatma daha pahalı.
+Slot_Power,Surface power,Yüzey gücü
+Slot_Power_Hint,"One power cell is 5 kWe of steady power. You split the cells between AIR, GREENHOUSE and SHELTER every phase.","Bir güç hücresi 5 kWe sürekli güçtür. Her evrede hücreleri HAVA, SERA ve SIĞINAK arasında paylaştırırsın."
+Slot_Shelter,Radiation shelter,Radyasyon sığınağı
+Slot_Shelter_Hint,Where the crew waits out a solar storm.,Ekibin güneş fırtınasını beklediği yer.
+Slot_Greenhouse,Greenhouse,Sera
+Slot_Greenhouse_Hint,Fresh food and a backup for the stored food.,Taze gıda ve depolanmış gıdaya yedek.
+Slot_Spares,Spare parts,Yedek parçalar
+Slot_Spares_Hint,Optional. Each charge makes one equipment failure cheaper.,İsteğe bağlı. Her hak bir ekipman arızasını ucuzlatır.
+Slot_Instrument,Science instruments,Bilim cihazları
+Slot_Instrument_Hint,Real Mars instruments: their mass and power are NASA values; data and science value are game values.,Gerçek Mars cihazları: kütle ve güç NASA değerleri; veri ve bilim değeri oyun değerleri.
+Slot_Comms,Link to Earth,Dünya bağlantısı
+Slot_Comms_Hint,How much data gets home each sol.,Her sol eve ne kadar veri ulaşır.
+Opt_Falcon9,Falcon 9,Falcon 9
+Opt_Falcon9_Info,"Cheaper per launch, but each one sends only about 4 t toward Mars.",Fırlatma başına daha ucuz ama her biri Mars'a yalnızca yaklaşık 4 t gönderir.
+Opt_Falcon9_Why,Many small launches add cost and more chances for something to go wrong.,Çok sayıda küçük fırlatma maliyeti ve aksilik ihtimalini artırır.
+Opt_FalconHeavy,Falcon Heavy,Falcon Heavy
+Opt_FalconHeavy_Info,Sends 16.8 t toward Mars per launch. NASA paid about 178 million USD for the Europa Clipper launch.,"Fırlatma başına Mars'a 16,8 t gönderir. NASA, Europa Clipper fırlatması için yaklaşık 178 milyon USD ödedi."
+Opt_FalconHeavy_Why,Landing on Mars is heavy: in the realistic model the landing system weighs more than the cargo.,Mars'a inmek ağırdır: gerçekçi modelde iniş sistemi kargodan daha ağırdır.
+Opt_Kilopower,Fission power unit,Fisyon güç ünitesi
+Opt_Kilopower_Info,Up to 10 kWe day and night for at least 10 years (NASA Kilopower). Four units can power an outpost.,"Gece gündüz 10 kWe'ye kadar, en az 10 yıl (NASA Kilopower). Dört ünite bir üssü besleyebilir."
+Opt_Kilopower_Why,"Dust storms do not touch it, but it is heavy and costly.",Toz fırtınası ona dokunmaz ama ağır ve pahalıdır.
+Opt_SolarField,Solar field,Güneş paneli tarlası
+Opt_SolarField_Info,Light and cheap. Mars gets 43 % of Earth's sunlight (NASA NSSDC).,"Hafif ve ucuz. Mars, Dünya'nın güneş ışığının %43'ünü alır (NASA NSSDC)."
+Opt_SolarField_Why,"Dust kills it: InSight fell from about 5,000 to 500 Wh per sol, and a 2018 storm ended Opportunity.","Toz onu öldürür: InSight sol başına yaklaşık 5.000 Wh'den 500 Wh'e düştü, 2018'deki fırtına Opportunity'nin sonu oldu."
+Opt_ShelterWaterWall,Water-wall shelter,Su duvarlı sığınak
+Opt_ShelterWaterWall_Info,Water tanks around the sleeping area stop radiation. Starts the SHELTER one level higher.,Uyku alanını saran su tankları radyasyonu durdurur. SIĞINAK bir seviye yüksek başlar.
+Opt_ShelterWaterWall_Why,"Best protection, but water is heavy.",En iyi koruma ama su ağırdır.
+Opt_ShelterRegolith,Regolith-covered shelter,Regolit örtülü sığınak
+Opt_ShelterRegolith_Info,A digging robot covers an inflatable shelter with Martian soil. Uses Mars' own mass.,Bir kazı robotu şişirilebilir sığınağı Mars toprağıyla örter. Mars'ın kendi kütlesini kullanır.
+Opt_ShelterRegolith_Why,"Light to launch, but the robot draws power every sol.",Fırlatması hafif ama robot her sol güç çeker.
+Opt_ShelterBasic,Aluminium storm shelter,Alüminyum fırtına sığınağı
+Opt_ShelterBasic_Info,A small room with thin walls. Cheap.,İnce duvarlı küçük bir oda. Ucuz.
+Opt_ShelterBasic_Why,In a solar storm it needs the most power to keep the crew safe.,Güneş fırtınasında ekibi korumak için en çok gücü o ister.
+Opt_GreenhouseSmall,Small greenhouse,Küçük sera
+Opt_GreenhouseSmall_Info,Plant racks like NASA's Veggie unit on the ISS.,ISS'teki NASA Veggie ünitesi gibi bitki rafları.
+Opt_GreenhouseSmall_Why,Plants grow slowly: lettuce takes about 33 days.,Bitkiler yavaş büyür: marul yaklaşık 33 gün sürer.
+Opt_GreenhouseLarge,Large greenhouse,Büyük sera
+Opt_GreenhouseLarge_Info,More racks. Starts the GREENHOUSE one level higher.,Daha çok raf. SERA bir seviye yüksek başlar.
+Opt_GreenhouseLarge_Why,"More food margin, but 1.5 t more to land.","Daha çok gıda payı ama inecek 1,5 t daha fazla kütle."
+Opt_SparesKit,Spare parts kit,Yedek parça kiti
+Opt_SparesKit_Info,One repair charge.,Bir onarım hakkı.
+Opt_SparesKit_Why,The ISS lives on spares; on Mars there is no resupply for months.,ISS yedek parçayla yaşar; Mars'a aylarca ikmal gelmez.
+Opt_SparesFull,Full spares and tools,Tam yedek ve aletler
+Opt_SparesFull_Info,Two repair charges.,İki onarım hakkı.
+Opt_SparesFull_Why,"Safer, heavier.","Daha güvenli, daha ağır."
+Opt_MastcamZ,Mastcam-Z,Mastcam-Z
+Opt_MastcamZ_Info,Zoom stereo cameras: they pick where the crew walks.,Yakınlaştırmalı stereo kameralar: ekibin nereye yürüyeceğini seçer.
+Opt_MastcamZ_Why,Pictures are big data: needs a good link.,Fotoğraflar büyük veridir: iyi bir bağlantı ister.
+Opt_SuperCam,SuperCam,SuperCam
+Opt_SuperCam_Info,A laser reads the chemistry of rocks from metres away.,"Lazer, kayaların kimyasını metrelerce öteden okur."
+Opt_SuperCam_Why,High science value for little power.,Az güçle yüksek bilim değeri.
+Opt_Pixl,PIXL,PIXL
+Opt_Pixl_Info,X-rays map the elements in a rock spot the size of a grain of salt.,"X ışınları, tuz tanesi büyüklüğünde bir kaya noktasındaki elementleri haritalar."
+Opt_Pixl_Why,Looks for signs of ancient life in rock layers.,Kaya katmanlarında eski yaşam izlerini arar.
+Opt_Sherloc,SHERLOC,SHERLOC
+Opt_Sherloc_Info,An ultraviolet laser finds organic molecules.,Morötesi lazer organik molekülleri bulur.
+Opt_Sherloc_Why,Draws the most power of the small instruments.,Küçük cihazlar arasında en çok gücü o çeker.
+Opt_Meda,MEDA weather station,MEDA hava istasyonu
+Opt_Meda_Info,"Wind, temperature, pressure and dust at Jezero.","Jezero'da rüzgâr, sıcaklık, basınç ve toz."
+Opt_Meda_Why,"Little science alone, but the crew sees dust coming.",Tek başına az bilim ama ekip tozun geldiğini görür.
+Opt_Moxie,MOXIE,MOXIE
+Opt_Moxie_Info,Makes oxygen from the Martian air (it worked on Perseverance).,Mars havasından oksijen üretir (Perseverance'ta çalıştı).
+Opt_Moxie_Why,Draws 300 W: a test for the oxygen future crews will need.,300 W çeker: gelecekteki ekiplerin ihtiyaç duyacağı oksijen için bir deneme.
+Opt_Rad,RAD radiation detector,RAD radyasyon dedektörü
+Opt_Rad_Info,Measures the dose on the surface (it flew on Curiosity).,Yüzeydeki dozu ölçer (Curiosity'de uçtu).
+Opt_Rad_Why,"Tiny, and it tells the crew how much radiation they really got.",Küçücüktür ve ekibe gerçekte ne kadar radyasyon aldığını söyler.
+Opt_DirectLink,Direct-to-Earth antenna,Doğrudan Dünya anteni
+Opt_DirectLink_Info,A high-gain dish talks to NASA's Deep Space Network (70 m and 34 m dishes).,Yüksek kazançlı bir anten NASA'nın Derin Uzay Ağı ile konuşur (70 m ve 34 m antenler).
+Opt_DirectLink_Why,"Light and cheap, but little data per sol.",Hafif ve ucuz ama sol başına az veri.
+Opt_RelayOrbiter,Relay orbiter,Röle yörünge aracı
+Opt_RelayOrbiter_Info,An orbiter like MRO carries the outpost's data home; MRO relays about 447 Mb a day.,MRO gibi bir yörünge aracı üssün verisini eve taşır; MRO günde yaklaşık 447 Mb aktarır.
+Opt_RelayOrbiter_Why,Perseverance sends 99.9 % of its science data this way. It cannot help during solar conjunction.,"Perseverance bilim verisinin %99,9'unu böyle gönderir. Güneş kavuşumunda yardımı olmaz."
+Card_Count,{0} of {1},{0} / {1}
+Card_Remove,Remove,Çıkar
+Card_Picked,Chosen,Seçildi
+Card_Pick,Choose,Seç
+Card_BasedOn,Based on: {0},Dayanak: {0}
+Card_Why,Why it matters: {0},Neden önemli: {0}
+Card_NasaValues,Includes NASA / manufacturer values; the rest are game values (Source Panel),NASA / üretici değerleri içerir; kalanlar oyun değeri (Kaynak Paneli)
+Card_GameValues,"Game values, labelled in the Source Panel","Oyun değerleri, Kaynak Panelinde etiketli"
+Stat_Capacity,{0} t to Mars,Mars'a {0} t
+Stat_MassT,{0} t,{0} t
+Stat_MassKg,{0} kg,{0} kg
+Stat_PowerOut,+{0} kWe,+{0} kWe
+Stat_PowerDrawKw,−{0} kWe,−{0} kWe
+Stat_PowerDrawW,−{0} W,−{0} W
+Stat_Cost,{0} M$,{0} M$
+Stat_Data,{0} Mb/sol,{0} Mb/sol
+Stat_Science,{0} science,{0} bilim
+Design_Issue_MissingSlot,Nothing chosen for: {0}.,Seçim yapılmadı: {0}.
+Design_Issue_OverMass,"{2} t of cargo has no room: the launch packages are full (total {0} t, capacity {1} t). Add a launch or make the cargo lighter.","{2} t kargoya yer yok: fırlatma paketleri dolu (toplam {0} t, kapasite {1} t). Bir fırlatma ekle ya da kargoyu hafiflet."
+Design_Issue_OverBudget,The design costs {0} million USD; the budget is {1}.,Tasarım {0} milyon USD tutuyor; bütçe {1}.
+Design_Issue_PowerShort,Only {0} power cells; the outpost needs at least {1}.,Yalnızca {0} güç hücresi var; üssün en az {1} hücreye ihtiyacı var.
+Design_Issue_DataShort,"The instruments make {0} Mb per sol, the link sends {1}. By lift-off {2} Mb are still on Mars or lost (storage full).","Cihazlar sol başına {0} Mb üretiyor, bağlantı {1} gönderiyor. Kalkışta {2} Mb hâlâ Mars'ta ya da kayıp (depo dolu)."
+Design_Issue_TooFewInstruments,{0} instruments; this objective needs {1}.,{0} cihaz var; bu hedef {1} istiyor.
+Design_Issue_RoleGoalMissed,A role goal is open.,Bir rol hedefi açık.
+Dash_Title,MISSION DASHBOARD,GÖREV GÖSTERGELERİ
+Dash_Mass,Mass to Mars,Mars'a kütle
+Dash_MassValue,{0} / {1} t,{0} / {1} t
+Dash_MassDetail,"Hardware {0} t · crew food, water and oxygen {1} t (NASA BVAD, crew of 4: you and three) · cruise and landing hardware {2} t (game assumption) · {3} launch(es), each a separate package","Donanım {0} t · ekip gıda, su ve oksijeni {1} t (NASA BVAD, 4 kişi: sen ve üç kişi) · yolculuk ve iniş donanımı {2} t (oyun varsayımı) · {3} fırlatma, her biri ayrı paket"
+Dash_MassDetailSimple,"Hardware {0} t · crew food, water and oxygen {1} t (NASA BVAD) · {2} launch(es). The guided model leaves out the cruise and landing hardware.","Donanım {0} t · ekip gıda, su ve oksijeni {1} t (NASA BVAD) · {2} fırlatma. Rehberli model yolculuk ve iniş donanımını hesaba katmaz."
+Dash_Power,Power cells,Güç hücreleri
+Dash_PowerValue,{0} cells (needs {1}),{0} hücre (gereken {1})
+Dash_PowerDetail,"{0} kWe made, {1} kWe used by instruments and robots; 1 cell = {2} kWe. In a dust storm: {3} cells.","{0} kWe üretim, {1} kWe cihaz ve robot tüketimi; 1 hücre = {2} kWe. Toz fırtınasında: {3} hücre."
+Dash_Budget,Budget,Bütçe
+Dash_BudgetValue,{0} / {1} M$,{0} / {1} M$
+Dash_BudgetDetail,"Game prices, except the Falcon Heavy launch (NASA contract value). Real totals: see the debrief.",Oyun fiyatları; Falcon Heavy fırlatması hariç (NASA sözleşme değeri). Gerçek toplamlar: değerlendirmede.
+Dash_Data,Data per sol,Sol başına veri
+Dash_DataValue,{0} made / {1} sent Mb per sol,Sol başına {0} üretilen / {1} gönderilen Mb
+Dash_DataRelay,Through the relay orbiter. Data waits in storage ({0} Mb) for an open link; over 31 sols {1} of {2} Mb reach Earth.,"Röle yörünge aracı üzerinden. Veri, bağlantı açılana kadar depoda bekler ({0} Mb); 31 solda {2} Mb'nin {1} Mb'si Dünya'ya ulaşır."
+Dash_DataDirect,Direct to the Deep Space Network. Data waits in storage ({0} Mb) for an open link; over 31 sols {1} of {2} Mb reach Earth.,"Doğrudan Derin Uzay Ağı'na. Veri, bağlantı açılana kadar depoda bekler ({0} Mb); 31 solda {2} Mb'nin {1} Mb'si Dünya'ya ulaşır."
+Dash_Science,Science value,Bilim değeri
+Dash_ScienceValue,{0} / {1},{0} / {1}
+Dash_ScienceDetail,{0} instrument(s). Only data that reaches Earth counts.,{0} cihaz. Yalnızca Dünya'ya ulaşan veri sayılır.
+Review_Title,DESIGN REVIEW,TASARIM İNCELEMESİ
+Review_AllClear,No open issues.,Açık sorun yok.
+Review_Blocking,BLOCKS LAUNCH:,FIRLATMAYI ENGELLİYOR:
+Review_Warning,RISK:,RİSK:
+Forecast_Title,KNOWN BEFORE LAUNCH,FIRLATMADAN ÖNCE BİLİNENLER
+Forecast_Conjunction,"Solar conjunction in the hard week (sols 21-27): the Sun sits between Earth and Mars and no link works, relay or not.",Zor haftada (sol 21-27) güneş kavuşumu: Güneş Dünya ile Mars'ın arasına girer ve röle olsun olmasın hiçbir bağlantı çalışmaz.
+Forecast_Dust,Dust storms can come in phases 2 and 4. Solar output falls; fission does not.,2. ve 4. evrelerde toz fırtınası gelebilir. Güneş paneli üretimi düşer; fisyon düşmez.
+Forecast_Sun,Solar storms can come in phase 3. The shelter needs power then.,3. evrede güneş fırtınası gelebilir. Sığınak o zaman güç ister.
+Forecast_Equipment,Something will break. Spares make the repair cheaper.,Bir şey bozulacak. Yedek parçalar onarımı ucuzlatır.
+Poll_Title,GO / NO-GO POLL,GO / NO-GO YOKLAMASI
+Poll_Ready,Each role calls GO for launch.,Her rol fırlatma için GO der.
+Poll_Blocked,Fix the red lines first.,Önce kırmızı satırları düzelt.
+Poll_Role,{0}: {1},{0}: {1}
+Poll_Go,GO,GO
+Poll_Waiting,no GO yet,GO yok
+Poll_CallGo,call GO,GO de
+Poll_Launch,LAUNCH,FIRLAT
+Design_Code,Design code: {0},Tasarım kodu: {0}
+Transit_Title,Launch and cruise,Fırlatma ve yolculuk
+Transit_Launch,{0} launch(es) send {1} t toward Mars.,{0} fırlatma Mars'a {1} t gönderiyor.
+Transit_Cruise,The cruise takes about {0} days (NASA); Perseverance took {1}.,Yolculuk yaklaşık {0} gün sürer (NASA); Perseverance'ınki {1} gün sürdü.
+Transit_Landing,"The cargo lands at Jezero before the crew, with {0} t of cruise and landing hardware (game assumption).","Kargo, {0} t yolculuk ve iniş donanımıyla (oyun varsayımı) ekipten önce Jezero'ya iner."
+Transit_Crew,The crew follows. Power on the surface: {0} cells ({1} in a dust storm).,Ekip arkadan gelir. Yüzeyde güç: {0} hücre (toz fırtınasında {1}).
+Transit_Skip,Click to land now.,Hemen inmek için tıkla.
+Debrief_Title,Mission Debrief,Görev Değerlendirmesi
+Debrief_Sub,{0} · design {1} · seed {2},{0} · tasarım {1} · tohum {2}
+Debrief_Axes,SCORE BY AXIS,EKSENLERE GÖRE PUAN
+Score_AxisLabel,{0} (weight {1} %),{0} (ağırlık %{1})
+Score_Success,Mission success,Görev başarısı
+Score_Science,Science value,Bilim değeri
+Score_Efficiency,Efficiency,Verimlilik
+Score_Decisions,Decisions,Kararlar
+Debrief_Total,Total: {0} / 100,Toplam: {0} / 100
+Debrief_WhatBroke,"WHAT BROKE, AND WHICH DECISION CAUSED IT","NE BOZULDU, HANGİ KARAR YÜZÜNDEN"
+Broke_Air,"AIR ran out. The design gave {0} power cells; the events asked for more. Systems Engineer: more fission, or a cheaper shelter that needs less.",HAVA tükendi. Tasarım {0} güç hücresi verdi; olaylar daha fazlasını istedi. Sistem Mühendisi: daha çok fisyon ya da daha az güç isteyen bir sığınak.
+Broke_Exposure,The crew was outside or unsheltered in {0} storm(s). A shelter with better shielding needs less power in a storm.,Ekip {0} fırtınada dışarıda ya da korunmasızdı. Daha iyi kalkanlı bir sığınak fırtınada daha az güç ister.
+Broke_Dust,"The dust storm cut power from {0} to {1} cells. Solar is light and cheap, until the dust comes.",Toz fırtınası gücü {0} hücreden {1} hücreye düşürdü. Güneş paneli hafif ve ucuzdur; ta ki toz gelene kadar.
+Broke_Data,Only {0} % of the science data reached Earth by lift-off; the rest stayed in storage or was lost when it filled. Comms & Budget: a relay orbiter returns far more.,Bilim verisinin yalnızca %{0}'i kalkışa kadar Dünya'ya ulaştı; kalanı depoda kaldı ya da depo dolunca kayboldu. İletişim ve Bütçe: röle yörünge aracı çok daha fazlasını gönderir.
+Broke_EmptyRocket,"{0} % of the launch capacity flew empty. Mission Planner: one launch fewer, or more science.",Fırlatma kapasitesinin %{0}'i boş uçtu. Görev Planlayıcı: bir fırlatma eksik ya da daha çok bilim.
+Broke_Nothing,Nothing broke. Can the same mission be done lighter or cheaper?,Hiçbir şey bozulmadı. Aynı görev daha hafif ya da daha ucuz yapılabilir mi?
+Debrief_Flights,YOUR FLIGHTS (THIS SESSION),UÇUŞLARIN (BU OTURUM)
+Debrief_Real,REAL MISSIONS (NASA NUMBERS),GERÇEK GÖREVLER (NASA SAYILARI)
+Real_Perseverance,Perseverance: a {0} kg rover on an MMRTG that gives {1} W at the start; about {2} billion USD to build and launch.,Perseverance: başlangıçta {1} W veren MMRTG ile çalışan {0} kg'lık gezgin; inşa ve fırlatma yaklaşık {2} milyar USD.
+Real_Curiosity,"Curiosity: of about {0} kg sent to Mars, {1} kg was the rover (about {2} %); the rest was the cruise stage and the landing system.",Curiosity: Mars'a gönderilen yaklaşık {0} kg'ın {1} kg'ı gezgindi (yaklaşık %{2}); kalanı yolculuk aşaması ve iniş sistemiydi.
+Real_InSight,InSight: {0} million USD; its solar arrays fell from about {1} to {2} Wh per sol as dust settled.,InSight: {0} milyon USD; toz biriktikçe güneş panelleri sol başına yaklaşık {1} Wh'den {2} Wh'e düştü.
+Real_CrewLander,"Every lander flown so far put {0} to {1} t on Mars; human-class landers need more than {2} t, beyond a scaled-up robotic design (NASA, 2025). One Falcon Heavy sends {3} t toward Mars.","Bugüne kadar uçan her iniş aracı Mars'a {0}-{1} t indirdi; insan sınıfı iniş araçları {2} t'dan fazlasını ister, robotik tasarımı büyütmek yetmez (NASA, 2025). Bir Falcon Heavy Mars'a {3} t gönderir."
+Debrief_Team,TEAM DEBRIEF,TAKIM DEĞERLENDİRMESİ
+Debrief_RoleLine,{0}: {1}. {2},{0}: {1}. {2}
+Debrief_Decisions,On the surface: {0} of {1} event decisions kept every system safe; {2} science walk(s).,Yüzeyde: {1} olay kararının {0} tanesi her sistemi güvende tuttu; {2} bilim yürüyüşü.
+Debrief_Question,Each role: what one thing would you change?,Her rol: neyi değiştirirdin?
+Debrief_Redesign,Redesign (same seed),Yeniden tasarla (aynı tohum)
+Debrief_NewObjective,New objective,Yeni hedef
+Why_Success_Lost,The mission was lost: lift-off did not happen.,Görev kaybedildi: kalkış gerçekleşmedi.
+Why_Success_Exposure,"Lift-off, but the crew took storm radiation unsheltered.",Kalkış oldu ama ekip korunmasız fırtına radyasyonu aldı.
+Why_Success_All,Every requirement of the objective was met.,Hedefin tüm gereksinimleri karşılandı.
+Why_Success_Base,"Lift-off, but a requirement was missed.",Kalkış oldu ama bir gereksinim kaçtı.
+Why_Science_None,No instruments flew.,Hiç cihaz uçmadı.
+Why_Science_Link,The link could not send all the data home.,Bağlantı tüm veriyi eve gönderemedi.
+Why_Science_NoWalk,No science walk on the surface.,Yüzeyde bilim yürüyüşü yapılmadı.
+Why_Science_Good,"Instruments, data and walks all counted.","Cihazlar, veri ve yürüyüşler sayıldı."
+Why_Eff_EmptyRocket,A lot of launch capacity flew empty.,Fırlatma kapasitesinin büyük kısmı boş uçtu.
+Why_Eff_Expensive,The design used almost all of the budget.,Tasarım bütçenin neredeyse tamamını kullandı.
+Why_Eff_Good,"A small margin, a sensible price.","Küçük bir pay, makul bir fiyat."
+Why_Dec_Exposure,A storm caught the crew unsheltered.,Bir fırtına ekibi korunmasız yakaladı.
+Why_Dec_Good,"Crew first, then base, then science.","Önce ekip, sonra üs, sonra bilim."
+Why_Dec_Mixed,Some decisions left a system in danger.,Bazı kararlar bir sistemi tehlikede bıraktı.
+Card_Marsquake2022_Q,"The habitat creaks. Mars has quakes too. Check every seal now, or keep the science going and fix leaks if they show up?","Habitat gıcırdıyor. Mars'ta da deprem olur. Şimdi tüm contaları kontrol mü edelim, yoksa bilime devam edip sızıntı çıkarsa mı onaralım?"
+Card_Marsquake2022_Q_Cadet,The ground shakes. Check the habitat now?,Zemin sallanıyor. Habitatı şimdi kontrol edelim mi?
+Card_Marsquake2022_A,Check every seal,Bütün contaları kontrol edin
+Card_Marsquake2022_B,"Keep working, watch the air","Çalışmaya devam, havayı izleyin"
+Card_Marsquake2022_Reveal,"On 4 May 2022 NASA's InSight lander recorded the largest marsquake ever detected, event S1222a, about 2,190 km from the lander.","4 Mayıs 2022'de NASA'nın InSight iniş aracı şimdiye kadar saptanan en büyük Mars depremini kaydetti: S1222a, araçtan yaklaşık 2.190 km uzakta."
+Card_Marsquake2022_Reveal_Cadet,A real marsquake was recorded by NASA's InSight lander.,Gerçek bir Mars depremini NASA'nın InSight aracı kaydetti.
+Card_Marsquake2022_Measure,"Magnitude 4.6 in the Marsquake Service catalogue (4.7 in the 2023 study). The catalogue lists 2,715 events from InSight's seismometer.","Mars Depremi Servisi kataloğunda büyüklük 4,6 (2023 çalışmasında 4,7). Katalog, InSight'ın sismometresinden 2.715 olay listeliyor."
+Weather_Line,JEZERO WEATHER · ARCHIVE · Perseverance MEDA sol {0} ({1}): {2} °C to {3} °C · {4} Pa,JEZERO HAVASI · ARŞİV · Perseverance MEDA sol {0} ({1}): {2} °C ile {3} °C · {4} Pa
+Inspect_Corridor,Pressurised corridor between modules,Modüller arası basınçlı koridor
+Inspect_ECLSS,"B2 Life support · air, water and CO2 removal","B2 Yaşam desteği · hava, su ve CO2 temizleme"
+Inspect_Lab,B3 Science lab · samples and instruments,B3 Bilim laboratuvarı · numuneler ve cihazlar
+Inspect_Airlock,B4 Airlock · suits and EVA preparation,B4 Hava kilidi · tulumlar ve EVA hazırlığı
+Inspect_ISRU,ISRU plant · oxygen and water from Mars,ISRU tesisi · Mars'tan oksijen ve su
+Inspect_Pipe,Pipe rack · ISRU to life support,Boru hattı · ISRU'dan yaşam desteğine
+Inspect_MOXIE,MOXIE · oxygen from the Martian air,MOXIE · Mars havasından oksijen
+Inspect_LandingPad,Landing zone · keep clear during landings,İniş alanı · inişlerde boş tutulur
+Inspect_Road,Graded road to the landing zones,İniş alanlarına düzlenmiş yol
+Inspect_Spares,Spare parts,Yedek parçalar
+Inspect_CableTray,Power cable from the power yard,Güç sahasından gelen güç kablosu
+Inspect_SolarField,Solar field · weak in a dust storm,Güneş paneli tarlası · toz fırtınasında zayıf
+Inspect_RelayAntenna,UHF antenna to the relay orbiter,Röle yörünge aracına UHF anteni
+Inspect_MEDA,MEDA weather station,MEDA hava istasyonu
+Inspect_WaterWall,Water-wall shielding for the shelter,Sığınak için su duvarı kalkanı
+Dash_Packages,Packages: {0},Paketler: {0}
+Design_Issue_ItemTooBig,{2} needs {0} t with its landing hardware; the largest launch sends {1} t. A module cannot be split between launches: choose a bigger rocket or a lighter option.,{2} iniş donanımıyla {0} t tutuyor; en büyük fırlatma {1} t gönderiyor. Bir modül fırlatmalar arasında bölünemez: daha büyük roket ya da daha hafif seçenek seç.
+Debrief_Criteria,ACCEPTANCE CRITERIA,KABUL KOŞULLARI
+Debrief_Pass,PASS,GEÇTİ
+Debrief_Fail,FAIL,KALDI
+Debrief_Compare,THIS FLIGHT vs THE ONE BEFORE,BU UÇUŞ ve BİR ÖNCEKİ
+Debrief_CompareSame,Same seed and the same event list: only the design changed.,Aynı tohum ve aynı olay listesi: yalnızca tasarım değişti.
+Debrief_CompareDiff,"Different seed or objective: events differ, compare with care.","Farklı tohum ya da hedef: olaylar farklı, dikkatle karşılaştır."
+Debrief_Changed,What you changed: {0},Neyi değiştirdin: {0}
+Debrief_NoChange,Nothing in the design changed.,Tasarımda hiçbir şey değişmedi.
+Cmp_Row_Score,Score,Puan
+Cmp_Row_Criteria,Criteria passed,Geçen kabul koşulu
+Cmp_Row_Mass,Mass / capacity (t),Kütle / kapasite (t)
+Cmp_Row_Cost,Cost (M$),Maliyet (M$)
+Cmp_Row_Cells,Power cells (dust storm),Güç hücresi (toz fırtınası)
+Cmp_Row_Data,Data home / made (Mb),Eve ulaşan / üretilen veri (Mb)
+Cmp_Row_Walks,Science walks,Bilim yürüyüşü
+Cmp_Row_Decisions,Safe decisions,Güvenli karar
+Opt_Consumables,"Crew food, water and oxygen","Ekip gıda, su ve oksijeni"
+Why_Eff_NotScored,Efficiency counts only when every acceptance criterion passed.,Verimlilik yalnızca tüm kabul koşulları geçtiğinde sayılır.
+Card_ScienceNeedsInstrument,"No instrument flew, so the science walk brings nothing back.",Hiç cihaz uçmadığı için bilim yürüyüşü bir şey getirmez.
+Guide_Free,Your design. Change anything; the dashboard shows what it does.,Senin tasarımın. İstediğini değiştir; göstergeler etkisini gösterir.
+Guide_Mass,The cargo does not fit in the rockets. Add a launch.,Kargo roketlere sığmıyor. Bir fırlatma ekle.
+Guide_Power,The base needs at least 5 power cells. Add power.,Üssün en az 5 güç hücresine ihtiyacı var. Güç ekle.
+Guide_Instruments,This mission needs more instruments.,Bu görev daha çok cihaz istiyor.
+Guide_Data,"Some science data will not reach Earth. A relay helps, but costs 250 M$.",Bilim verisinin bir kısmı Dünya'ya ulaşmayacak. Röle yardımcı olur ama 250 M$ tutar.
+Guide_Poll,The design fits. Every role says GO.,Tasarım sığıyor. Her rol GO desin.
+Guide_Launch,All GO. Launch!,Herkes GO. Fırlat!
+Guide_KeepDirect,Keep the direct link,Doğrudan bağlantı kalsın
+Guide_Hide,Hide guide,Rehberi gizle
+Guide_Show,Guide,Rehber
+Btn_Recommended,Start from a working design,Çalışan bir tasarımla başla
+Poll_SoloGo,Solo: all GO,Tek oyuncu: herkes GO
+Fix_Button,{0}  ({1}),{0}  ({1})
+Fix_Add,Fix: add {0},Düzelt: {0} ekle
+Fix_Switch,Fix: switch to {0},Düzelt: {0} seç
+Card_AI,AI image,YZ görseli
+Obj_FirstFlight,RECOMMENDED FIRST FLIGHT,İLK UÇUŞ İÇİN ÖNERİLEN
+Lock_New,NEW,YENİ
+Lock_NewWhy,Unlocked after your first flight.,İlk uçuşundan sonra açıldı.
+Lock_AfterDebrief,Unlocks after your first debrief,İlk değerlendirmeden sonra açılır
+Lock_Tag,LOCKED,KİLİTLİ
+Lock_Fission,Unlocks when you need it,Gerektiğinde açılır
+Lock_Flight2,Unlocks on flight 2,2. uçuşta açılır
+Lock_Spares,Flight 2: something will break,2. uçuş: bir şey bozulacak
+Btn_Example,Show me a working design,Çalışan bir tasarım göster
+Poll_Room,Poll the room,Odayı yokla
+Path_OverMass,PAYLOAD → MASS → ROCKETS,YÜK → KÜTLE → ROKETLER
+Path_ItemTooBig,ONE PACKAGE → BIGGEST ROCKET,TEK PAKET → EN BÜYÜK ROKET
+Path_OverBudget,ROCKETS + PARTS → BUDGET,ROKETLER + PARÇALAR → BÜTÇE
+Path_PowerShort,POWER UNITS → CELLS → BASE,GÜÇ ÜNİTELERİ → HÜCRELER → ÜS
+Path_DataShort,INSTRUMENT → DATA → LINK,CİHAZ → VERİ → BAĞLANTI
+Path_TooFewInstruments,OBJECTIVE → INSTRUMENTS,HEDEF → CİHAZLAR
+Path_MissingSlot,EVERY SLOT NEEDS A PICK,HER YUVAYA BİR SEÇİM
+Path_RoleGoalMissed,ROLE GOAL,ROL HEDEFİ
+Cal_NoLink,No link: the Sun is between Earth and Mars,"Bağlantı yok: Güneş, Dünya ile Mars'ın arasında"
+Cal_Dust,Dust storm possible,Toz fırtınası olabilir
+Cal_DustBreaks,DUST?·BREAK,TOZ?·ARIZA
+Cal_Sun,Solar storm possible,Güneş fırtınası olabilir
+Cal_Breaks,Something may break,Bir şey bozulabilir
+Cal_Sol,SOL {0},SOL {0}
+Cells_Title,POWER CELLS,GÜÇ HÜCRELERİ
+Cells_Clear,CLEAR SKY,AÇIK GÖK
+Cells_Dust,DUST STORM,TOZ FIRTINASI
+Cells_DustLater,Dust storm: you test it in step 5.,Toz fırtınası: 5. adımda deneyeceksin.
+Cells_Note,1 cell = {0} kW. The black line marks the {1} cells the base needs.,1 hücre = {0} kW. Siyah çizgi üssün istediği {1} hücreyi gösterir.
+Storm_Title,"Storm preview: your design, sols {0}-{1}. Sunlight −{2} %.","Fırtına önizlemesi: senin tasarımın, sol {0}-{1}. Güneş ışığı −%{2}."
+Storm_Holds,{0} of {1} cells: life support stays on.,{1} hücreden {0}: yaşam desteği açık kalır.
+Storm_Fails,{0} of {1} cells: life support fails.,{1} hücreden {0}: yaşam desteği çöker.
+Choice_Add,+{0} {1},+{0} {1}
+Choice_Cost,{0} M$,{0} M$
+Choice_Cap,{0} t room,{0} t yer
+Choice_Cells,"cells {0}, in dust {1}","hücre {0}, tozda {1}"
+Choice_Mass,{0} t to carry,{0} t taşınacak
+Choice_NotEnough,not enough alone,tek başına yetmez
+Guess_All,All,Hepsi
+Guess_Most,Most,Çoğu
+Guess_Half,Half or less,Yarısı ya da daha az
+Guess_Yes,Yes,Evet
+Guess_No,No,Hayır
+Beat_Instrument,The objective needs science. Pick one instrument and watch three bars move.,Hedef bilim istiyor. Bir cihaz seç ve üç göstergenin oynadığına bak.
+Beat_DataPredict,Your instruments make {0} Mb a sol. The antenna sends {1} Mb a sol. How much reaches Earth?,Cihazların solda {0} Mb veri üretiyor. Anten solda {1} Mb gönderiyor. Ne kadarı Dünya'ya ulaşır?
+Beat_DataLink,You said: {0}. Real: {1} % reaches Earth. On sols {2}-{3} the Sun blocks every link.,Tahminin: {0}. Gerçek: %{1} Dünya'ya ulaşıyor. {2}-{3}. sollerde Güneş her bağlantıyı keser.
+Beat_AddRelay,Add the relay (+{0} M$),Röle ekle (+{0} M$)
+Beat_Rockets,Every kilogram rides a rocket. Book a rocket.,Her kilogram bir rokete biner. Bir roket ayır.
+Beat_TooHeavy,"Too heavy: {0} t of cargo, {1} t of room. Add a launch, or lighten the load.","Fazla ağır: {0} t kargo, {1} t yer. Fırlatma ekle ya da yükü hafiflet."
+Beat_Power,The base needs {0} power cells. One cell is {1} kW. Add power.,Üs {0} güç hücresi istiyor. Bir hücre {1} kW. Güç ekle.
+Beat_PowerMass,Power has mass too. The rockets are full again.,Gücün de kütlesi var. Roketler yine doldu.
+Beat_StormPredict,Dust storms can hit in the orange phases. Will your base keep {0} cells in a storm?,Turuncu evrelerde toz fırtınası gelebilir. Üssün fırtınada {0} hücreyi koruyabilir mi?
+Beat_Storm,You said: {0}. The storm left {1} of {2} cells. Fission is unlocked: dust does not dim it.,Tahminin: {0}. Fırtına {2} hücreden {1} tanesini bıraktı. Fisyon açıldı: toz onu karartmaz.
+Beat_StormMass,Fission is heavy. Make room in the rockets.,Fisyon ağırdır. Roketlerde yer aç.
+Beat_Blocked,One red line left: {0},Bir kırmızı satır kaldı: {0}
+Beat_Poll,Poll the room: each console checks its own line.,Odayı yokla: her konsol kendi satırını kontrol eder.
+Beat_Launch,All four GO. Launch.,Dördü de GO. Fırlat.
+Flight_Tag,FLIGHT,UÇUŞ
+Flight_Instrument,"The objective picks the science. Each instrument adds mass, power draw and data.","Hedef bilimi seçer. Her cihaz kütle, güç tüketimi ve veri ekler."
+Flight_Data,Science counts only when it reaches Earth.,Bilim ancak Dünya'ya ulaşınca sayılır.
+Flight_Rockets,Every kg you land needs {0} kg of landing hardware. That is why rockets fill fast.,İndirdiğin her kg için {0} kg iniş donanımı gerekir. Roketler bu yüzden çabuk dolar.
+Flight_RocketsSimple,Every kilogram rides a rocket. More launches cost more budget.,Her kilogram bir rokete biner. Daha çok fırlatma daha çok bütçe ister.
+Flight_Power,Power comes in cells. Every system eats cells every sol.,Güç hücrelerle gelir. Her sistem her sol hücre tüketir.
+Flight_StormFail,That was Ares-0 again. Solar loses {1} % in dust. Fission does not.,Bu yine Ares-0'dı. Güneş paneli tozda %{1} kaybeder. Fisyon kaybetmez.
+Flight_StormPass,Your base holds through the dust. That margin is the Engineer's line.,Üssün tozda ayakta kalıyor. O pay Mühendis'in satırı.
+Flight_Storm,Now dust cannot switch off life support. Every fix moved another bar: that is the job.,Artık toz yaşam desteğini kapatamaz. Her düzeltme başka bir göstergeyi oynattı: iş tam olarak bu.
+Flight_Poll,"Each console guards one line. All four GO, we fly.",Her konsol bir satırı korur. Dördü de GO derse uçarız.
+Flight_Example,"This design works. Read why, then poll the room.","Bu tasarım çalışıyor. Nedenini oku, sonra odayı yokla."
+Example_Rockets,{0} Falcon Heavy: {1} t of cargo fits in {2} t of room.,{0} Falcon Heavy: {1} t kargo {2} t yere sığıyor.
+Example_Power,"{0} fission units: {1} cells, still {2} in a dust storm (the base needs {3}).","{0} fisyon ünitesi: {1} hücre, toz fırtınasında bile {2} (üs {3} istiyor)."
+Example_Link,Direct link: {0} % of the science data reaches Earth.,Doğrudan bağlantı: bilim verisinin %{0} kadarı Dünya'ya ulaşır.
+Report_Planner,Mass {0} of {1} t · {2} % spare,Kütle {0}/{1} t · %{2} boş
+Report_Engineer,Cells {0} · in dust {1} · need {2},Hücre {0} · tozda {1} · gerekli {2}
+Report_Science,Science {0} of {1} · {2} instruments,Bilim {0}/{1} · {2} cihaz
+Report_Comms,Data home {0} % · {1} of {2} M$,Eve veri %{0} · {1}/{2} M$
+Report_CommsNoBudget,Data home {0} %,Eve veri %{0}
+Report_GoOpen,GO · goal open,GO · hedef açık
+ColdOpen_Replay,REPLAY,KAYIT
+ColdOpen_Title,ARES-0 · SOLAR-ONLY OUTPOST · THE CREW BEFORE YOURS,ARES-0 · SADECE GÜNEŞ PANELLİ ÜS · SENDEN ÖNCEKİ EKİP
+ColdOpen_1,Ares-0 flew with two solar fields and nothing else for power.,Ares-0 güç için sadece iki güneş paneli alanıyla uçtu.
+ColdOpen_2,Sol {0}: a dust storm. Sunlight falls {1} %.,Sol {0}: toz fırtınası. Güneş ışığı %{1} düşüyor.
+ColdOpen_3,{0} cell left. The base needs {1}. Life support fails.,{0} hücre kaldı. Üs {1} istiyor. Yaşam desteği çöküyor.
+ColdOpen_Flight,Your crew flies next. Design it so this never happens.,Sıradaki uçuş senin ekibinin. Bunun hiç olmayacağı şekilde tasarla.
+ColdOpen_Take,Take the console,Konsolu devral
+ColdOpen_Skip,Flown before? Skip guidance,Daha önce uçtun mu? Rehberi atla
+ColdOpen_Credit,Illustration: Gemini (AI),İllüstrasyon: Gemini (AI)
+Node_Objective,OBJECTIVE,HEDEF
+Node_Instrument,INSTRUMENT,CİHAZ
+Node_Data,DATA,VERİ
+Node_Link,LINK,BAĞLANTI
+Node_Payload,PAYLOAD,YÜK
+Node_Mass,MASS,KÜTLE
+Node_Rockets,ROCKETS,ROKETLER
+Node_Budget,BUDGET,BÜTÇE
+Node_Power,POWER,GÜÇ
+Node_Cells,CELLS,HÜCRELER
+Node_Dust,DUST,TOZ
+Node_GO,GO,GO
+Decision_Power,Power units,Güç üniteleri
+Decision_Link,Link to Earth,Dünya bağlantısı
+Decision_Rockets,Rockets,Roketler
+Decision_Instruments,Instruments,Cihazlar
+Decision_Shelter,Storm shelter,Fırtına sığınağı
+Debrief_PickTitle,WHICH DECISION WOULD YOU CHANGE?,HANGİ KARARI DEĞİŞTİRİRDİN?
+Debrief_PickSub,Pick one first. Then the trace shows where this flight was decided.,"Önce birini seç. Sonra iz, bu uçuşun nerede belirlendiğini gösterir."
+Debrief_PickRight,Yes. It started there.,Evet. Her şey orada başladı.
+Debrief_PickWrong,Look again: it started at {0}.,Bir daha bak: her şey şu kararda başladı: {0}.
+Debrief_PickNext,Redesign opens that decision on the same seed.,"Yeniden tasarla, aynı tohumla o kararı açar."
+Trace_Power,Dust storm → solar −{0} % → cells {1} → {2} (need {3}) → life support short,Toz fırtınası → güneş −%{0} → hücre {1} → {2} (gerekli {3}) → yaşam desteği yetmedi
+Trace_Shelter,Solar storm → crew not in a powered shelter → {0} radiation exposure(s),Güneş fırtınası → ekip güç verilmiş bir sığınakta değildi → {0} radyasyon maruziyeti
+Trace_Link,Instruments {0} Mb/sol → link {1} Mb/sol → no link on sols {2}-{3} → {4} % reached Earth,Cihazlar {0} Mb/sol → bağlantı {1} Mb/sol → {2}-{3}. sollerde bağlantı yok → %{4} Dünya'ya ulaştı
+Trace_Instruments,{0} instruments → {1} of {2} science,{0} cihaz → {2} bilimin {1} kadarı
+Trace_Rockets,Rockets with {1} t of room carried {0} t → you paid for empty space,{1} t yerli roketler {0} t taşıdı → boş yere para ödedin
+Trace_ClosePower,"Closest call: {0} cells in a dust storm, the base needs {1}.","En yakın sınır: toz fırtınasında {0} hücre, üs {1} istiyor."
+Trace_CloseMass,Closest call: the rockets were {0} % full.,En yakın sınır: roketler %{0} doluydu.
+Choice_Switch,Switch to {0} × {1},{0} × {1} ile değiştir
+Review_Later,{0} more lines open in the next steps.,{0} satır daha sonraki adımlarda açılacak.
+CrewName_0,You,Sen
+CrewName_1,Deniz,Deniz
+CrewName_2,Mira,Mira
+CrewName_3,Arda,Arda
+Ops_Returning,Heading back,Üsse dönüyor
+Ops_Done,{0}: {1}. {2},{0}: {1}. {2}
+Bark_Start_1,Suit seals checked. On my way.,Kıyafet contaları tamam. Yola çıkıyorum.
+Bark_Start_2,Taking the science kit out.,Bilim çantasını alıyorum.
+Bark_Start_3,I have the base. Calling you if anything beeps.,Üs bende. Bir şey öterse haber veririm.
+Site_Hab,Command hub,Komuta merkezi
+Site_Airlock,Airlock,Hava kilidi
+Site_Rover,Rover,Gezgin
+Site_LZ2,Cargo lander,Kargo iniş aracı
+Site_Greenhouse,Greenhouse,Sera
+Site_Meda,Weather mast,Hava durumu direği
+Site_Delta,Delta outcrop,Delta kayalığı
+Site_Survey,Clay survey site,Kil tarama alanı
+Site_Isru,ISRU plant,ISRU tesisi
+Site_Berm,Shelter berm,Sığınak toprak seti
+Site_Solar,Solar field,Güneş paneli alanı
+Site_Eclss,Life support,Yaşam desteği
+Site_Lab,Science lab,Bilim laboratuvarı
+Task_InspectCargo,Inspect the landed cargo by robot,İnen kargoyu robotla incele
+Task_InspectCargo_Info,Sols 1-3 have no spacewalks: the crew re-adapts to gravity and checks the cargo through robot cameras.,"1-3. sollerde uzay yürüyüşü yok: ekip yerçekimine alışır, kargoyu robot kameralarıyla kontrol eder."
+Task_SuitCheck,Suit checkout,Kıyafet kontrolü
+Task_SuitCheck_Info,Every spacewalk starts with a suit check in the airlock.,Her uzay yürüyüşü hava kilidinde kıyafet kontrolüyle başlar.
+Task_OffloadRover,Off-load the rover,Gezgini indir
+Task_OffloadRover_Info,The rover opens the far sites: the clay survey and the berm.,Gezgin uzak alanları açar: kil taraması ve toprak seti.
+Task_OffloadPayload,Off-load the science payload,Bilim yükünü indir
+Task_OffloadPayload_Info,Instruments stay on the lander deck until a spacewalk brings them down.,Cihazlar bir uzay yürüyüşü onları indirene kadar iniş aracında kalır.
+Task_SetUpGreenhouse,Start the greenhouse,Serayı çalıştır
+Task_SetUpGreenhouse_Info,Plant growth units on; the first harvest comes weeks later.,Bitki yetiştirme üniteleri açılır; ilk hasat haftalar sonra.
+Task_DeployMeda,Stand up the weather mast,Hava durumu direğini kur
+Task_DeployMeda_Info,Wind and dust readings warn of storms: dust on the arrays is halved.,Rüzgâr ve toz ölçümleri fırtınayı önceden haber verir: panellerdeki toz yarıya iner.
+Task_ScienceTraverse,Science traverse to the delta,Deltaya bilim yürüyüşü
+Task_ScienceTraverse_Info,Samples from the old river delta: this is why the crew came.,Eski nehir deltasından örnekler: ekip bunun için geldi.
+Task_SurveyClays,Survey for water-bearing clays,Su içeren killeri tara
+Task_SurveyClays_Info,Jezero has no shallow ice. Its clays hold a little water: NASA's generic Mars clay gives 2.7 % water when heated.,"Jezero'da sığ buz yok. Killeri biraz su tutar: NASA'nın genel Mars kili ısıtılınca %2,7 su verir."
+Task_ExtractWater,Bake water out of clay,Kilden su çıkar
+Task_ExtractWater_Info,The digging robot fills the oven with clay; heat drives the water out. Uses a power cell. Water splits into oxygen.,Kazı robotu fırını kille doldurur; ısı suyu çıkarır. Bir güç hücresi kullanır. Su oksijene ayrılır.
+Task_BuildBerm,Pile regolith on the shelter,Sığınağa regolit yığ
+Task_BuildBerm_Info,Soil above the shelter blocks radiation: less power needed in a solar storm.,Sığınağın üstündeki toprak radyasyonu keser: güneş fırtınasında daha az güç gerekir.
+Task_CleanSolar,Clean the solar arrays,Güneş panellerini temizle
+Task_CleanSolar_Info,After a dust storm the arrays stay dusty and give fewer cells until cleaned.,Toz fırtınasından sonra paneller tozlu kalır ve temizlenene kadar daha az hücre verir.
+Task_Maintenance,Life-support maintenance,Yaşam desteği bakımı
+Task_Maintenance_Info,Filters and seals: raises the weakest system one level.,Filtreler ve contalar: en zayıf sistemi bir seviye yükseltir.
+Task_Logistics,Restock from the cargo lander,Kargo aracından ikmal
+Task_Logistics_Info,Logistics containers stay on the lander deck until needed.,Lojistik konteynerler gerekene kadar iniş aracında bekler.
+Task_Harvest,First harvest,İlk hasat
+Task_Harvest_Info,Fresh food from the greenhouse.,Seradan taze yiyecek.
+Effect_None,,
+Effect_Unpack,New tasks open.,Yeni görevler açıldı.
+Effect_SetUpGreenhouse,GREENHOUSE +1.,SERA +1.
+Effect_Harvest,Harvest in.,Hasat alındı.
+Effect_ScienceTraverse,Science walk +1.,Bilim yürüyüşü +1.
+Effect_Survey,Water-bearing clay found: extraction open.,Su içeren kil bulundu: su çıkarma açıldı.
+Effect_ExtractWater,AIR +1 (oxygen from water).,HAVA +1 (sudan oksijen).
+Effect_BuildBerm,Radiation shielding +1.,Radyasyon kalkanı +1.
+Effect_CleanSolar,Arrays clean: full cells again.,Paneller temiz: hücreler tam.
+Effect_Maintain,Weakest system +1.,En zayıf sistem +1.
+Effect_Weather,Storm warnings on.,Fırtına uyarıları açık.
+Effect_LinkCheck,Link checked.,Bağlantı kontrol edildi.
+Ops_Title,BASE COMPUTER,ÜS BİLGİSAYARI
+Ops_Sols,SOL {0}-{1} · {2},SOL {0}-{1} · {2}
+Ops_Auto,Crew choose tasks,Ekip görev seçsin
+Ops_Clear,Clear plan,Planı temizle
+Ops_Close,Close (B),Kapat (B)
+Ops_RemoveTip,Click to take this task off the plan.,Bu görevi plandan çıkarmak için tıkla.
+Ops_WorkHours,WORK HOURS,ÇALIŞMA SAATİ
+Ops_EvaHours,SPACEWALK HOURS,UZAY YÜRÜYÜŞÜ SAATİ
+Ops_Hours,{0} / {1} h,{0} / {1} sa
+Ops_YouHint,"Your tasks: walk to the site and press E, or they are done in the time-lapse.",Senin görevlerin: alana yürü ve E'ye bas; yoksa hızlandırılmış zamanda yapılır.
+Ops_FreeHint,"Free. Pick this crew member, then a task.","Boşta. Bu ekip üyesini seç, sonra bir görev."
+Ops_TaskMeta,{0} h · {1} crew,{0} sa · {1} kişi
+Ops_Eva,SPACEWALK,UZAY YÜRÜYÜŞÜ
+Ops_Inside,INSIDE,İÇERİDE
+Ops_UsesCells,uses {0} cell,{0} hücre kullanır
+Ops_PlannedBy,Planned: {0} ×,Planlandı: {0} ×
+Ops_AssignTo,Give to {0},{0}'a ver
+Ops_Block_Ok,,
+Ops_Block_WrongPhase,Not in this phase,Bu evrede değil
+Ops_Block_NotLanded,Not on board,Gemide yok
+Ops_Block_NeedsFirst,Needs another task first,Önce başka bir görev gerekli
+Ops_Block_AlreadyDone,Done,Tamam
+Ops_Block_NoHours,No work hours left this phase,Bu evrede çalışma saati kalmadı
+Ops_Block_NoEvaHours,Spacewalk hours used up (rest sol rule),Uzay yürüyüşü saati doldu (dinlenme solu kuralı)
+Ops_Block_Storm,No spacewalks in a dust storm,Toz fırtınasında uzay yürüyüşü yok
+Ops_Block_NeedsBuddy,Needs a second free crew member (never alone outside),İkinci bir boş ekip üyesi gerekli (dışarıda asla yalnız değil)
+Ops_At,at {0},{0}
+Ops_Board,TASK BOARD,GÖREV PANOSU
+Ops_BoardHint,Picked crew member: {0},Seçili ekip üyesi: {0}
+Ops_Checklist,SETUP CHECKLIST,KURULUM LİSTESİ
+Ops_Status,BASE STATUS,ÜS DURUMU
+Ops_StormNow,Dust storm now: spacewalks stopped.,Şu an toz fırtınası: uzay yürüyüşleri durdu.
+Ops_Dust,Dust on the solar arrays: {0} cells lost until cleaned.,Güneş panellerinde toz: temizlenene kadar {0} hücre eksik.
+Ops_Water,Water extracted: {0} kg,Çıkarılan su: {0} kg
+Ops_NoWaterYet,No water source found yet (Jezero has no shallow ice).,Henüz su kaynağı yok (Jezero'da sığ buz yok).
+Ops_WeatherOn,Weather mast: storm warnings on.,Hava direği: fırtına uyarıları açık.
+Ops_WeatherOff,No weather mast: storms come without warning.,Hava direği yok: fırtınalar uyarısız gelir.
+Ops_EvaRule,NASA rule: 8.5 work hours per sol; a rest sol between spacewalks; never alone outside.,"NASA kuralı: solda 8,5 çalışma saati; uzay yürüyüşleri arasında dinlenme solu; dışarıda asla yalnız değil."
+Ops_Report,LAST PHASE,SON EVRE
+Ops_RunHint,Plan ready. Run the sols and watch the crew work.,Plan hazır. Solleri çalıştır ve ekibi izle.
+Ops_RunBlocked,Place every power cell and answer the event first (TAB).,Önce tüm güç hücrelerini yerleştir ve olayı yanıtla (TAB).
+Ops_Run,Run sols {0}-{1},{0}-{1}. solleri çalıştır
+Ops_Prompt,E: {0},E: {0}
+Ops_Marker,YOUR TASK · {0} · {1} m,GÖREVİN · {0} · {1} m
+Ops_RunBanner,SOLS {0}-{1} · TIME-LAPSE · CREW AT WORK,SOL {0}-{1} · HIZLANDIRILMIŞ · EKİP ÇALIŞIYOR

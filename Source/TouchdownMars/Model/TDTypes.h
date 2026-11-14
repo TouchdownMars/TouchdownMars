@@ -216,6 +216,10 @@ struct FTDEventRow : public FTableRowBase
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Event|Back")
 	TArray<FName> SourceIds;
+
+	/** Dust storm: solar output falls for the phase (design DustCells). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Event")
+	bool bDustStorm = false;
 };
 
 USTRUCT(BlueprintType)
@@ -337,6 +341,41 @@ struct FTDDonkiRow : public FTableRowBase
 	FString SourceURL;
 };
 
+/** Jezero weather for one mission sol: Perseverance MEDA archive (PDS), mapped to mission sols 1-31. Never live. */
+USTRUCT(BlueprintType)
+struct FTDWeatherRow : public FTableRowBase
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weather")
+	int32 MissionSol = 1;
+
+	/** Perseverance sol the values come from. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weather")
+	int32 MedaSol = 0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weather")
+	FString EarthDate;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weather")
+	double AirMinC = 0.0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weather")
+	double AirMaxC = 0.0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weather")
+	double PressureMinPa = 0.0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weather")
+	double PressureMaxPa = 0.0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weather")
+	double PressureMeanPa = 0.0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weather")
+	FName SourceId;
+};
+
 // Runtime structs (not DataTable rows)
 
 USTRUCT(BlueprintType)
@@ -447,6 +486,29 @@ struct FTDMissionState
 
 	UPROPERTY(BlueprintReadOnly, Category = "Mission")
 	ETDMissionResult Result = ETDMissionResult::InProgress;
+
+	/** Spare-part charges left from the design (each makes one equipment failure cheaper). */
+	UPROPERTY(BlueprintReadOnly, Category = "Mission|Design")
+	int32 RepairChargesLeft = 0;
+
+	/** Radiation relief built on the surface (regolith piled on the shelter by the crew). */
+	UPROPERTY(BlueprintReadOnly, Category = "Mission|Ops")
+	int32 OpsRadiationRelief = 0;
+
+	/** This phase is a dust-storm phase: solar output is down (design DustCells). */
+	UPROPERTY(BlueprintReadOnly, Category = "Mission|Design")
+	bool bDustPhase = false;
+
+	/** Event decisions taken and how many kept every system at Low or better without exposure. */
+	UPROPERTY(BlueprintReadOnly, Category = "Mission|Score")
+	int32 Decisions = 0;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Mission|Score")
+	int32 GoodDecisions = 0;
+
+	/** Science walks completed on the surface (event choices with science, or walks in first person). */
+	UPROPERTY(BlueprintReadOnly, Category = "Mission|Score")
+	int32 ScienceWalks = 0;
 };
 
 USTRUCT(BlueprintType)
