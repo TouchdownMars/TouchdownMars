@@ -2,7 +2,7 @@
 	"FileVersion": 3,
 	"EngineAssociation": "5.8",
 	"Category": "",
-	"Description": "Touchdown Mars: First Light - NASA Space Apps Challenge 2026, Build a Junior Astronaut Mission Trainer",
+	"Description": "Touchdown Mars: The Manifest - NASA Space Apps Challenge 2026, Space Mission Design Game",
 	"Modules": [
 		{
 			"Name": "TouchdownMars",
