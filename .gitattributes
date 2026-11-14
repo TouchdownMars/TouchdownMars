@@ -1,0 +1,32 @@
+# Git LFS rules for the Unreal Engine project.
+# Run "git lfs install" once on every machine before cloning.
+
+# Unreal binary assets (anywhere in the repo)
+*.uasset filter=lfs diff=lfs merge=lfs -text
+*.umap filter=lfs diff=lfs merge=lfs -text
+
+# 3D source files
+*.fbx filter=lfs diff=lfs merge=lfs -text
+*.glb filter=lfs diff=lfs merge=lfs -text
+*.blend filter=lfs diff=lfs merge=lfs -text
+*.usdz filter=lfs diff=lfs merge=lfs -text
+
+# Heightmaps and terrain data
+*.r16 filter=lfs diff=lfs merge=lfs -text
+*.exr filter=lfs diff=lfs merge=lfs -text
+*.hdr filter=lfs diff=lfs merge=lfs -text
+
+# Images and audio inside the Unreal project only.
+# Screenshots for README or GitHub Pages stay outside Content/ and are not tracked by LFS,
+# because GitHub Pages does not serve LFS files.
+**/Content/**/*.png filter=lfs diff=lfs merge=lfs -text
+**/Content/**/*.jpg filter=lfs diff=lfs merge=lfs -text
+**/Content/**/*.jpeg filter=lfs diff=lfs merge=lfs -text
+**/Content/**/*.tga filter=lfs diff=lfs merge=lfs -text
+**/Content/**/*.tif filter=lfs diff=lfs merge=lfs -text
+**/Content/**/*.tiff filter=lfs diff=lfs merge=lfs -text
+**/Content/**/*.psd filter=lfs diff=lfs merge=lfs -text
+**/Content/**/*.wav filter=lfs diff=lfs merge=lfs -text
+**/Content/**/*.mp3 filter=lfs diff=lfs merge=lfs -text
+**/Content/**/*.ogg filter=lfs diff=lfs merge=lfs -text
+**/Content/**/*.mp4 filter=lfs diff=lfs merge=lfs -text
