@@ -61,7 +61,7 @@ Full list with URLs, retrieval dates and licences: `Data/Source/sources.csv` and
 **NASA data used in the game**
 - NASA CCMC DONKI API: live and archived space weather (Today's Sun panel).
 - NASA Mars Trek: MRO HiRISE Jezero DEM (1 m/px), a 1 km window near the Perseverance landing site, for the outpost terrain.
-- NASA 3D Resources: Habitat Demonstration Unit and Z2 Spacesuit meshes, with every insignia texture removed.
+- NASA 3D Resources: Habitat Demonstration Unit, Z2 Spacesuit, Space Exploration Vehicle, RASSOR and Tall Dish meshes, with every texture removed (no insignia).
 - NASA/JPL Horizons: Earth–Mars light time. NASA BVAD, OCHMO briefs, Veggie, MOXIE, SAC21 and mission news pages for the numbers and the 14 event cards (see `docs/cards_check.md`).
 
 **Third-party assets and tools**

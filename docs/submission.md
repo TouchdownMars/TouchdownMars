@@ -131,6 +131,7 @@ TODO: CSA food production resource, to be confirmed by Role C
 - MarsTrek: NASA Mars Trek, MRO HiRISE Jezero DEM, Controlled (JEZ_hirise_soc_006_DTM_MOLAtopography_DeltaGeoid_1m_Eqc_latTs0_lon0_blend40). https://trek.nasa.gov/mars/TrekWS/rest/cat/data/stream?label=JEZ_hirise_soc_006_DTM_MOLAtopography_DeltaGeoid_1m_Eqc_latTs0_lon0_blend40 (retrieved 2026-11-13)
 - NASA3DHabitat: NASA 3D Resources, Habitat Demonstration Unit. https://github.com/nasa/NASA-3D-Resources (retrieved 2026-11-13; insignia textures removed)
 - NASA3DZ2: NASA 3D Resources, Z2 Spacesuit. https://github.com/nasa/NASA-3D-Resources (retrieved 2026-11-13; insignia textures removed)
+- NASA3DSEV, NASA3DRASSOR, NASA3DTallDish: NASA 3D Resources, Space Exploration Vehicle, RASSOR and Tall Dish. https://github.com/nasa/NASA-3D-Resources (retrieved 2026-11-14; textures removed)
 - JPL2017Storm: NASA/JPL, Large Solar Storm Sparks Global Aurora and Doubles Radiation Levels on the Martian Surface (29 Sep 2017). https://www.jpl.nasa.gov/news/large-solar-storm-sparks-global-aurora-and-doubles-radiation-levels-on-the-martian-surface/
 - NASA2024Storm: NASA, NASA Watches Mars Light Up During Epic Solar Storm (10 Jun 2024). https://www.nasa.gov/missions/nasa-watches-mars-light-up-during-epic-solar-storm/
 - ArtemisIIAgenda: NASA, NASA's Artemis II Moon Mission Daily Agenda. https://www.nasa.gov/missions/artemis/nasas-artemis-ii-moon-mission-daily-agenda/
@@ -181,7 +182,7 @@ Where AI was not used:
 
 ## Known limits
 
-- **Art.** The outpost stands on NASA Mars Trek Jezero terrain with NASA 3D Resources habitat and Z2 suits (insignia removed) and Megascans rocks; the ground is a procedural regolith material. Some props (lander, cargo, antenna, plant racks, message icon) are engine basic shapes. Crew members are static suits that show their state by color and position, without animation.
+- **Art.** The outpost stands on NASA Mars Trek Jezero terrain with NASA 3D Resources habitat, Z2 suits, Space Exploration Vehicle rover, RASSOR robot and a communication dish (textures removed), Megascans rocks and a Mars-tinted sky; the ground is a procedural regolith material. Some props (ascent vehicle, cargo, plant racks, message icon) are engine basic shapes. Crew members are static suits with simple idle, sway and celebration motion, without skeletal animation.
 - **Child tests pending.** No child has played the game yet; no learning or fun claim is made.
 - **Human checks pending.** The team's play-test gates for the prototype, opening minute, cards, Mission Control and Package 1 are not signed off. The agent tested mission flow through the game's functions in the editor, not with a real mouse and keyboard.
 - **Not in the current build:** the Warn-Gather-Work emergency ritual, optional science tasks, the prediction and recall questions, Moon mode, crew animations, music and voice.

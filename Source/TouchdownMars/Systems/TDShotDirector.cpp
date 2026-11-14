@@ -121,10 +121,10 @@ void UTDShotDirector::ActivateMainCamera()
 	if (!MainCamera)
 	{
 		// Test maps keep the greybox rig.
-		for (TActorIterator<ATDCameraRig> It(GetWorld()); It; ++It)
+		TActorIterator<ATDCameraRig> It(GetWorld());
+		if (It)
 		{
 			MainCamera = *It;
-			break;
 		}
 	}
 	if (!MainCamera)

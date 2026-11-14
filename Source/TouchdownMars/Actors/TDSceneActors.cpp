@@ -167,6 +167,9 @@ void ATDCrewMember::BeginPlay()
 {
 	Super::BeginPlay();
 	HomeLocation = GetActorLocation();
+	IdleSeed = static_cast<float>(static_cast<int32>(System)) * 2.1f; // fixed phase per crew member, no random stream
+	SetBasePose(GetActorLocation(), GetActorRotation());
+	GetWorldTimerManager().SetTimer(IdleTimer, this, &ATDCrewMember::StepIdle, 1.f / 30.f, true);
 	if (UTDMissionSubsystem* Mission = GetWorld()->GetSubsystem<UTDMissionSubsystem>())
 	{
 		Mission->OnLevelsChanged.AddDynamic(this, &ATDCrewMember::HandleLevels);
@@ -197,9 +200,9 @@ void ATDCrewMember::HandleShotStarted(FName ShotId, FName CameraTag, int32 Outco
 		{
 			if (It->ActorHasTag(Tag))
 			{
-				PreShotTransform = GetActorTransform();
+				PreShotTransform = FTransform(BaseRotation, BaseLocation);
 				bStaged = true;
-				SetActorLocationAndRotation(It->GetActorLocation(), It->GetActorRotation());
+				SetBasePose(It->GetActorLocation(), It->GetActorRotation());
 				return;
 			}
 		}
@@ -211,13 +214,43 @@ void ATDCrewMember::HandleShotEnded(FName ShotId)
 	if (bStaged)
 	{
 		bStaged = false;
-		SetActorTransform(PreShotTransform);
+		SetBasePose(PreShotTransform.GetLocation(), PreShotTransform.Rotator());
 	}
 }
 
 void ATDCrewMember::HandlePhaseStarted(ETDPhase Phase)
 {
-	SetActorLocation(HomeLocation);
+	SetBasePose(HomeLocation, BaseRotation);
+}
+
+void ATDCrewMember::SetBasePose(const FVector& Location, const FRotator& Rotation)
+{
+	BaseLocation = Location;
+	BaseRotation = Rotation;
+	SetActorLocationAndRotation(Location, Rotation);
+}
+
+void ATDCrewMember::StepIdle()
+{
+	IdleTime += 1.f / 30.f;
+	const UTDMissionSubsystem* Mission = GetWorld()->GetSubsystem<UTDMissionSubsystem>();
+	if (Mission && Mission->IsReduceMotion())
+	{
+		SetActorLocationAndRotation(BaseLocation, BaseRotation);
+		return;
+	}
+	float SwayDegrees = 7.f;
+	float SwaySpeed = 0.5f;
+	float LiftCm = 1.2f * FMath::Sin(IdleTime * 1.4f + IdleSeed); // breathing
+	switch (Current)
+	{
+	case ETDCrewBehaviour::Worried: SwayDegrees = 12.f; SwaySpeed = 1.1f; break;
+	case ETDCrewBehaviour::Alarm: SwayDegrees = 18.f; SwaySpeed = 2.0f; break;
+	case ETDCrewBehaviour::Celebrate: LiftCm = 28.f * FMath::Abs(FMath::Sin(IdleTime * 3.2f + IdleSeed)); break; // small hops
+	default: break;
+	}
+	const float Yaw = SwayDegrees * FMath::Sin(IdleTime * SwaySpeed + IdleSeed);
+	SetActorLocationAndRotation(BaseLocation + FVector(0.f, 0.f, LiftCm), BaseRotation + FRotator(0.f, Yaw, 0.f));
 }
 
 void ATDCrewMember::HandleLevels(const FTDMissionState& State, const TArray<ETDSystem>& Changed)
@@ -256,13 +289,16 @@ void ATDCrewMember::PlayBehaviour(ETDCrewBehaviour Behaviour)
 	case ETDCrewBehaviour::Alarm: Color = TDTokens::SemDanger(); break;
 	case ETDCrewBehaviour::Shelter: Location = HomeLocation + FVector(0.f, 350.f, 0.f); break;
 	case ETDCrewBehaviour::AtLander: Location = LanderLocation; break;
-	case ETDCrewBehaviour::Celebrate: Location = HomeLocation + FVector(0.f, 0.f, 60.f); Color = TDTokens::CoreAccent(); break;
+	case ETDCrewBehaviour::Celebrate: Color = TDTokens::CoreAccent(); break; // hops in StepIdle
 	default: break;
 	}
 	if (Material)
 	{
 		Material->SetVectorParameterValue(TEXT("Color"), Color);
 	}
-	SetActorLocation(Location);
+	if (!bStaged)
+	{
+		SetBasePose(Location, BaseRotation);
+	}
 	OnBehaviour(Behaviour);
 }

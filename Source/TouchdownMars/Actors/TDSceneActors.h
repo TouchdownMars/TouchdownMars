@@ -134,7 +134,16 @@ private:
 	UPROPERTY(Transient)
 	TObjectPtr<UMaterialInstanceDynamic> Material;
 
+	/** Idle life (timer, no Tick): slow look-around and breathing; worried/alarm sway faster; celebrate hops. */
+	void SetBasePose(const FVector& Location, const FRotator& Rotation);
+	void StepIdle();
+
 	FVector HomeLocation;
+	FVector BaseLocation;
+	FRotator BaseRotation;
+	FTimerHandle IdleTimer;
+	float IdleTime = 0.f;
+	float IdleSeed = 0.f;
 	bool bStaged = false;
 	FTransform PreShotTransform;
 	ETDCrewBehaviour Current = ETDCrewBehaviour::Working;
