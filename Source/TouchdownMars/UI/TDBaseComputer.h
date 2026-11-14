@@ -32,6 +32,8 @@ public:
 	enum class ETab : uint8 { Power, Crew, Decision, Data };
 	virtual bool SupportsKeyboardFocus() const override { return true; }
 	virtual FReply OnKeyDown(const FGeometry& MyGeometry, const FKeyEvent& InKeyEvent) override;
+	/** Rebuilds when the mission changes under it (a choice made elsewhere, a phase that ended). */
+	virtual void Tick(const FGeometry& AllottedGeometry, const double InCurrentTime, const float InDeltaTime) override;
 
 private:
 	TSharedRef<SWidget> BuildHeader();
@@ -45,6 +47,7 @@ private:
 	/** Today's Sun (NASA DONKI, LIVE or ARCHIVE) and where every number comes from (Source Panel). */
 	TSharedRef<SWidget> BuildData();
 	ETab Tab = ETab::Power;
+	FString LastSeenState;
 	FText Txt(const TCHAR* Key) const;
 	FText Txt(FName Key) const;
 

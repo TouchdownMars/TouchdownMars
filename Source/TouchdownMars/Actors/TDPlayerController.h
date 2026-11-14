@@ -90,6 +90,13 @@ private:
 	TSharedPtr<STDBaseComputer> BaseComputer;
 	/** Helmet HUD (Slate, design-room style): objective, life support, comms, hold ring. */
 	TSharedPtr<class STDSurfaceHud> SurfaceHud;
+	/** Pause menu (Esc / Menu): Slate, design-room style. */
+	TSharedPtr<class STDPauseMenu> PauseMenu;
+	bool bPauseOpen = false;
+	void ShowPauseMenu();
+	void HidePauseMenu();
+	void HandlePadPause();
+	UPROPERTY(Transient) TObjectPtr<UInputAction> PadPauseAction;
 	FTimerHandle OpsDemoTimer;
 	bool bBaseOpen = false;
 

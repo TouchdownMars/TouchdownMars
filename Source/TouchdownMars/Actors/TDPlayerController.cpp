@@ -5,6 +5,8 @@
 #include "UI/TDDesignRoom.h"
 #include "UI/TDBaseComputer.h"
 #include "UI/TDSurfaceHud.h"
+#include "UI/TDPauseMenu.h"
+#include "Kismet/KismetSystemLibrary.h"
 #include "UI/TDGamepadCursor.h"
 #include "GenericPlatform/GenericApplicationMessageHandler.h"
 #include "GenericPlatform/IInputInterface.h"
@@ -69,7 +71,13 @@ void ATDPlayerController::BeginPlay()
 		if (NextPhaseAction)
 		{
 			PadContext = NewObject<UInputMappingContext>(this, TEXT("IMC_TD_Pad"));
-			PadContext->MapKey(NextPhaseAction, EKeys::Gamepad_Special_Right);
+			// Menu button: the pause menu (the phase runs from Mission Control's button).
+			PadPauseAction = NewObject<UInputAction>(this, TEXT("IA_TD_PadPause"));
+			PadContext->MapKey(PadPauseAction, EKeys::Gamepad_Special_Right);
+			if (UEnhancedInputComponent* PadInput = Cast<UEnhancedInputComponent>(InputComponent))
+			{
+				PadInput->BindAction(PadPauseAction, ETriggerEvent::Started, this, &ATDPlayerController::HandlePadPause);
+			}
 			InputSubsystem->AddMappingContext(PadContext, 1);
 		}
 	}
@@ -334,7 +342,41 @@ void ATDPlayerController::HandleTransitDone()
 	HideDesignScreen();
 	UE_LOG(LogTouchdownMars, Display, TEXT("Design: landed, surface mission running"));
 #if !UE_BUILD_SHIPPING
-	if (FParse::Param(FCommandLine::Get(), TEXT("TDLookTest")))
+	if (FParse::Param(FCommandLine::Get(), TEXT("TDEventTest")))
+	{
+		// Skip phases until an event card is drawn, then stand at Mission Control with it open (decision check).
+		GetWorldTimerManager().SetTimer(PadTestTimer, FTimerDelegate::CreateWeakLambda(this, [this]()
+		{
+			UTDMissionSubsystem* M = GetWorld()->GetSubsystem<UTDMissionSubsystem>();
+			FString Want;
+			FParse::Value(FCommandLine::Get(), TEXT("TDEventId="), Want);
+			auto Done = [M, &Want]()
+			{
+				const FName Now = M->GetState().CurrentEventId;
+				return Want.IsEmpty() ? !Now.IsNone() : Now == FName(*Want);
+			};
+			for (int32 Guard = 0; M && M->IsMissionRunning() && !Done() && Guard < 6; ++Guard)
+			{
+				M->DevFillPhase();
+				M->EndPhase();
+			}
+			UE_LOG(LogTouchdownMars, Display, TEXT("EventTest: event %s"), M ? *M->GetState().CurrentEventId.ToString() : TEXT("-"));
+			if (ATDAstronautCharacter* A = Cast<ATDAstronautCharacter>(GetPawn())) { A->DevGoToStation(); }
+			ToggleBaseComputer();
+			// -TDEventChoose: choose B after the 45 s no-shot gate, then the outcome shot must play over Mission Control.
+			if (FParse::Param(FCommandLine::Get(), TEXT("TDEventChoose")))
+			{
+				FTimerHandle Choose;
+				GetWorldTimerManager().SetTimer(Choose, FTimerDelegate::CreateWeakLambda(this, [this]()
+				{
+					UTDMissionSubsystem* MM = GetWorld()->GetSubsystem<UTDMissionSubsystem>();
+					const bool bChosen = MM && MM->ChooseEventOption(false);
+					UE_LOG(LogTouchdownMars, Display, TEXT("EventTest: chose B %d"), bChosen ? 1 : 0);
+				}), 50.f, false);
+			}
+		}), 3.f, false);
+	}
+		if (FParse::Param(FCommandLine::Get(), TEXT("TDLookTest")))
 	{
 		// Right stick pushed up (RightAnalogY +1, as an Xbox pad reports it) for 0.5 s: the view must pitch up.
 		GetWorldTimerManager().SetTimer(PadTestTimer, FTimerDelegate::CreateWeakLambda(this, [this]()
@@ -520,16 +562,97 @@ void ATDPlayerController::HideBaseComputer()
 
 void ATDPlayerController::HandleBack()
 {
-	// Esc: close the card back or an open panel, else the pause menu (gdd.md §2 Controls).
-	if (Hud)
+	// Esc: close Mission Control, else open or close the pause menu.
+	if (bBaseOpen)
 	{
-		Hud->HandleBack();
+		HideBaseComputer();
+		return;
+	}
+	if (bPauseOpen)
+	{
+		HidePauseMenu();
+		return;
+	}
+	if (bDesignScreenOpen)
+	{
+		return;
+	}
+	ShowPauseMenu();
+}
+
+void ATDPlayerController::HandlePadPause()
+{
+	if (bDesignScreenOpen || bBaseOpen)
+	{
+		return;
+	}
+	bPauseOpen ? HidePauseMenu() : ShowPauseMenu();
+}
+
+void ATDPlayerController::ShowPauseMenu()
+{
+	UTDMissionSubsystem* Mission = GetWorld()->GetSubsystem<UTDMissionSubsystem>();
+	if (bPauseOpen || !Mission || !GEngine || !GEngine->GameViewport)
+	{
+		return;
+	}
+	TWeakObjectPtr<ATDPlayerController> WeakThis(this);
+	SAssignNew(PauseMenu, STDPauseMenu)
+		.Mission(Mission)
+		.OnResume(FTDPauseAction::CreateLambda([WeakThis]() { if (WeakThis.IsValid()) { WeakThis->HidePauseMenu(); } }))
+		.OnRedesign(FTDPauseAction::CreateLambda([WeakThis]()
+		{
+			if (WeakThis.IsValid())
+			{
+				WeakThis->HidePauseMenu();
+				WeakThis->OpenDesignRoom();
+			}
+		}))
+		.OnQuit(FTDPauseAction::CreateLambda([WeakThis]()
+		{
+			if (WeakThis.IsValid())
+			{
+				UKismetSystemLibrary::QuitGame(WeakThis.Get(), WeakThis.Get(), EQuitPreference::Quit, false);
+			}
+		}));
+	GEngine->GameViewport->AddViewportWidgetContent(PauseMenu.ToSharedRef(), 60);
+	bPauseOpen = true;
+	SetPause(true);
+	FInputModeUIOnly Mode;
+	Mode.SetWidgetToFocus(PauseMenu);
+	Mode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+	SetInputMode(Mode);
+	SetShowMouseCursor(true);
+	Mission->PlaySfx(TEXT("UI_Back"));
+}
+
+void ATDPlayerController::HidePauseMenu()
+{
+	if (!bPauseOpen)
+	{
+		return;
+	}
+	if (PauseMenu.IsValid() && GEngine && GEngine->GameViewport)
+	{
+		GEngine->GameViewport->RemoveViewportWidgetContent(PauseMenu.ToSharedRef());
+	}
+	PauseMenu.Reset();
+	bPauseOpen = false;
+	SetPause(false);
+	if (!bDesignScreenOpen)
+	{
+		SetInputMode(FInputModeGameOnly());
+		SetShowMouseCursor(false);
+		if (FSlateApplication::IsInitialized())
+		{
+			FSlateApplication::Get().SetAllUserFocusToGameViewport();
+		}
 	}
 }
 
 bool ATDPlayerController::WantsPadCursor() const
 {
-	if (bDesignScreenOpen || bBaseOpen)
+	if (bDesignScreenOpen || bBaseOpen || bPauseOpen)
 	{
 		return true;
 	}
@@ -544,6 +667,11 @@ bool ATDPlayerController::WantsPadCursor() const
 
 void ATDPlayerController::HandlePadBack()
 {
+	if (bPauseOpen)
+	{
+		HidePauseMenu();
+		return;
+	}
 	if (bBaseOpen)
 	{
 		HideBaseComputer();

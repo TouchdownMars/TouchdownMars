@@ -390,6 +390,14 @@ public:
 	/** Comms log for the helmet HUD (Capcom lines and crew/base messages), newest last. */
 	void PushComms(const FText& Line);
 
+	/** Controls (saved with the settings). */
+	float GetLookSpeed() const;
+	void SetLookSpeed(float Speed);
+	bool IsLookInverted() const;
+	void SetLookInverted(bool bInvert);
+	bool IsTapToWork() const;
+	void SetTapToWork(bool bTap);
+
 	/** Radiation (Curiosity RAD days): highest crew dose, per-crew line, the event-day forecast for a decision. */
 	double GetMaxCrewDoseUGy() const;
 	/** mSv per uGy estimate: a quiet RAD day equals the average Mars-surface dose equivalent (George 2024). */

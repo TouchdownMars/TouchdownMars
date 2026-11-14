@@ -1845,3 +1845,12 @@ void UTDMissionSubsystem::WriteRunRecord(const FTDFlightRecord& Flight) const
 		UE_LOG(LogTouchdownMars, Display, TEXT("Run record: %s (event list hash %s)"), *Path, *Flight.EventListHash);
 	}
 }
+
+// Controls --------------------------------------------------------------------------------------------------------
+
+float UTDMissionSubsystem::GetLookSpeed() const { return Settings ? FMath::Clamp(Settings->LookSpeed, 0.25f, 3.f) : 1.f; }
+void UTDMissionSubsystem::SetLookSpeed(float Speed) { if (Settings) { Settings->LookSpeed = FMath::Clamp(Speed, 0.25f, 3.f); SaveSettings(); } }
+bool UTDMissionSubsystem::IsLookInverted() const { return Settings && Settings->bInvertLookY; }
+void UTDMissionSubsystem::SetLookInverted(bool bInvert) { if (Settings) { Settings->bInvertLookY = bInvert; SaveSettings(); } }
+bool UTDMissionSubsystem::IsTapToWork() const { return Settings && Settings->bTapToWork; }
+void UTDMissionSubsystem::SetTapToWork(bool bTap) { if (Settings) { Settings->bTapToWork = bTap; SaveSettings(); } }

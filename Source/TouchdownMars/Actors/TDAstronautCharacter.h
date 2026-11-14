@@ -90,6 +90,10 @@ public:
 	void DevGoToNextSpot(FName Task);
 	void DevGoToStation();
 	void DevSetHold(bool bHold) { bInteractHeld = bHold; }
+	/** True while E / X is physically down (hold mode works only while it is). */
+	bool bInteractKeyDown = false;
+	/** Tap to work: one press latched the spot in reach; cleared by finishing, leaving, moving or a screen. */
+	bool bTapLatched = false;
 
 	virtual void Tick(float DeltaSeconds) override;
 
@@ -119,6 +123,9 @@ private:
 	void ToggleOps();
 	void Interact();
 	void InteractReleased();
+	void TickAmbience();
+	UPROPERTY(Transient) TObjectPtr<class UAudioComponent> WindSound;
+	UPROPERTY(Transient) TObjectPtr<class UAudioComponent> HumSound;
 	void UseStation();
 
 	// Hands-on work

@@ -35,6 +35,17 @@ public:
 	UPROPERTY()
 	bool bOutcomeShotsEnabled = true;
 
+	/** Look speed multiplier (mouse and right stick). */
+	UPROPERTY()
+	float LookSpeed = 1.f;
+
+	UPROPERTY()
+	bool bInvertLookY = false;
+
+	/** Accessibility: one press works a spot through instead of holding. */
+	UPROPERTY()
+	bool bTapToWork = false;
+
 	UPROPERTY()
 	int32 LastSeed = 0;
 

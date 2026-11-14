@@ -219,6 +219,10 @@ STDBaseComputer::~STDBaseComputer()
 
 FReply STDBaseComputer::OnKeyDown(const FGeometry& MyGeometry, const FKeyEvent& InKeyEvent)
 {
+	if (InKeyEvent.IsRepeat())
+	{
+		return FReply::Handled();
+	}
 	if (InKeyEvent.GetKey() == EKeys::B || InKeyEvent.GetKey() == EKeys::Escape || InKeyEvent.GetKey() == EKeys::Tab
 		|| InKeyEvent.GetKey() == EKeys::Gamepad_FaceButton_Top || InKeyEvent.GetKey() == EKeys::Gamepad_Special_Left)
 	{
@@ -226,6 +230,27 @@ FReply STDBaseComputer::OnKeyDown(const FGeometry& MyGeometry, const FKeyEvent& 
 		return FReply::Handled();
 	}
 	return FReply::Unhandled();
+}
+
+void STDBaseComputer::Tick(const FGeometry& AllottedGeometry, const double InCurrentTime, const float InDeltaTime)
+{
+	SCompoundWidget::Tick(AllottedGeometry, InCurrentTime, InDeltaTime);
+	if (!Mission.IsValid())
+	{
+		return;
+	}
+	const FTDMissionState& S = Mission->GetState();
+	const FString Key = FString::Printf(TEXT("%d|%s|%d|%d|%d|%d|%d"), S.PhaseIndex, *S.CurrentEventId.ToString(), S.EventChoice,
+		UTDMissionRules::GetCellsPlaced(S), S.CellsTotal, Mission->IsRunningPhase() ? 1 : 0, S.bCalledHomeThisPhase ? 1 : 0);
+	if (Key != LastSeenState)
+	{
+		const bool bFirst = LastSeenState.IsEmpty();
+		LastSeenState = Key;
+		if (!bFirst)
+		{
+			Rebuild();
+		}
+	}
 }
 
 FText STDBaseComputer::Txt(const TCHAR* Key) const

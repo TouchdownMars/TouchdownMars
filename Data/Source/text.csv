@@ -80,7 +80,7 @@ UI_Mute,Mute,Sesi kapat
 UI_Unmute,Sound on,Sesi aç
 UI_DoseBadge,Storm exposures: {0},Fırtına maruziyeti: {0}
 Capcom_Opening_1,Your cargo landed before you. Power is ready.,Kargon senden önce indi. Güç hazır.
-Capcom_Opening_2,You are Stay. Put the first power cell in AIR.,Sen Stay'sin. İlk güç hücresini HAVA'ya koy.
+Capcom_Opening_2,You hold the power now. Put the first power cell in AIR at Mission Control.,Güç artık sende. Görev Merkezi'nde ilk güç hücresini HAVA'ya koy.
 Capcom_Opening_3,"Power you give to one, the others lose.",Birine verdiğin gücü diğerleri kaybeder.
 Capcom_Opening_4,Good. Press Call home to tell Earth you landed.,Güzel. İndiğini bildirmek için Dünya'yı ara'ya bas.
 Capcom_Restart,"Same mission, new plan. Earth is listening.","Aynı görev, yeni plan. Dünya dinliyor."
@@ -856,3 +856,17 @@ Label_SrcMeasured,NASA measurement or flown hardware,NASA ölçümü ya da uçmu
 Label_SrcManufacturer,Manufacturer value,Üretici değeri
 Label_SrcPlan,"NASA plan or study, not flown","NASA planı ya da çalışması, uçmadı"
 Label_SrcReference,Published reference,Yayımlanmış kaynak
+Pause_Title,PAUSED,DURAKLATILDI
+Pause_Hint,Esc / B / Menu: back to the mission. The sols do not run while this is open.,Esc / B / Menü: göreve dön. Bu açıkken soller ilerlemez.
+Pause_Redesign,Back to the design room,Tasarım odasına dön
+Pause_Controls,CONTROLS,KONTROLLER
+Pause_LookSpeed,Look speed,Bakış hızı
+Pause_InvertY,Invert look up/down,Yukarı/aşağı bakışı ters çevir
+Pause_TapWork,Work spots,İş noktaları
+Pause_TapWorkHold,hold E / X,E / X basılı tut
+Pause_TapWorkTap,tap once,bir kez bas
+Pause_Game,GAME,OYUN
+Pause_Language,Language,Dil
+Pause_Screen,Screen,Ekran
+Pause_ScreenFull,full screen,tam ekran
+Pause_ScreenWindow,window,pencere

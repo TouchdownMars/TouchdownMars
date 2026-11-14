@@ -12,6 +12,9 @@
 #include "Engine/StaticMesh.h"
 #include "EngineUtils.h"
 #include "Materials/MaterialInterface.h"
+#include "Components/AudioComponent.h"
+#include "Kismet/GameplayStatics.h"
+#include "Sound/SoundWave.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Engine/DataTable.h"
@@ -197,11 +200,16 @@ void ATDAstronautCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInp
 
 void ATDAstronautCharacter::Move(const FInputActionValue& Value)
 {
+	const FVector2D Axis = Value.Get<FVector2D>();
+	if (bTapLatched && !Axis.IsNearlyZero(0.3f))
+	{
+		bTapLatched = false; // walking away ends a tap-to-work job
+		bWorking = false;
+	}
 	if (bConsoleOpen || !Controller || bWorking)
 	{
 		return; // feet planted while the tool works
 	}
-	const FVector2D Axis = Value.Get<FVector2D>();
 	const FRotator Yaw(0.f, Controller->GetControlRotation().Yaw, 0.f);
 	AddMovementInput(FRotationMatrix(Yaw).GetUnitAxis(EAxis::X), Axis.Y);
 	AddMovementInput(FRotationMatrix(Yaw).GetUnitAxis(EAxis::Y), Axis.X);
@@ -214,8 +222,11 @@ void ATDAstronautCharacter::Look(const FInputActionValue& Value)
 		return;
 	}
 	const FVector2D Axis = Value.Get<FVector2D>();
-	AddControllerYawInput(Axis.X * LookSensitivity);
-	AddControllerPitchInput(-Axis.Y * LookSensitivity);
+	const UTDMissionSubsystem* Mission = GetWorld()->GetSubsystem<UTDMissionSubsystem>();
+	const float Speed = Mission ? Mission->GetLookSpeed() : 1.f;
+	const float Invert = Mission && Mission->IsLookInverted() ? -1.f : 1.f;
+	AddControllerYawInput(Axis.X * LookSensitivity * Speed);
+	AddControllerPitchInput(-Axis.Y * LookSensitivity * Speed * Invert);
 }
 
 void ATDAstronautCharacter::ToggleConsole()
@@ -306,6 +317,44 @@ void ATDAstronautCharacter::Tick(float DeltaSeconds)
 	}
 	UpdateFocus();
 	TickWork(DeltaSeconds);
+	TickAmbience();
+}
+
+void ATDAstronautCharacter::TickAmbience()
+{
+	UTDMissionSubsystem* Mission = GetWorld()->GetSubsystem<UTDMissionSubsystem>();
+	if (!Mission)
+	{
+		return;
+	}
+	auto Ensure = [this](TObjectPtr<UAudioComponent>& Comp, const TCHAR* Name)
+	{
+		if (Comp)
+		{
+			return;
+		}
+		const FString Asset = FString::Printf(TEXT("/Game/TouchdownMars/Audio/%s.%s"), Name, Name);
+		if (USoundWave* Wave = LoadObject<USoundWave>(nullptr, *Asset))
+		{
+			Wave->bLooping = true;
+			Comp = UGameplayStatics::SpawnSound2D(this, Wave, 0.f, 1.f, 0.f, nullptr, true, false);
+		}
+	};
+	Ensure(WindSound, TEXT("SFX_TD_Ambience_MarsWind"));
+	Ensure(HumSound, TEXT("SFX_TD_Ambience_BaseHum"));
+	const ATDPlayerController* AmbPC = Cast<ATDPlayerController>(GetController());
+	const bool bOn = Mission->IsSoundOn() && Mission->IsMissionRunning() && !(AmbPC && AmbPC->IsDesignScreenOpen());
+	if (WindSound)
+	{
+		WindSound->SetVolumeMultiplier(bOn ? 0.35f : 0.f);
+	}
+	if (HumSound)
+	{
+		// Louder next to the habitat (site HabInside), fades out over about 25 m.
+		const FVector Hab = Mission->GetSitePosition(TEXT("HabInside"));
+		const float Dist = FVector::Dist2D(GetActorLocation(), Hab);
+		HumSound->SetVolumeMultiplier(bOn ? FMath::Clamp(1.f - Dist / 2500.f, 0.f, 1.f) * 0.6f : 0.f);
+	}
 }
 
 void ATDAstronautCharacter::UpdateFocus()
@@ -393,17 +442,24 @@ FText ATDAstronautCharacter::GetInteractPrompt() const
 
 void ATDAstronautCharacter::Interact()
 {
-	bInteractHeld = true;
+	bInteractKeyDown = true;
 	if (!SpotInReach() && IsNearStation())
 	{
-		bInteractHeld = false;
+		bInteractKeyDown = false;
 		UseStation();
+		return;
+	}
+	const UTDMissionSubsystem* Mission = GetWorld()->GetSubsystem<UTDMissionSubsystem>();
+	if (Mission && Mission->IsTapToWork() && SpotInReach())
+	{
+		bTapLatched = true;
 	}
 }
 
 void ATDAstronautCharacter::InteractReleased()
 {
-	bInteractHeld = false;
+	// Hold mode stops on release; a tap-to-work latch keeps going until the spot is done or the player leaves.
+	bInteractKeyDown = false;
 }
 
 // Hands-on work ------------------------------------------------------------------------------------------------
@@ -677,19 +733,20 @@ void ATDAstronautCharacter::LandBeat(ATDWorkSpot* Spot)
 		const int32 Hit = Spot->GetBeatsDone();
 		switch (Spot->GetVerb())
 		{
-		case ETDWorkVerb::Hammer: Mission->PlaySfxPitched(TEXT("Stamp"), 0.85f + 0.12f * Hit); break;
-		case ETDWorkVerb::Plug: Mission->PlaySfxPitched(TEXT("CardFlip"), 0.7f + 0.2f * Hit); break;
-		case ETDWorkVerb::Wrench: Mission->PlaySfxPitched(TEXT("UI_Hover"), 0.6f + 0.1f * Hit); break;
-		case ETDWorkVerb::Latch: Mission->PlaySfxPitched(TEXT("CardFlip"), 1.2f); break;
-		case ETDWorkVerb::Brush: Mission->PlaySfxPitched(TEXT("UI_Hover"), 1.5f, 0.6f); break;
-		case ETDWorkVerb::Drill: Mission->PlaySfxPitched(TEXT("Stamp"), 0.55f + 0.05f * Hit); break;
-		case ETDWorkVerb::Scan: Mission->PlaySfxPitched(TEXT("UI_Hover"), 1.8f); break;
-		case ETDWorkVerb::Scoop: Mission->PlaySfxPitched(TEXT("Stamp"), 0.7f); break;
-		default: Mission->PlaySfxPitched(TEXT("UI_Confirm"), 1.3f); break;
+		case ETDWorkVerb::Hammer: Mission->PlaySfxPitched(TEXT("Work_Hammer"), 0.9f + 0.08f * Hit); break;
+		case ETDWorkVerb::Plug: Mission->PlaySfxPitched(TEXT("Work_Plug"), 0.9f + 0.1f * Hit); break;
+		case ETDWorkVerb::Wrench: Mission->PlaySfxPitched(TEXT("Work_Ratchet"), 0.95f + 0.05f * Hit); break;
+		case ETDWorkVerb::Latch: Mission->PlaySfxPitched(TEXT("Work_Latch"), 1.f); break;
+		case ETDWorkVerb::Brush: Mission->PlaySfxPitched(TEXT("Work_Brush"), 0.9f + 0.05f * Hit, 0.8f); break;
+		case ETDWorkVerb::Drill: Mission->PlaySfxPitched(TEXT("Work_Drill"), 1.f - 0.04f * Hit); break;
+		case ETDWorkVerb::Scan: Mission->PlaySfxPitched(TEXT("Work_Scan"), 1.f); break;
+		case ETDWorkVerb::Scoop: Mission->PlaySfxPitched(TEXT("Work_Scoop"), 0.95f + 0.05f * Hit); break;
+		default: Mission->PlaySfxPitched(TEXT("Work_Switch"), 1.f); break;
 		}
 		if (bSpotDone)
 		{
-			Mission->PlaySfxPitched(TEXT("UI_Confirm"), 1.f);
+			// The completion "ding" (PowerWash Simulator lesson: a distinct sound when a piece is done).
+			Mission->PlaySfxPitched(TEXT("Work_Done"), 1.f, 0.8f);
 		}
 	}
 	if (!bSpotDone || !Mission)
@@ -746,7 +803,14 @@ void ATDAstronautCharacter::TickWork(float DeltaSeconds)
 	}
 
 	ATDWorkSpot* Spot = SpotInReach();
-	bWorking = Spot && bInteractHeld;
+	// No work behind a screen (pause, Mission Control, design room).
+	const ATDPlayerController* WorkPC = Cast<ATDPlayerController>(GetController());
+	const bool bScreen = WorkPC && (WorkPC->IsDesignScreenOpen() || WorkPC->IsBaseComputerOpen() || WorkPC->IsPaused());
+	if (!Spot || bScreen)
+	{
+		bTapLatched = false; // a tap-to-work job ends when you leave the spot
+	}
+	bWorking = Spot && !bScreen && (bInteractKeyDown || bTapLatched || bInteractHeld);
 	if (bWorking)
 	{
 		const FTDWorkSet* Set = WorkSets.FindByPredicate([Spot](const FTDWorkSet& S) { return S.Spots.Contains(Spot); });
@@ -761,6 +825,8 @@ void ATDAstronautCharacter::TickWork(float DeltaSeconds)
 			{
 				WorkAccum = 0.f;
 				bInteractHeld = false; // one spot per hold: walk to the next
+				bInteractKeyDown = false;
+				bTapLatched = false;
 				bWorking = false;
 			}
 		}
