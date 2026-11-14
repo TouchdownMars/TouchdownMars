@@ -81,6 +81,9 @@ bool UTDMissionSubsystem::LoadTables(FString& OutError)
 
 bool UTDMissionSubsystem::StartMission(ETDAgeBand Band, int32 Seed)
 {
+	// The game flies one rule set (six phases, Mission Control one phase late, no locked system). The old age bands
+	// stay in the rules and their tests only; Guided and Advanced differ in landing hardware mass alone.
+	Band = ETDAgeBand::Commander;
 	FString Error;
 	if (!LoadTables(Error) || !UTDMissionRules::MakeConfig(PhasesTable, AgeBandsTable, ConstantsTable, Band, Config, Error))
 	{
@@ -759,7 +762,7 @@ bool UTDMissionSubsystem::LaunchDesign()
 	FlownBudget = Budget;
 	bHasFlownDesign = true;
 	bDesigning = false;
-	const ETDAgeBand Band = Design.bRealisticModel ? ETDAgeBand::Commander : ETDAgeBand::Cadet;
+	const ETDAgeBand Band = ETDAgeBand::Commander;
 	UE_LOG(LogTouchdownMars, Display, TEXT("Design: launch %s, %.1f t of %.1f t, %d cells (%d in dust), %.0f of %.0f MUSD"),
 		*GetDesignCode(), Budget.MassKg / 1000.0, Budget.CapacityKg / 1000.0, Budget.Cells, Budget.DustCells, Budget.CostM, Budget.BudgetM);
 	OnDesignLaunched.Broadcast();

@@ -272,8 +272,11 @@ void ATDPlayerController::OpenDesignRoom()
 		if (Mission && Mission->BeginDesign(TEXT("FirstLight"), false))
 		{
 			Mission->FirstFlight.bSkipped = true;
+			// -TDGuided: fly the Guided model (K01 check: same six phases and the same Mission Control delay).
+			Mission->SetRealisticModel(!FParse::Param(FCommandLine::Get(), TEXT("TDGuided")));
 			Mission->UseRecommendedDesign();
 			Mission->SetAllRolesGo();
+			UE_LOG(LogTouchdownMars, Display, TEXT("TDSurface: model %s"), Mission->GetDesign().bRealisticModel ? TEXT("Advanced") : TEXT("Guided"));
 			if (Mission->LaunchDesign())
 			{
 				HandleTransitDone();
