@@ -13,3 +13,4 @@ CleanSolar,Task_CleanSolar,Task_CleanSolar_Info,60,Solar1,2,TaskHoursCleanArrays
 Maintenance,Task_Maintenance,Task_Maintenance_Info,62,EclssInside,1,TaskHoursMaintenance,False,,,Maintain,Comms,True,0,()
 Logistics,Task_Logistics,Task_Logistics_Info,8,LZ2,2,LogisticsEvaHours,True,,SuitCheck,Maintain,Planner,False,0,(NasaHeomd415)
 Harvest,Task_Harvest,Task_Harvest_Info,48,Greenhouse,1,TaskHoursHarvest,False,,SetUpGreenhouse,Harvest,Science,False,0,()
+RoverExpedition,Task_RoverExpedition,Task_RoverExpedition_Info,16,Rover,2,RoverExpeditionHours,False,,OffloadRover,Expedition,Science,False,0,(NasaHeomd415)

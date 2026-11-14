@@ -2543,6 +2543,11 @@ TSharedRef<SWidget> STDDesignRoom::BuildDebrief()
 		AddCause(FText::Format(Txt(TEXT("Broke_EmptyRocket")), Num(100.0 - B.MassKg / B.CapacityKg * 100.0, 0)), Pal::Caution());
 		bAny = true;
 	}
+	if (M->GetOps().RestBreaks > 0)
+	{
+		AddCause(FText::Format(Txt(TEXT("Broke_RestRule")), M->GetOps().RestBreaks), Pal::Caution(), TEXT("NasaHeomd415"));
+		bAny = true;
+	}
 	if (!bAny)
 	{
 		AddCause(Txt(TEXT("Broke_Nothing")), Pal::Go());

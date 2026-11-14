@@ -152,6 +152,11 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Touchdown Mars|Suit")
 	TObjectPtr<UAnimSequence> FarewellAnim;
 
+	/** Where the suit mesh faces, in degrees of actor yaw: the Tripo astronaut faces the actor's +Y (90).
+	 *  Walking, working and escorting turn the actor so the suit (not the actor X axis) faces the way it moves. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Touchdown Mars|Suit")
+	float SuitForwardYaw = 90.f;
+
 	/** Crew name shown over the head and on the base computer (fictional adult crew). */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Touchdown Mars|Crew")
 	FString CrewName = TEXT("Crew");
@@ -183,6 +188,12 @@ public:
 	/** Runs the steps in order (walk, work, next), then calls OnAllDone. Status and progress feed the HUD label. */
 	void RunSteps(TArray<FTDCrewStep> Steps, float WalkSpeedCmPerSec, TFunction<void()> OnAllDone);
 	bool IsOnTask() const { return bOnTask; }
+
+	/** EVA buddy (never alone outside): stays at the player's side, walks or hurries by distance, never teleports. */
+	void StartEscort(AActor* Target);
+	/** Stops following and walks home. */
+	void StopEscort();
+	bool IsEscorting() const { return EscortTarget.IsValid(); }
 
 
 protected:
@@ -238,6 +249,9 @@ private:
 	float FeetOffset = 0.f;
 	TFunction<void()> ArriveCallback;
 	void RunNextStep();
+	void StepEscort(float DeltaSeconds);
+	TWeakObjectPtr<AActor> EscortTarget;
+	bool bEscortMoving = false;
 	TArray<FTDCrewStep> StepQueue;
 	TFunction<void()> StepsDone;
 	float StepSpeed = 300.f;

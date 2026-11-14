@@ -5,6 +5,8 @@
 #include "Engine/DataTable.h"
 #include "Actors/TDSceneActors.h"
 #include "TimerManager.h"
+#include "GameFramework/PlayerController.h"
+#include "GameFramework/Pawn.h"
 #include "Systems/TDWalkGrid.h"
 #include "HAL/FileManager.h"
 #include "Misc/FileHelper.h"
@@ -93,6 +95,13 @@ bool UTDMissionSubsystem::StartMission(ETDAgeBand Band, int32 Seed)
 	Ops = UTDOps::MakeState();
 	OpsReport.Reset();
 	bOpsRunning = false;
+	RefreshOpsScene();
+	CalledOut.Reset();
+	bCalledFar = false;
+	if (UWorld* World = GetWorld(); World && World->IsGameWorld())
+	{
+		World->GetTimerManager().SetTimer(EscortTimer, FTimerDelegate::CreateWeakLambda(this, [this]() { TickEscort(); }), 1.f, true);
+	}
 	if (Settings)
 	{
 		Settings->LastSeed = Seed;
@@ -891,14 +900,19 @@ ETDTaskBlock UTDMissionSubsystem::GetTaskBlock(FName TaskId, int32 CrewIndex) co
 		State.PhaseIndex, GetCurrentPhaseSols(), State.bDustPhase, ConstantsTable);
 }
 
-bool UTDMissionSubsystem::PlanTask(FName TaskId, int32 CrewIndex)
+float UTDMissionSubsystem::GetCrewPhaseHours(int32 CrewIndex) const
+{
+	return UTDOps::CrewPhaseHours(Ops, CrewIndex, GetCurrentPhaseSols(), ConstantsTable);
+}
+
+bool UTDMissionSubsystem::PlanTask(FName TaskId, int32 CrewIndex, bool bOverrideRest)
 {
 	if (!HasOps() || bOpsRunning)
 	{
 		return false;
 	}
 	const bool bOk = UTDOps::Plan(Ops, TasksTable, TaskId, CrewIndex, OpsDesignOf(bHasFlownDesign, FlownDesign, OptionsTable), OptionsTable,
-		State.PhaseIndex, GetCurrentPhaseSols(), State.bDustPhase, ConstantsTable);
+		State.PhaseIndex, GetCurrentPhaseSols(), State.bDustPhase, ConstantsTable, bOverrideRest);
 	PlaySfx(bOk ? TEXT("UI_Confirm") : TEXT("UI_Back"));
 	OnOpsChanged.Broadcast();
 	return bOk;
@@ -911,6 +925,7 @@ void UTDMissionSubsystem::UnplanTask(FName TaskId)
 		return;
 	}
 	UTDOps::Unplan(Ops, TaskId);
+	UTDOps::RecomputeRestBroken(Ops, TasksTable, GetCurrentPhaseSols(), ConstantsTable);
 	PlaySfx(TEXT("UI_Back"));
 	OnOpsChanged.Broadcast();
 }
@@ -937,6 +952,7 @@ void UTDMissionSubsystem::ClearPlan()
 	{
 		Crew.Tasks.Reset();
 	}
+	Ops.RestBroken.Reset();
 	OnOpsChanged.Broadcast();
 }
 
@@ -988,9 +1004,33 @@ bool UTDMissionSubsystem::RunPhase()
 		}
 		UE_LOG(LogTouchdownMars, Display, TEXT("Ops: run phase %d (dust %d): %s"), State.PhaseIndex, State.bDustPhase ? 1 : 0, *FString::Join(Plan, TEXT(" ")));
 	}
+	if (Escort.IsValid())
+	{
+		Escort->StopEscort();
+		Escort.Reset();
+	}
 	bOpsRunning = true;
 	OpsReport.Reset();
 	OpsCrewRunning = 0;
+	bool bExpedition = false;
+	for (const FTDCrewPlan& Crew : Ops.Crew)
+	{
+		for (const FName& Id : Crew.Tasks)
+		{
+			const FTDTaskRow* Row = TasksTable->FindRow<FTDTaskRow>(Id, TEXT("TDMissionSubsystem"), false);
+			bExpedition |= Row && Row->Effect == ETDTaskEffect::Expedition;
+		}
+	}
+	if (bExpedition)
+	{
+		for (TActorIterator<AActor> It(GetWorld()); It; ++It)
+		{
+			if (It->ActorHasTag(TEXT("OpsShow_OffloadRover")))
+			{
+				It->SetActorHiddenInGame(true); // the rover is out on the traverse
+			}
+		}
+	}
 	OnOpsChanged.Broadcast();
 
 	// AI crew 1-3 are the level's crew members (the AIR, GREENHOUSE and SHELTER keepers).
@@ -1086,8 +1126,15 @@ void UTDMissionSubsystem::FinishRun()
 			Who.FindOrAdd(Id).Add(Index);
 		}
 	}
+	const TArray<int32> Broke = Ops.RestBroken;
 	const TArray<FName> Finished = UTDOps::Finish(Ops, TasksTable);
+	RefreshOpsScene();
 	OpsReport.Reset();
+	for (int32 Index : Broke)
+	{
+		OpsReport.Add(FText::Format(GetText(TEXT("Ops_RestBroken")), GetCrewName(Index),
+			FText::AsNumber(FMath::RoundToInt((1.0 - GetConstant(TEXT("FatigueWorkShare"))) * 100.0))));
+	}
 	for (const FName& Id : Finished)
 	{
 		const FTDTaskRow* Row = TasksTable ? TasksTable->FindRow<FTDTaskRow>(Id, TEXT("TDMissionSubsystem"), false) : nullptr;
@@ -1131,6 +1178,7 @@ bool UTDMissionSubsystem::CompleteOwnTask(FName TaskId)
 	}
 	UTDOps::Unplan(Ops, TaskId);
 	Ops.Done.FindOrAdd(TaskId) += 1;
+	RefreshOpsScene();
 	UTDOps::ApplyEffect(*Row, Ops, State, ConstantsTable);
 	const FString EffectName = StaticEnum<ETDTaskEffect>()->GetNameStringByValue(static_cast<int64>(Row->Effect));
 	const FText Line = FText::Format(GetText(TEXT("Ops_Done")), FText::FromString(FString::Join(Names, TEXT(", "))), GetText(Row->NameKey),
@@ -1174,5 +1222,143 @@ void UTDMissionSubsystem::DevFillPhase()
 		{
 			break;
 		}
+	}
+}
+
+void UTDMissionSubsystem::RefreshOpsScene()
+{
+	UWorld* World = GetWorld();
+	if (!World || !World->IsGameWorld())
+	{
+		return;
+	}
+	const FTDMissionDesign& ForDesign = bHasFlownDesign ? FlownDesign : Design;
+	int32 Shown = 0;
+	int32 Hidden = 0;
+	for (TActorIterator<AActor> It(World); It; ++It)
+	{
+		AActor* Actor = *It;
+		bool bOps = false;
+		bool bOpsShow = true;
+		bool bDesignTagged = false;
+		bool bDesignShow = false;
+		for (const FName& Tag : Actor->Tags)
+		{
+			FString Rest = Tag.ToString();
+			if (Rest.RemoveFromStart(TEXT("OpsShow_")))
+			{
+				bOps = true;
+				bOpsShow &= UTDOps::IsDone(Ops, FName(*Rest));
+			}
+			else if (Rest.RemoveFromStart(TEXT("OpsHide_")))
+			{
+				bOps = true;
+				bOpsShow &= !UTDOps::IsDone(Ops, FName(*Rest));
+			}
+			else if (Rest.RemoveFromStart(TEXT("DesignShow_")))
+			{
+				bDesignTagged = true;
+				FString OptionId, Index;
+				if (Rest.Split(TEXT("_"), &OptionId, &Index, ESearchCase::IgnoreCase, ESearchDir::FromEnd))
+				{
+					bDesignShow |= UTDDesignRules::GetPickCount(ForDesign, FName(*OptionId)) >= FCString::Atoi(*Index);
+				}
+			}
+		}
+		if (!bOps)
+		{
+			continue;
+		}
+		// A deployed part shows only when the crew has done its task (and the design brought it).
+		const bool bShow = bOpsShow && (!bDesignTagged || bDesignShow);
+		Actor->SetActorHiddenInGame(!bShow);
+		Actor->SetActorEnableCollision(bShow);
+		(bShow ? Shown : Hidden) += 1;
+	}
+	WalkGrid.Reset(); // deployed parts change where the crew can walk
+	UE_LOG(LogTouchdownMars, Display, TEXT("Ops: scene %d deployed parts shown, %d waiting"), Shown, Hidden);
+}
+
+void UTDMissionSubsystem::TickEscort()
+{
+	UWorld* World = GetWorld();
+	APlayerController* PC = World ? World->GetFirstPlayerController() : nullptr;
+	APawn* Player = PC ? PC->GetPawn() : nullptr;
+	if (!Player || !IsMissionRunning() || bOpsRunning || !SitesTable)
+	{
+		return;
+	}
+	const FVector Hab = GetSitePosition(TEXT("Hab"));
+	const FVector P = Player->GetActorLocation();
+	const float FromHab = FVector2D::Distance(FVector2D(P), FVector2D(Hab));
+	const float OutsideCm = static_cast<float>(GetConstant(TEXT("EscortStartDistanceCm")));
+	// Never alone outside (NASA EVA rule): an idle crew member suits up and joins the player away from the hub.
+	if (FromHab > OutsideCm && !Escort.IsValid())
+	{
+		ATDCrewMember* Best = nullptr;
+		float BestDistance = TNumericLimits<float>::Max();
+		for (TActorIterator<ATDCrewMember> It(World); It; ++It)
+		{
+			if (!It->IsOnTask() && !It->IsWalking())
+			{
+				const float D = FVector::Dist2D(It->GetActorLocation(), P);
+				if (D < BestDistance)
+				{
+					BestDistance = D;
+					Best = *It;
+				}
+			}
+		}
+		UE_LOG(LogTouchdownMars, Display, TEXT("Ops: player %.0f cm from the hub, escort candidate %s"), FromHab, Best ? *Best->GetActorLabel() : TEXT("none"));
+		if (Best)
+		{
+			Escort = Best;
+			Best->StartEscort(Player);
+			Best->Say(GetText(TEXT("Escort_Join")), 4.f);
+		}
+	}
+	else if (FromHab < OutsideCm * 0.5f && Escort.IsValid())
+	{
+		Escort->Say(GetText(TEXT("Escort_Leave")), 3.f);
+		Escort->StopEscort();
+		Escort.Reset();
+		bCalledFar = false;
+	}
+	if (!Escort.IsValid())
+	{
+		return;
+	}
+	// Callouts only about what the player can see right now (Ellie's rule): the nearest site in reach, once.
+	FName Nearest;
+	float NearestDistance = static_cast<float>(GetConstant(TEXT("EscortCalloutDistanceCm")));
+	for (const FName& Site : SitesTable->GetRowNames())
+	{
+		const float D = FVector2D::Distance(FVector2D(P), FVector2D(GetSitePosition(Site)));
+		if (D < NearestDistance && !CalledOut.Contains(Site) && GetText(FName(*FString::Printf(TEXT("Callout_%s"), *Site.ToString()))).ToString() != FString::Printf(TEXT("Callout_%s"), *Site.ToString()))
+		{
+			NearestDistance = D;
+			Nearest = Site;
+		}
+	}
+	if (!Nearest.IsNone() && Escort->GetBark().IsEmpty())
+	{
+		CalledOut.Add(Nearest);
+		Escort->Say(GetText(FName(*FString::Printf(TEXT("Callout_%s"), *Nearest.ToString()))), 6.f);
+		return;
+	}
+	if (State.bDustPhase && !bCalledDust && Escort->GetBark().IsEmpty())
+	{
+		bCalledDust = true;
+		Escort->Say(GetText(TEXT("Escort_Dust")), 6.f);
+		return;
+	}
+	if (!State.bDustPhase)
+	{
+		bCalledDust = false;
+	}
+	if (FromHab > static_cast<float>(GetConstant(TEXT("EscortFarDistanceCm"))) && !bCalledFar && Escort->GetBark().IsEmpty())
+	{
+		bCalledFar = true;
+		Escort->Say(GetText(TEXT("Escort_Far")), 6.f);
 	}
 }

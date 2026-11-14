@@ -140,4 +140,46 @@ bool FTDOpsEffects::RunTest(const FString&)
 	return true;
 }
 
+/** NASA HEOMD-415: after a 5-sol traverse the rover recharges about 2 sols; no rover work in the next phase. */
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDOpsRover, "TD.Ops.RoverRechargesAfterTraverse", TDOpsTest::Flags)
+bool FTDOpsRover::RunTest(const FString&)
+{
+	const TDOpsTest::FTables T;
+	if (!T.Valid(*this)) { return false; }
+	const FTDTaskRow* Trip = T.Tasks->FindRow<FTDTaskRow>(TEXT("RoverExpedition"), TEXT("Test"));
+	if (!Trip) { AddError(TEXT("RoverExpedition row missing")); return false; }
+	FTDOpsState Ops = UTDOps::MakeState();
+	FTDMissionState State;
+	State.Levels = { 2, 2, 2 };
+	State.PhaseIndex = 3;
+	UTDOps::ApplyEffect(*Trip, Ops, State, T.Constants);
+	TestEqual(TEXT("two science walks"), State.ScienceWalks, 2);
+	TestEqual(TEXT("rover charging next phase"), Ops.RoverChargingPhase, 4);
+	Ops.Done.Add(TEXT("SuitCheck"), 1);
+	Ops.Done.Add(TEXT("OffloadRover"), 1);
+	TestEqual(TEXT("no traverse while charging"),
+		UTDOps::CanPlan(Ops, T.Tasks, TEXT("RoverExpedition"), 2, T.Design, T.Options, 4, 7, false, T.Constants), ETDTaskBlock::RoverCharging);
+	return true;
+}
+
+/** The rest-sol rule can be broken, at a cost: a medical flag and fewer work hours next phase. */
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDOpsFatigue, "TD.Ops.BrokenRestRuleTires", TDOpsTest::Flags)
+bool FTDOpsFatigue::RunTest(const FString&)
+{
+	const TDOpsTest::FTables T;
+	if (!T.Valid(*this)) { return false; }
+	FTDOpsState Ops = UTDOps::MakeState();
+	Ops.Done.Add(TEXT("SuitCheck"), 1);
+	Ops.Done.Add(TEXT("OffloadRover"), 1);
+	UTDOps::Plan(Ops, T.Tasks, TEXT("SurveyClays"), 1, T.Design, T.Options, TDOpsTest::Exploration, 2, false, T.Constants);
+	TestFalse(TEXT("no override: blocked"), UTDOps::Plan(Ops, T.Tasks, TEXT("BuildBerm"), 1, T.Design, T.Options, TDOpsTest::Exploration, 2, false, T.Constants));
+	TestTrue(TEXT("override: planned"), UTDOps::Plan(Ops, T.Tasks, TEXT("BuildBerm"), 1, T.Design, T.Options, TDOpsTest::Exploration, 2, false, T.Constants, true));
+	TestTrue(TEXT("medical flag"), Ops.RestBroken.Contains(1));
+	UTDOps::Finish(Ops, T.Tasks);
+	TestEqual(TEXT("tired next phase"), Ops.Fatigue[1], 1);
+	TestEqual(TEXT("counted"), Ops.RestBreaks >= 1, true);
+	TestTrue(TEXT("fewer hours"), UTDOps::CrewPhaseHours(Ops, 1, 2, T.Constants) < UTDOps::PhaseHours(2, T.Constants));
+	return true;
+}
+
 #endif

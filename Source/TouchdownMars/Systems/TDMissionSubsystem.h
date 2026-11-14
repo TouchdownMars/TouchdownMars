@@ -207,7 +207,8 @@ public:
 	float GetPhaseEvaHours() const;
 	float GetPlannedHours(int32 CrewIndex, bool bEvaOnly) const;
 	ETDTaskBlock GetTaskBlock(FName TaskId, int32 CrewIndex) const;
-	bool PlanTask(FName TaskId, int32 CrewIndex);
+	bool PlanTask(FName TaskId, int32 CrewIndex, bool bOverrideRest = false);
+	float GetCrewPhaseHours(int32 CrewIndex) const;
 	void UnplanTask(FName TaskId);
 	void AutoPlanTasks();
 	void ClearPlan();
@@ -462,6 +463,17 @@ private:
 	TSharedPtr<class FTDWalkGrid> WalkGrid;
 	void FinishRun();
 	void ApplySolarDust();
+
+	/** Shows the parts the crew has deployed (OpsShow_<TaskId> / OpsHide_<TaskId> tags, combined with DesignShow_). */
+	void RefreshOpsScene();
+
+	/** Every second: an idle AI crew member joins the player outside (buddy rule) and calls out the sites. */
+	void TickEscort();
+	FTimerHandle EscortTimer;
+	TWeakObjectPtr<class ATDCrewMember> Escort;
+	TSet<FName> CalledOut;
+	bool bCalledFar = false;
+	bool bCalledDust = false;
 
 	UPROPERTY(Transient)
 	TObjectPtr<UDataTable> ObjectivesTable;

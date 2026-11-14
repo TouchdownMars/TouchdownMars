@@ -286,12 +286,14 @@ TSharedRef<SWidget> STDBaseComputer::BuildCrew()
 {
 	UTDMissionSubsystem* M = Mission.Get();
 	const FTDOpsState& Ops = M->GetOps();
-	const float Available = M->GetPhaseHours();
 	const float EvaAvailable = M->GetPhaseEvaHours();
 	TSharedRef<SHorizontalBox> Row = SNew(SHorizontalBox);
 	for (int32 CrewIndex = 0; CrewIndex < Ops.Crew.Num(); ++CrewIndex)
 	{
 		const FTDCrewPlan& Crew = Ops.Crew[CrewIndex];
+		const float Available = M->GetCrewPhaseHours(CrewIndex);
+		const bool bTired = Ops.Fatigue.IsValidIndex(CrewIndex) && Ops.Fatigue[CrewIndex] > 0;
+		const bool bBroken = Ops.RestBroken.Contains(CrewIndex);
 		const float Planned = M->GetPlannedHours(CrewIndex, false);
 		const float Eva = M->GetPlannedHours(CrewIndex, true);
 		const bool bSelected = CrewIndex == SelectedCrew;
@@ -324,6 +326,11 @@ TSharedRef<SWidget> STDBaseComputer::BuildCrew()
 						SNew(SBox).WidthOverride(10.f).HeightOverride(20.f)[SNew(SBorder).BorderImage(White()).BorderBackgroundColor(bSelected ? Pal::Text() : RoleColor(Crew.Role))]
 					]
 					+ SHorizontalBox::Slot().FillWidth(1.f)[Label(M->GetCrewName(CrewIndex), 19, Pal::Text(), true, false)]
+					+ SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(0.f, 0.f, 6.f, 0.f)
+					[
+						bTired || bBroken ? Box(Label(bBroken ? Txt(TEXT("Ops_RestBadge")) : Txt(TEXT("Ops_Tired")), 11, Pal::Text(), true, false), Pal::Caution(), 3.f)
+							: SNullWidget::NullWidget
+					]
 					+ SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)[Label(Txt(RoleKey(Crew.Role)), 12, Pal::Text2(), true, false)]
 				]
 				+ SVerticalBox::Slot().AutoHeight().Padding(0.f, 6.f, 0.f, 2.f)
@@ -339,7 +346,7 @@ TSharedRef<SWidget> STDBaseComputer::BuildCrew()
 					+ SHorizontalBox::Slot().FillWidth(1.f)[Label(Txt(TEXT("Ops_EvaHours")), 11, Pal::Text2(), true, false)]
 					+ SHorizontalBox::Slot().AutoWidth()[SNew(STextBlock).Text(FText::Format(Txt(TEXT("Ops_Hours")), Hours(Eva), Hours(EvaAvailable))).Font(NumFont(12)).ColorAndOpacity(Pal::Text())]
 				]
-				+ SVerticalBox::Slot().AutoHeight()[HoursBar(Eva, EvaAvailable, TDTokens::Hex(TEXT("F07F2E")))]
+				+ SVerticalBox::Slot().AutoHeight()[HoursBar(Eva, EvaAvailable, Eva > EvaAvailable + 0.01f ? Pal::NoGo() : TDTokens::Hex(TEXT("F07F2E")))]
 				+ SVerticalBox::Slot().AutoHeight().Padding(0.f, 8.f, 0.f, 0.f)
 				[
 					Crew.Tasks.Num() > 0 ? StaticCastSharedRef<SWidget>(Chips)
@@ -415,7 +422,21 @@ TSharedRef<SWidget> STDBaseComputer::BuildBoard()
 			else
 			{
 				const FString BlockName = StaticEnum<ETDTaskBlock>()->GetNameStringByValue(static_cast<int64>(E.Block));
-				Action = Label(Txt(FName(*FString::Printf(TEXT("Ops_Block_%s"), *BlockName))), 12, Pal::Caution(), true);
+				TSharedRef<SVerticalBox> Blocked = SNew(SVerticalBox)
+					+ SVerticalBox::Slot().AutoHeight()[Label(Txt(FName(*FString::Printf(TEXT("Ops_Block_%s"), *BlockName))), 12, Pal::Caution(), true)];
+				if (E.Block == ETDTaskBlock::NoEvaHours)
+				{
+					// The rule can be broken, at a cost (Frostpunk-style overtime): fatigue next phase and a medical flag.
+					Blocked->AddSlot().AutoHeight().Padding(0.f, 4.f, 0.f, 0.f)
+					[
+						Button(Txt(TEXT("Ops_Override")), FOnClicked::CreateLambda([this, Id]()
+						{
+							if (Mission.IsValid()) { Mission->PlanTask(Id, SelectedCrew, true); }
+							return FReply::Handled();
+						}), !M->IsRunningPhase(), Pal::Caution(), 12)
+					];
+				}
+				Action = Blocked;
 			}
 
 			Cards->AddSlot()
@@ -486,6 +507,14 @@ TSharedRef<SWidget> STDBaseComputer::BuildSide()
 		Label(Ops.bWaterFound ? FText::Format(Txt(TEXT("Ops_Water")), Hours(Ops.WaterKg)) : Txt(TEXT("Ops_NoWaterYet")), 14, Pal::Text())
 	];
 	List->AddSlot().AutoHeight().Padding(0.f, 2.f)[Label(Ops.bWeatherStation ? Txt(TEXT("Ops_WeatherOn")) : Txt(TEXT("Ops_WeatherOff")), 14, Pal::Text())];
+	if (Ops.RoverChargingPhase == M->GetState().PhaseIndex)
+	{
+		List->AddSlot().AutoHeight().Padding(0.f, 2.f)[Label(Txt(TEXT("Ops_RoverCharging")), 14, Pal::Caution(), true)];
+	}
+	if (Ops.RestBreaks > 0)
+	{
+		List->AddSlot().AutoHeight().Padding(0.f, 2.f)[Label(FText::Format(Txt(TEXT("Ops_RestBreaks")), Ops.RestBreaks), 14, Pal::NoGo(), true)];
+	}
 	List->AddSlot().AutoHeight().Padding(0.f, 2.f)[Label(Txt(TEXT("Ops_EvaRule")), 13, Pal::Text2())];
 
 	const TArray<FText>& Report = M->GetOpsReport();

@@ -12,6 +12,7 @@
 #include "Engine/World.h"
 #include "EngineUtils.h"
 #include "GameFramework/PlayerController.h"
+#include "GameFramework/Pawn.h"
 #include "Kismet/GameplayStatics.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "NavigationPath.h"
@@ -307,6 +308,11 @@ void ATDCrewMember::StepIdle()
 		StepWalk(1.f / 30.f);
 		return;
 	}
+	if (IsEscorting() && !bOnTask)
+	{
+		StepEscort(1.f / 30.f);
+		return;
+	}
 	const UTDMissionSubsystem* Mission = GetWorld()->GetSubsystem<UTDMissionSubsystem>();
 	if ((Mission && Mission->IsReduceMotion()) || SuitMesh)
 	{
@@ -488,7 +494,7 @@ void ATDCrewMember::StepWalk(float DeltaSeconds)
 		Flat /= Distance;
 		Next += Flat * Step;
 		// Turn smoothly toward the walking direction.
-		const float TargetYaw = Flat.Rotation().Yaw;
+		const float TargetYaw = Flat.Rotation().Yaw - SuitForwardYaw;
 		BaseRotation.Yaw = FMath::FixedTurn(BaseRotation.Yaw, TargetYaw, 360.f * DeltaSeconds);
 	}
 	Next.Z = GroundZ(Next) + FeetOffset;
@@ -502,7 +508,7 @@ void ATDCrewMember::WorkAt(const FVector& LookAt)
 	Dir.Z = 0.f;
 	if (!Dir.IsNearlyZero())
 	{
-		BaseRotation.Yaw = Dir.Rotation().Yaw;
+		BaseRotation.Yaw = Dir.Rotation().Yaw - SuitForwardYaw;
 		SetActorLocationAndRotation(BaseLocation, BaseRotation);
 	}
 	PlayClip(WorkAnim ? WorkAnim.Get() : IdleAnim.Get());
@@ -586,4 +592,76 @@ void ATDCrewMember::RunNextStep()
 			}
 		}), 0.1f, true);
 	});
+}
+
+void ATDCrewMember::StartEscort(AActor* Target)
+{
+	if (!Target || bOnTask)
+	{
+		return;
+	}
+	StopWalking();
+	EscortTarget = Target;
+	bEscortMoving = false;
+	SetInside(false);
+}
+
+void ATDCrewMember::StopEscort()
+{
+	if (!IsEscorting())
+	{
+		return;
+	}
+	EscortTarget.Reset();
+	bEscortMoving = false;
+	if (!bOnTask)
+	{
+		WalkTo(HomeLocation, 160.f, [this]() { SetBasePose(HomeLocation, BaseRotation); PlayClip(IdleAnim); });
+	}
+}
+
+void ATDCrewMember::StepEscort(float DeltaSeconds)
+{
+	const AActor* Target = EscortTarget.Get();
+	if (!Target)
+	{
+		return;
+	}
+	// Ellie's rule (The Last of Us): stay close and keep up without teleporting. In first person the buddy walks
+	// side by side, a little ahead on the right, so the player sees them (an EVA pair walks together).
+	FVector Forward = Target->GetActorForwardVector().GetSafeNormal2D();
+	if (const APawn* Pawn = Cast<APawn>(Target); Pawn && Pawn->GetController())
+	{
+		Forward = Pawn->GetController()->GetControlRotation().Vector().GetSafeNormal2D();
+	}
+	const FVector Right = FVector::CrossProduct(FVector::UpVector, Forward);
+	const FVector Slot = Target->GetActorLocation() + Forward * 160.f + Right * 230.f;
+	FVector Flat(Slot.X - BaseLocation.X, Slot.Y - BaseLocation.Y, 0.f);
+	const float Distance = Flat.Size();
+	const bool bMove = bEscortMoving ? Distance > 60.f : Distance > 260.f; // hysteresis: no jitter at the edge
+	if (bMove)
+	{
+		const float Speed = Distance > 1500.f ? 380.f : (Distance > 600.f ? 220.f : 140.f);
+		if (!bEscortMoving)
+		{
+			PlayClip(WalkAnim, Speed / 140.f);
+		}
+		bEscortMoving = true;
+		Flat /= FMath::Max(1.f, Distance);
+		const float Step = FMath::Min(Distance, Speed * DeltaSeconds);
+		BaseLocation += Flat * Step;
+		BaseRotation.Yaw = FMath::FixedTurn(BaseRotation.Yaw, Flat.Rotation().Yaw - SuitForwardYaw, 360.f * DeltaSeconds);
+	}
+	else
+	{
+		if (bEscortMoving)
+		{
+			PlayClip(IdleAnim);
+		}
+		bEscortMoving = false;
+		const FVector ToPlayer = Target->GetActorLocation() - BaseLocation;
+		BaseRotation.Yaw = FMath::FixedTurn(BaseRotation.Yaw, ToPlayer.Rotation().Yaw - SuitForwardYaw, 120.f * DeltaSeconds);
+	}
+	BaseLocation.Z = GroundZ(BaseLocation) + FeetOffset;
+	SetActorLocationAndRotation(BaseLocation, BaseRotation);
 }

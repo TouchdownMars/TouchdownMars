@@ -60,7 +60,7 @@ Hub-and-spoke base, about 70 m x 60 m plus the power yard 60 m out. All position
 - **Design-driven parts** (tag `DesignShow_<OptionId>_<N>`, shown when the flown design has at least N): fission units 1-4, solar fields 1-3, water wall, regolith berm, second greenhouse, UHF relay antenna, MEDA mast, MOXIE unit, spare-part stacks. The scene behind the design room updates with every pick.
 - **Labels:** B1 COMMAND, B2 LIFE SUPPORT, B3 SCIENCE LAB, B4 AIRLOCK, ISRU PLANT, LZ-1 ASCENT, LZ-2 CARGO, POWER YARD. The helmet names each part (Inspect_* keys in text.csv).
 - **Rocks** inside the base footprint are hidden (tag `HiddenByBase`). The diorama's floating energy lines are off (`ATDPowerUnit::bShowEnergyLines`); cable trays carry the power.
-- **Rebuild order:** setup_cameras → setup_props → setup_tripo → setup_base → setup_fps.
+- **Rebuild order:** setup_cameras → setup_props → setup_tripo → setup_base → setup_ops → setup_fps. `setup_ops.py` adds OpsShow_<TaskId> tags (rover, weather mast) and the deployed parts (payload crates at LZ-2, regolith mound on the shelter, survey stakes at the clay site).
 
 ### Progression
 - **1. Introduce:** phase 1 Arrival (sol 1-3). Opening minute: dark base, "You are Stay", one cell to AIR with the ghost hand, three systems named, second cell with two valid slots, Call home, first card question. Nearly impossible to lose.

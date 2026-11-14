@@ -32,7 +32,8 @@ enum class ETDTaskEffect : uint8
 	CleanSolar,    // dust brushed off the arrays: dust losses cleared
 	Maintain,      // filters and seals: +1 lowest system level
 	Weather,       // weather station running: dust storms show one phase earlier
-	LinkCheck      // antenna or relay checked out: Call home works this phase
+	LinkCheck,     // antenna or relay checked out: Call home works this phase
+	Expedition     // multi-sol rover traverse: science walks, then the rover recharges for a phase
 };
 
 /** A place in the base where crew work or pass through (Data/Source/sites.csv). Coordinates in cm, level space. */
@@ -176,6 +177,22 @@ struct FTDOpsState
 	/** Hours of each crew member planned this phase (index = crew). */
 	UPROPERTY(BlueprintReadOnly, Category = "Ops")
 	TArray<float> PlannedHours;
+
+	/** Phases of fatigue left per crew member (rest-sol rule broken): work hours cut while > 0. */
+	UPROPERTY(BlueprintReadOnly, Category = "Ops")
+	TArray<int32> Fatigue;
+
+	/** Crew members planned beyond their spacewalk hours this phase (the rest-sol rule overridden). */
+	UPROPERTY(BlueprintReadOnly, Category = "Ops")
+	TArray<int32> RestBroken;
+
+	/** Times the rest-sol rule was broken this mission (shown in the report). */
+	UPROPERTY(BlueprintReadOnly, Category = "Ops")
+	int32 RestBreaks = 0;
+
+	/** Phase in which the rover is recharging after an expedition (-1: none). */
+	UPROPERTY(BlueprintReadOnly, Category = "Ops")
+	int32 RoverChargingPhase = -1;
 };
 
 /** Why a task cannot be planned right now. */
@@ -190,7 +207,8 @@ enum class ETDTaskBlock : uint8
 	NoHours,        // crew member out of hours this phase
 	NoEvaHours,     // EVA hours used up
 	Storm,          // no EVA during a dust storm
-	NeedsBuddy      // EVA needs a second free crew member
+	NeedsBuddy,     // EVA needs a second free crew member
+	RoverCharging   // the rover is recharging after an expedition
 };
 
 UCLASS()
@@ -205,6 +223,9 @@ public:
 	/** Work hours each crew member has in a phase of Sols sols (CrewWorkHoursPerSol from constants.csv). */
 	static float PhaseHours(int32 Sols, const UDataTable* Constants);
 
+	/** Work hours of one crew member this phase: fatigue (rest-sol rule broken) cuts them (FatigueWorkShare). */
+	static float CrewPhaseHours(const FTDOpsState& Ops, int32 CrewIndex, int32 Sols, const UDataTable* Constants);
+
 	/** EVA hours each crew member may spend outside in a phase (EvaHoursPerWeek scaled to the phase). */
 	static float PhaseEvaHours(int32 Sols, const UDataTable* Constants);
 
@@ -212,11 +233,14 @@ public:
 
 	/** Can this task be planned for crew member CrewIndex (plus a buddy when EVA) this phase? */
 	static ETDTaskBlock CanPlan(const FTDOpsState& Ops, const UDataTable* Tasks, FName TaskId, int32 CrewIndex, const FTDMissionDesign& Design,
-		const UDataTable* Options, int32 PhaseIndex, int32 PhaseSols, bool bDustStorm, const UDataTable* Constants);
+		const UDataTable* Options, int32 PhaseIndex, int32 PhaseSols, bool bDustStorm, const UDataTable* Constants, bool bOverrideRest = false);
 
 	/** Plans the task for CrewIndex and, for team tasks, the free crew members with the most hours left. */
 	static bool Plan(FTDOpsState& Ops, const UDataTable* Tasks, FName TaskId, int32 CrewIndex, const FTDMissionDesign& Design,
-		const UDataTable* Options, int32 PhaseIndex, int32 PhaseSols, bool bDustStorm, const UDataTable* Constants);
+		const UDataTable* Options, int32 PhaseIndex, int32 PhaseSols, bool bDustStorm, const UDataTable* Constants, bool bOverrideRest = false);
+
+	/** Which crew members are planned beyond their spacewalk hours (the rest-sol rule overridden). */
+	static void RecomputeRestBroken(FTDOpsState& Ops, const UDataTable* Tasks, int32 PhaseSols, const UDataTable* Constants);
 
 	/** Removes the task from every crew member's plan. */
 	static void Unplan(FTDOpsState& Ops, FName TaskId);

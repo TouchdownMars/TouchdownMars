@@ -196,3 +196,12 @@ ClayYieldPercent,2.7,wt% water,Kleinhenz2017Isru,False,"Slide 13: NASA generic M
 Rassor2TonnesPerDay,2.7,t of regolith per day (minimum),Mueller2016Rassor,False,Abstract: RASSOR 2.0 excavation robot (66 kg) digs at least 2.7 t per day
 Rassor2KgPerHour,112,kg per hour,Mueller2016Rassor,True,Derived: 2.7 t / 24 h
 EclssMaintHoursPerDayMin,3.0,crew-hours per day,RussellKlaus2007,False,"Abstract: planning value for life-support maintenance, crews of 2-3"
+RoverTraverseSols,5,sols,NasaHeomd415,False,Pressurized rover runs 5 sols on a traverse before it must recharge
+RoverRechargeSols,2,sols,NasaHeomd415,False,One 10 kW fission unit recharges the rover in about 2 sols
+ExplorationRadiusKm,20,km,NasaHeomd415,False,Crewed exploration within about a 20 km radius of the base
+RoverExpeditionHours,42.5,h per crew member,,True,Game value derived: RoverTraverseSols (5) x CrewWorkHoursPerSol (8.5)
+ExpeditionScienceWalks,2,science walks,,True,Game value: a 5-sol traverse counts as two science walks
+FatigueWorkShare,0.75,share of work hours,,True,Game value: a crew member who broke the rest-sol rule works 75 % of the hours next phase
+EscortStartDistanceCm,1800,cm,,True,Game value: an EVA buddy joins when the player is this far from the hub (NASA rule: never alone outside)
+EscortCalloutDistanceCm,900,cm,,True,Game value: the buddy calls out a site within this distance
+EscortFarDistanceCm,4500,cm,,True,Game value: the buddy warns about the walk back beyond this distance

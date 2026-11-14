@@ -44,12 +44,20 @@ FTDOpsState UTDOps::MakeState()
 		Crew.bPlayer = Index == 0;
 	}
 	Ops.PlannedHours.Init(0.f, 4);
+	Ops.Fatigue.Init(0, 4);
 	return Ops;
 }
 
 float UTDOps::PhaseHours(int32 Sols, const UDataTable* Constants)
 {
 	return FMath::Max(1, Sols) * UTDDesignRules::Constant(Constants, TEXT("CrewWorkHoursPerSol"));
+}
+
+float UTDOps::CrewPhaseHours(const FTDOpsState& Ops, int32 CrewIndex, int32 Sols, const UDataTable* Constants)
+{
+	const float Full = PhaseHours(Sols, Constants);
+	const bool bTired = Ops.Fatigue.IsValidIndex(CrewIndex) && Ops.Fatigue[CrewIndex] > 0;
+	return bTired ? Full * static_cast<float>(UTDDesignRules::Constant(Constants, TEXT("FatigueWorkShare"))) : Full;
 }
 
 float UTDOps::PhaseEvaHours(int32 Sols, const UDataTable* Constants)
@@ -78,7 +86,7 @@ TArray<int32> UTDOps::CrewOn(const FTDOpsState& Ops, FName TaskId)
 }
 
 ETDTaskBlock UTDOps::CanPlan(const FTDOpsState& Ops, const UDataTable* Tasks, FName TaskId, int32 CrewIndex, const FTDMissionDesign& Design,
-	const UDataTable* Options, int32 PhaseIndex, int32 PhaseSols, bool bDustStorm, const UDataTable* Constants)
+	const UDataTable* Options, int32 PhaseIndex, int32 PhaseSols, bool bDustStorm, const UDataTable* Constants, bool bOverrideRest)
 {
 	const FTDTaskRow* Row = FindTask(Tasks, TaskId);
 	if (!Row || !Ops.Crew.IsValidIndex(CrewIndex))
@@ -109,21 +117,25 @@ ETDTaskBlock UTDOps::CanPlan(const FTDOpsState& Ops, const UDataTable* Tasks, FN
 	{
 		return ETDTaskBlock::NeedsFirst;
 	}
-	if (Row->bEva && bDustStorm)
+	if ((Row->bEva || Row->Effect == ETDTaskEffect::Expedition) && bDustStorm)
 	{
 		return ETDTaskBlock::Storm;
 	}
+	// After a traverse the rover recharges on the fission grid (NASA HEOMD-415: about 2 sols on a 10 kW unit).
+	if (Ops.RoverChargingPhase == PhaseIndex && (Row->Effect == ETDTaskEffect::Expedition || Row->Prerequisite == FName(TEXT("OffloadRover"))))
+	{
+		return ETDTaskBlock::RoverCharging;
+	}
 	const float Hours = TaskHours(*Row, Constants);
-	const float Budget = PhaseHours(PhaseSols, Constants);
 	const float EvaBudget = PhaseEvaHours(PhaseSols, Constants);
 	auto Fits = [&](int32 Index, ETDTaskBlock& Why)
 	{
-		if (PlannedHoursOf(Ops, Index, Tasks, Constants, false) + Hours > Budget + 0.01f)
+		if (PlannedHoursOf(Ops, Index, Tasks, Constants, false) + Hours > CrewPhaseHours(Ops, Index, PhaseSols, Constants) + 0.01f)
 		{
 			Why = ETDTaskBlock::NoHours;
 			return false;
 		}
-		if (Row->bEva && PlannedHoursOf(Ops, Index, Tasks, Constants, true) + Hours > EvaBudget + 0.01f)
+		if (Row->bEva && !bOverrideRest && PlannedHoursOf(Ops, Index, Tasks, Constants, true) + Hours > EvaBudget + 0.01f)
 		{
 			Why = ETDTaskBlock::NoEvaHours;
 			return false;
@@ -150,10 +162,10 @@ ETDTaskBlock UTDOps::CanPlan(const FTDOpsState& Ops, const UDataTable* Tasks, FN
 }
 
 bool UTDOps::Plan(FTDOpsState& Ops, const UDataTable* Tasks, FName TaskId, int32 CrewIndex, const FTDMissionDesign& Design,
-	const UDataTable* Options, int32 PhaseIndex, int32 PhaseSols, bool bDustStorm, const UDataTable* Constants)
+	const UDataTable* Options, int32 PhaseIndex, int32 PhaseSols, bool bDustStorm, const UDataTable* Constants, bool bOverrideRest)
 {
 	if (CrewOn(Ops, TaskId).Num() > 0
-		|| CanPlan(Ops, Tasks, TaskId, CrewIndex, Design, Options, PhaseIndex, PhaseSols, bDustStorm, Constants) != ETDTaskBlock::Ok)
+		|| CanPlan(Ops, Tasks, TaskId, CrewIndex, Design, Options, PhaseIndex, PhaseSols, bDustStorm, Constants, bOverrideRest) != ETDTaskBlock::Ok)
 	{
 		return false;
 	}
@@ -170,7 +182,6 @@ bool UTDOps::Plan(FTDOpsState& Ops, const UDataTable* Tasks, FName TaskId, int32
 		}
 	}
 	const float Hours = TaskHours(*Row, Constants);
-	const float Budget = PhaseHours(PhaseSols, Constants);
 	const float EvaBudget = PhaseEvaHours(PhaseSols, Constants);
 	Others.Sort([&](int32 A, int32 B)
 	{
@@ -193,8 +204,8 @@ bool UTDOps::Plan(FTDOpsState& Ops, const UDataTable* Tasks, FName TaskId, int32
 		{
 			break;
 		}
-		const bool bHours = PlannedHoursOf(Ops, Index, Tasks, Constants, false) + Hours <= Budget + 0.01f;
-		const bool bEva = !Row->bEva || PlannedHoursOf(Ops, Index, Tasks, Constants, true) + Hours <= EvaBudget + 0.01f;
+		const bool bHours = PlannedHoursOf(Ops, Index, Tasks, Constants, false) + Hours <= CrewPhaseHours(Ops, Index, PhaseSols, Constants) + 0.01f;
+		const bool bEva = !Row->bEva || bOverrideRest || PlannedHoursOf(Ops, Index, Tasks, Constants, true) + Hours <= EvaBudget + 0.01f;
 		if (bHours && bEva)
 		{
 			Ops.Crew[Index].Tasks.Add(TaskId);
@@ -205,6 +216,7 @@ bool UTDOps::Plan(FTDOpsState& Ops, const UDataTable* Tasks, FName TaskId, int32
 	{
 		Ops.PlannedHours[Index] = PlannedHoursOf(Ops, Index, Tasks, Constants, false);
 	}
+	RecomputeRestBroken(Ops, Tasks, PhaseSols, Constants);
 	return true;
 }
 
@@ -213,6 +225,20 @@ void UTDOps::Unplan(FTDOpsState& Ops, FName TaskId)
 	for (FTDCrewPlan& Crew : Ops.Crew)
 	{
 		Crew.Tasks.Remove(TaskId);
+	}
+}
+
+void UTDOps::RecomputeRestBroken(FTDOpsState& Ops, const UDataTable* Tasks, int32 PhaseSols, const UDataTable* Constants)
+{
+	// Spacewalk hours beyond the rest-sol rule (only possible with an override): a medical flag and fatigue next phase.
+	Ops.RestBroken.Reset();
+	const float EvaBudget = PhaseEvaHours(PhaseSols, Constants);
+	for (int32 Index = 0; Index < Ops.Crew.Num(); ++Index)
+	{
+		if (PlannedHoursOf(Ops, Index, Tasks, Constants, true) > EvaBudget + 0.01f)
+		{
+			Ops.RestBroken.Add(Index);
+		}
 	}
 }
 
@@ -261,6 +287,24 @@ TArray<FName> UTDOps::Finish(FTDOpsState& Ops, const UDataTable* Tasks)
 		Crew.Tasks.Reset();
 	}
 	Ops.PlannedHours.Init(0.f, Ops.Crew.Num());
+	// Fatigue: one phase of reduced hours after the rest-sol rule was broken.
+	if (Ops.Fatigue.Num() != Ops.Crew.Num())
+	{
+		Ops.Fatigue.Init(0, Ops.Crew.Num());
+	}
+	for (int32& Left : Ops.Fatigue)
+	{
+		Left = FMath::Max(0, Left - 1);
+	}
+	for (int32 Index : Ops.RestBroken)
+	{
+		if (Ops.Fatigue.IsValidIndex(Index))
+		{
+			Ops.Fatigue[Index] = 1;
+		}
+	}
+	Ops.RestBreaks += Ops.RestBroken.Num();
+	Ops.RestBroken.Reset();
 	return Finished;
 }
 
@@ -305,6 +349,10 @@ void UTDOps::ApplyEffect(const FTDTaskRow& Row, FTDOpsState& Ops, FTDMissionStat
 		break;
 	}
 	case ETDTaskEffect::Weather: Ops.bWeatherStation = true; break;
+	case ETDTaskEffect::Expedition:
+		State.ScienceWalks += FMath::RoundToInt(UTDDesignRules::Constant(Constants, TEXT("ExpeditionScienceWalks")));
+		Ops.RoverChargingPhase = State.PhaseIndex + 1;
+		break;
 	case ETDTaskEffect::LinkCheck: State.bCalledHomeThisPhase = false; break;
 	default: break;
 	}

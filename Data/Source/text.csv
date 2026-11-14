@@ -731,3 +731,25 @@ Ops_Run,Run sols {0}-{1},{0}-{1}. solleri çalıştır
 Ops_Prompt,E: {0},E: {0}
 Ops_Marker,YOUR TASK · {0} · {1} m,GÖREVİN · {0} · {1} m
 Ops_RunBanner,SOLS {0}-{1} · TIME-LAPSE · CREW AT WORK,SOL {0}-{1} · HIZLANDIRILMIŞ · EKİP ÇALIŞIYOR
+Task_RoverExpedition,Rover traverse (5 sols),Gezgin keşfi (5 sol)
+Task_RoverExpedition_Info,"Two crew drive the pressurized rover out for 5 sols, within 20 km of the base, and bring back samples. Then the rover recharges for 2 sols on the fission grid.",İki kişi basınçlı gezginle 5 sol boyunca üsten en fazla 20 km uzağa gider ve örnek getirir. Sonra gezgin 2 sol fisyon şebekesinde şarj olur.
+Effect_Expedition,Science walks +2. Rover recharging next phase.,Bilim yürüyüşü +2. Gezgin sonraki evrede şarjda.
+Ops_Block_RoverCharging,Rover recharging (2 sols on the fission grid),Gezgin şarj oluyor (fisyon şebekesinde 2 sol)
+Ops_RoverCharging,Rover recharging this phase.,Gezgin bu evrede şarj oluyor.
+Ops_Override,Give anyway (tired next phase),Yine de ver (sonraki evre yorgun)
+Ops_Tired,TIRED,YORGUN
+Ops_RestBadge,NO REST SOL,DİNLENME YOK
+Ops_RestBroken,Medical: {0} did spacewalks without a rest sol (NASA rule). Next phase {1} % fewer work hours.,Tıbbi: {0} dinlenme solu olmadan uzay yürüyüşü yaptı (NASA kuralı). Sonraki evrede çalışma saati %{1} az.
+Ops_RestBreaks,Rest-sol rule broken {0} time(s) this mission.,Bu görevde dinlenme solu kuralı {0} kez çiğnendi.
+Escort_Join,Never alone outside. I'm with you.,Dışarıda asla yalnız değil. Seninleyim.
+Escort_Leave,Back at the hub. I'll get out of the suit.,Merkeze döndük. Kıyafeti çıkarıyorum.
+Escort_Dust,Dust is lifting. Let's stay close to the airlock.,Toz kalkıyor. Hava kilidine yakın kalalım.
+Escort_Far,We're far from the airlock now. Watch the suit time.,Hava kilidinden epey uzaktayız. Kıyafet süresine dikkat.
+Callout_Rover,That's our rover. It carries two of us for days.,Bu bizim gezgin. İkimizi günlerce taşır.
+Callout_LZ2,Cargo lander. Logistics stay on the deck until we need them.,Kargo iniş aracı. Lojistik konteynerler gerekene kadar güvertede kalır.
+Callout_Delta,The old delta. Water laid these layers down long ago.,Eski delta. Bu katmanları çok uzun zaman önce su bıraktı.
+Callout_Survey,"Clay ground. No ice here, but clay holds a little water.",Killi zemin. Burada buz yok ama kil biraz su tutar.
+Callout_Berm,Soil on the shelter blocks radiation in a solar storm.,Sığınağın üstündeki toprak güneş fırtınasında radyasyonu keser.
+Callout_Solar1,Solar arrays. One dust storm and they give a tenth.,Güneş panelleri. Bir toz fırtınasında onda birini verirler.
+Callout_Meda,Weather mast. It warns us before the dust comes.,Hava direği. Toz gelmeden bizi uyarır.
+Broke_RestRule,The crew broke the rest-sol rule {0} time(s): tired crew got less done.,Ekip dinlenme solu kuralını {0} kez çiğnedi: yorgun ekip daha az iş çıkardı.

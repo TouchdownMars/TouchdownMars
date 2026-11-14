@@ -187,7 +187,11 @@ All DataTables are imported from `Data/Source/*.csv` by `Scripts/import_data.py`
   - `ATDCrewMember`: `WalkPath`, `RunSteps` (walk → work timer with progress → next step), `SetInside`, `Say` (barks), `StatusText`/`StatusProgress` for the HUD; level reactions do not teleport a crew member who is on a task.
   - `UI/TDBaseComputer.h/.cpp` (Slate, NASA-punk palette): crew cards, task board, setup checklist, base status, run button. `ATDPlayerController::ToggleBaseComputer`/`RunPhase`; B and E bound in `ATDAstronautCharacter`.
   - `ATDHelmetHUD::DrawOps`: crew labels over the heads (name, task, progress, bark), your task markers, the E prompt, the time-lapse banner.
-- **Required work (later):** escort-follow on spacewalks, multi-sol rover expeditions, fatigue, crate → deployed facility swap.
+  - Deployed parts: `UTDMissionSubsystem::RefreshOpsScene` shows actors tagged `OpsShow_<TaskId>` once the task is done (`OpsHide_` the other way), combined with `DesignShow_`; the walk grid is rebuilt after a change.
+  - EVA buddy: `UTDMissionSubsystem::TickEscort` (1 s timer) picks the nearest idle crew member when the player is `EscortStartDistanceCm` from the hub; `ATDCrewMember::StartEscort/StopEscort/StepEscort` keep them beside the player (control rotation forward, +160 cm ahead, +230 cm right), hurry by distance, never teleport; callouts `Callout_<Site>` once per site, `Escort_Dust`, `Escort_Far`.
+  - Rover traverse: `ETDTaskEffect::Expedition` (+`ExpeditionScienceWalks`, `FTDOpsState::RoverChargingPhase`), `ETDTaskBlock::RoverCharging`; the rover actor hides during the run.
+  - Fatigue: `UTDOps::Plan(..., bOverrideRest)`, `RecomputeRestBroken`, `CrewPhaseHours` (`FatigueWorkShare`), `FTDOpsState::Fatigue/RestBroken/RestBreaks`; debrief line `Broke_RestRule`.
+  - Tests: `TD.Ops.RoverRechargesAfterTraverse`, `TD.Ops.BrokenRestRuleTires` (29 tests in all).
 
 ---
 
