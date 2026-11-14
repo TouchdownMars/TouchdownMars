@@ -2598,7 +2598,7 @@ TSharedRef<SWidget> STDDesignRoom::BuildDebrief()
 	{
 		const FTDFlightRecord& Prev = Flights[Flights.Num() - 2];
 		const FTDFlightRecord& Now = Flights.Last();
-		const bool bSame = Prev.Seed == Now.Seed && Prev.ObjectiveId == Now.ObjectiveId;
+		const bool bSame = Prev.Seed == Now.Seed && Prev.ObjectiveId == Now.ObjectiveId && Prev.Design.bRealisticModel == Now.Design.bRealisticModel;
 		auto Passed = [](const FTDMissionScore& S) { int32 N = 0; for (bool b : S.RequirementMet) { N += b ? 1 : 0; } return N; };
 		TSharedRef<SVerticalBox> Table = SNew(SVerticalBox);
 		auto Row = [this, &Table](const TCHAR* Key, const FString& A, const FString& B)
