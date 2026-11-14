@@ -8,9 +8,26 @@ A crew of four will live 31 sols at Jezero crater. You design the cargo mission 
 
 **Scope.** The game covers cargo planning and surface operations. Crew transport and return are assumed to be provided. Transfer orbits are not computed.
 
+## For judges: three minutes
+
+1. **Download:** the Windows build from the project page (link added at submission). Unzip it and run `TouchdownMars.exe`.
+2. **First minute:** take the console, pick an instrument, poll the room and press LAUNCH; the pre-launch checklist says what is still missing.
+3. **On Mars:** follow the red marker to the Mission Control console beside the habitat (E or X), place the power cells, answer the event, run the sols. Hold E or X at a lit work spot to do a task by hand.
+
 ## Status
 
-14 November 2026. The game loop is in place end to end: design room → launch → surface mission → debrief → redesign. The source defines 29 automation tests (`TD.Design.*` 10, `TD.Model.*` 11, `TD.Ops.*` 8). Play tests with people outside the team are still to come, so no learning claim is made.
+14 November 2026. The game loop is in place end to end: design room → launch → surface mission → debrief → redesign. The source defines 30 automation tests (`TD.Design.*` 10, `TD.Model.*` 12, `TD.Ops.*` 8); 30 of 30 passed on 14 November 2026. Play tests with people outside the team are still to come, so no learning claim is made.
+
+## Verified and planned
+
+| Claim | Status | Evidence |
+| :-- | :-- | :-- |
+| Same seed and one design change give the same event list | Verified | `Evidence/runs/` (two run records, equal `event_list_hash`) |
+| Mission Control replies one phase late and names the system that was weakest when you called | Verified | test `TD.Model.AdviceRemembersTheStateAtSend`, `TD.Model.MissionControlDelay`; `advice_stale` in the run records |
+| Guided and Advanced fly the same six phases and the same delay | Verified | automatic Guided flight, 14 Nov 2026 (six phases, mission completed) |
+| Every event card fact was checked against its source page | Verified | `Evidence/cards_check.md` |
+| Crew dose is summed from real Curiosity RAD days | Verified | `Data/Source/rad_dose.csv`; `crew_dose_ugy_total_after` in the run records |
+| Play tests with people outside the team | Planned | none yet |
 
 ## What is in the game
 
@@ -51,7 +68,7 @@ A crew of four will live 31 sols at Jezero crater. You design the cargo mission 
 - **Never alone outside:** when you walk away from the hub, a crew member suits up and walks with you.
 - **Rest rule:** a spacewalk can be ordered without a rest sol, but that crew member gets less done in the next phase and the debrief lists the broken rule.
 - **15 dated NASA event cards**, for example the 2017 solar storm measured by Curiosity's RAD, the 2018 dust storm that ended Opportunity, the 2022 InSight marsquake S1222a, MOXIE, the Apollo 13 air filters and solar conjunction. After each choice the card flips to "What really happened?" with the date, instrument, measurement and source. The design changes what an event costs: shielding lowers the power a radiation event needs, and spares make a repair cheaper.
-- **Mission Control delay:** replies arrive one phase late. During solar conjunction no link works, relay or not.
+- **Mission Control delay:** replies arrive one phase late. The reply names the system that was weakest when you called; by the time it arrives it may be out of date, and the debrief counts such replies. During solar conjunction no link works, relay or not.
 - **Helmet display:** life support, power cells, the crew's radiation dose, comms and the Jezero weather of the sol from Perseverance's MEDA station (PDS archive, labelled `ARCHIVE`).
 - **Heating from MEDA:** the daily air temperatures set the habitat heater load (game heat-loss model), which is part of the power cells a design must carry.
 - **Crew radiation dose from Curiosity RAD:** each sol uses one real day of RAD dosimetry (CDAWeb, Aug-Oct 2017). Outside time gets the full rate; the habitat and the storm shelter keep part of it out (labelled game assumptions). A radiation card replays the 11-17 Sep 2017 solar event, and the decision card shows the event-day dose for a spacewalk versus the shelter. The mSv value is an estimate scaled to the average Mars-surface dose equivalent and compared with the NASA career limit.
@@ -71,7 +88,7 @@ A crew of four will live 31 sols at Jezero crater. You design the cargo mission 
 - **Source Panel:** every number is listed with its source and where in the source it is, or labelled as a game value.
 - **Languages and controls:** English and Turkish. Keyboard and mouse, or a gamepad.
 - **Settings:** Guided or Advanced model, Reduce motion, sound.
-- **Privacy:** no accounts, no data collection.
+- **Privacy:** no accounts, no data collection. The game writes a local run record file for each flight (`Saved/Runs/`); nothing leaves the machine.
 
 ## Known limits
 
@@ -136,8 +153,14 @@ Full list with URLs, retrieval dates and licences: `Data/Source/sources.csv`.
 **Dated NASA events on the 15 event cards**
 - NASA and NASA/JPL mission news pages (2017 and 2024 solar storms at Mars, InSight 2022, Opportunity 2018, MOXIE, solar conjunction, CHAPEA, ISS plant growth), George et al. 2024 on Artemis I radiation, the Artemis II agenda and Flight Day 8 blog, NASA SAC21 (NTRS), NASA OCHMO Carbon Dioxide brief, the Apollo 13 Flight Journal, and the InSight Marsquake Service catalogue V14 with Kawamura et al. 2023.
 
+**Measurements that drive a rule on the surface**
+- Curiosity RAD Level 2 daily dose (CDAWeb, Aug to Oct 2017): every crew member's dose; George et al. 2024 average Mars-surface dose equivalent for the mSv estimate; NASA OCHMO career limit for comparison.
+- Perseverance MEDA daily air temperature: the habitat heater load in the cells a design must carry.
+- InSight Marsquake Service catalogue V14: the records studied with the seismometer; NASA InSight instrument page: seismometer power.
+- NASA/JPL Horizons: today's Earth-Mars light time on the Mission Control console.
+
 **Reference values listed in the Source Panel** (context only)
-- George et al. 2024 dose rates, NASA OCHMO radiation brief, NASA/JPL Horizons light time, NASA Deep Space Network and telecom pages, NASA Fission Surface Power and KRUSTY, Curiosity RAD Level 2 daily dose, NASA human Mars landing study, NASA ISRU and excavation references.
+- NASA Deep Space Network and telecom pages, NASA Fission Surface Power and KRUSTY, NASA human Mars landing study, NASA ISRU and excavation references. Papers and data bundles not read by a rule are marked "Reference only" in the source list; reference-only tables are in `Data/Reference/`.
 
 **Manufacturer data**
 - SpaceX Falcon 9 and Falcon Heavy vehicle pages: payload to Mars.
