@@ -159,6 +159,11 @@ Full list with URLs, retrieval dates and licences: `Data/Source/sources.csv`.
 - InSight Marsquake Service catalogue V14: the records studied with the seismometer; NASA InSight instrument page: seismometer power.
 - NASA/JPL Horizons: today's Earth-Mars light time on the Mission Control console.
 
+**Space Mission Design Game challenge resources**
+- JPL Concept Maturity Levels (Wessen et al., AIAA 2013): the concept maturity meter in the design room.
+- NASA Design and Develop Science Missions (2025) and the NASA GSFC Mission Design Lab: design references for the design, simulate, evaluate, redesign loop and the disciplines behind the four roles. No number in the game comes from them.
+- GMAT is not used: transfer orbits are not computed (see Known limits).
+
 **Reference values listed in the Source Panel** (context only)
 - NASA Deep Space Network and telecom pages, NASA Fission Surface Power and KRUSTY, NASA human Mars landing study, NASA ISRU and excavation references. Papers and data bundles not read by a rule are marked "Reference only" in the source list; reference-only tables are in `Data/Reference/`.
 
@@ -172,7 +177,7 @@ Full list with URLs, retrieval dates and licences: `Data/Source/sources.csv`.
 - Unreal Engine 5.8 (Epic Games, Unreal Engine EULA).
 - Quixel Megascans via Fab (Fab Standard License, Personal tier, free; **not redistributed here**): Icelandic Porous Rock, Icelandic Boulder, Desert Western Cluster Rock Medium 05, Icelandic Sand Rock.
 - Sound effects: synthesized by `Scripts/make_sfx.py` (Apache 2.0, not AI-generated).
-- Tripo AI (AI-generated 3D models, made in the team's Tripo Studio account; listed in `sources.csv` with `bIsAIGenerated=True`): ascent vehicle, fission power unit, greenhouse dome, plant rack, cargo crates, shelter hatch and the rigged crew astronaut.
+- Tripo AI (21 AI-generated 3D models, made in the team's Tripo Studio account; listed in `sources.csv` with `bIsAIGenerated=True`): ascent vehicle, fission power unit, greenhouse dome, plant rack, cargo crates, shelter hatch and the rigged crew astronaut; across the outpost, corridor tubes, habitat modules, airlock, light masts, regolith mounds, weather mast, water wall frames, ISRU plant, storage tanks, the Mission Control console body, payload cases, junction boxes, a field tablet and a sample scoop.
 - Design-room pictures: Google Gemini illustrations in one locked style (20 option cards, 4 objective cards, the cold open). Each card shows the tag "AI illustration (Gemini)"; listed in `sources.csv` as `GeminiIllustrations` with `bIsAIGenerated=True`.
 - Fonts: Barlow Semi Condensed and IBM Plex Mono (SIL Open Font License 1.1, licence files in `Content/TouchdownMars/UI/Fonts`).
 - Editor tooling only, not shipped and not in this repository: Epic's Unreal MCP, VibeUE (MIT), a private team fork of the StraySpark Unreal MCP Server.
@@ -185,7 +190,7 @@ The game concept, the mission architecture, the design decisions and the choice 
 
 - **ChatGPT and Claude** were used to draft and revise the team's work plan, to analyse the challenge documents and to set up this repository. Claude was used for competitor analysis and source checking.
 - **Anthropic Claude (Claude Code, an AI coding assistant)** wrote the C++ code, the Python editor scripts and the packaging script, built the levels, widgets and DataTables in the Unreal Editor through MCP editor tooling, and drafted the documents, the card research and the English and Turkish game text from the team's research and decisions. Every card fact was checked against its source page.
-- **Tripo AI** generated seven 3D models from text prompts written by Claude Code and run in the team's Tripo Studio account: ascent vehicle, fission power unit, greenhouse dome, plant rack, cargo crates, shelter hatch and the rigged crew astronaut (retopologised and auto-rigged with six preset animations). They are listed in `sources.csv` with `bIsAIGenerated=True`.
+- **Tripo AI** generated 21 3D models from text prompts run in the team's Tripo Studio account. The first seven, from prompts written by Claude Code: ascent vehicle, fission power unit, greenhouse dome, plant rack, cargo crates, shelter hatch and the rigged crew astronaut (retopologised and auto-rigged with six preset animations; its textures also dress the crew suits). Fourteen more across the outpost: corridor tubes, habitat modules, airlock, light masts, regolith mounds, weather mast, water wall frames, ISRU plant, storage tanks, the Mission Control console body, payload cases, junction boxes, a field tablet and a sample scoop. All are listed in `sources.csv` with `bIsAIGenerated=True`.
 - **Google Gemini** generated the 25 design-room illustrations (option cards, objective cards and the cold open of a fictional crew) from prompts written by Claude Code, in one locked style that matches the UI palette. The team checked every image at full size for logos, insignia, flags, mission patches, text and faces and rejected any that had them. Every card carries a visible "AI illustration (Gemini)" tag. Real NASA photos are not used for fictional scenes.
 - **Not AI-generated:** the sounds (team script), the NASA data and meshes, and the Megascans rocks. No AI-generated audio or video is used.
 
