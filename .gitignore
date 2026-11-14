@@ -73,3 +73,18 @@ Plugins/**/Intermediate/*
 
 # Cache files for the editor to use
 DerivedDataCache/*
+
+# Unreal project must sit at the repository root (next to this file) for the rules above to apply.
+
+# Third-party assets that are not open source must never reach this public repository.
+# Quixel Bridge imports go to Content/Megascans and Content/MSPresets; Fab imports go to Content/Fab.
+# Check the actual import folder after the first import and add it here if it differs.
+**/Content/Megascans/
+**/Content/MSPresets/
+**/Content/Fab/
+
+# Packaged game builds: publish through GitHub Releases, not git.
+Packaged/
+Windows/
+*.zip
+*.7z
