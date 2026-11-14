@@ -354,6 +354,10 @@ void UTDOps::ApplyEffect(const FTDTaskRow& Row, FTDOpsState& Ops, FTDMissionStat
 		Ops.RoverChargingPhase = State.PhaseIndex + 1;
 		break;
 	case ETDTaskEffect::LinkCheck: State.bCalledHomeThisPhase = false; break;
+	case ETDTaskEffect::Seismic:
+		++State.ScienceWalks;
+		++State.QuakeRecordsStudied;
+		break;
 	default: break;
 	}
 }

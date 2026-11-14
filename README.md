@@ -50,7 +50,10 @@ A crew of four will live 31 sols at Jezero crater. You design the cargo mission 
 - **Rest rule:** a spacewalk can be ordered without a rest sol, but that crew member gets less done in the next phase and the debrief lists the broken rule.
 - **15 dated NASA event cards**, for example the 2017 solar storm measured by Curiosity's RAD, the 2018 dust storm that ended Opportunity, the 2022 InSight marsquake S1222a, MOXIE, the Apollo 13 air filters and solar conjunction. After each choice the card flips to "What really happened?" with the date, instrument, measurement and source. The design changes what an event costs: shielding lowers the power a radiation event needs, and spares make a repair cheaper.
 - **Mission Control delay:** replies arrive one phase late. During solar conjunction no link works, relay or not.
-- **Helmet display:** life support, power cells, comms and the Jezero weather of the sol from Perseverance's MEDA station (PDS archive, labelled `ARCHIVE`).
+- **Helmet display:** life support, power cells, the crew's radiation dose, comms and the Jezero weather of the sol from Perseverance's MEDA station (PDS archive, labelled `ARCHIVE`).
+- **Heating from MEDA:** the daily air temperatures set the habitat heater load (game heat-loss model), which is part of the power cells a design must carry.
+- **Crew radiation dose from Curiosity RAD:** each sol uses one real day of RAD dosimetry (CDAWeb, Aug-Oct 2017). Outside time gets the full rate; the habitat and the storm shelter keep part of it out (labelled game assumptions). A radiation card replays the 11-17 Sep 2017 solar event, and the decision card shows the event-day dose for a spacewalk versus the shelter. The mSv value is an estimate scaled to the average Mars-surface dose equivalent and compared with the NASA career limit.
+- **Seismometer (InSight SEIS, up to 8.5 W):** level it outside, then study real records from the InSight Marsquake Service catalogue V14 in the lab, one science walk each. The records are what InSight measured in Elysium Planitia, not shaking at the base.
 - **Today's Sun:** live NASA DONKI space weather labelled `LIVE` with the fetch time, or the September 2017 archive labelled `ARCHIVE`. It never changes gameplay.
 - **Outcome shots:** short, skippable cinematics that show each result in the scene.
 
@@ -72,7 +75,7 @@ A crew of four will live 31 sols at Jezero crater. You design the cargo mission 
 
 - **Game values.** Module masses, most prices, data volumes, science values, the power cell size, task effects and the budget caps are game values, labelled in the Source Panel. The cruise and landing hardware in the Advanced model is a game assumption per kilogram of landed payload, not a NASA landing efficiency. Curiosity's launch mass breakdown is shown only as a historical example.
 - **Reference numbers.** Some sourced numbers (radiation dose rates and the career limit, Earth-Mars light time, Deep Space Network dish sizes) are listed in the Source Panel for context and do not drive a game rule.
-- **Time and scale.** 31 sols are played in a few minutes. Mission Control delay is shown as phases, not minutes. No health risk is computed.
+- **Time and scale.** 31 sols are played in a few minutes. Mission Control delay is shown as phases, not minutes. Crew dose is summed from real RAD days, but the habitat and shelter factors are game assumptions and no health effect is computed.
 - **Team play.** Four roles share one screen; there is no network play.
 - **Not in this build.** VR, Moon mode, music and voice.
 - **SAC21 is an analysis option**, labelled "NASA plan" in the game; it is not a committed NASA mission.

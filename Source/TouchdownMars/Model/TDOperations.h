@@ -33,7 +33,8 @@ enum class ETDTaskEffect : uint8
 	Maintain,      // filters and seals: +1 lowest system level
 	Weather,       // weather station running: dust storms show one phase earlier
 	LinkCheck,     // antenna or relay checked out: Call home works this phase
-	Expedition     // multi-sol rover traverse: science walks, then the rover recharges for a phase
+	Expedition,    // multi-sol rover traverse: science walks, then the rover recharges for a phase
+	Seismic        // one InSight catalogue record studied: a science walk
 };
 
 /** A place in the base where crew work or pass through (Data/Source/sites.csv). Coordinates in cm, level space. */

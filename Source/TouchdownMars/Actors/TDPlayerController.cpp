@@ -311,6 +311,23 @@ void ATDPlayerController::HandleTransitDone()
 	HideDesignScreen();
 	UE_LOG(LogTouchdownMars, Display, TEXT("Design: landed, surface mission running"));
 #if !UE_BUILD_SHIPPING
+	if (FParse::Param(FCommandLine::Get(), TEXT("TDLookTest")))
+	{
+		// Right stick pushed up (RightAnalogY +1, as an Xbox pad reports it) for 0.5 s: the view must pitch up.
+		GetWorldTimerManager().SetTimer(PadTestTimer, FTimerDelegate::CreateWeakLambda(this, [this]()
+		{
+			const float Before = GetControlRotation().GetNormalized().Pitch;
+			const FPlatformUserId User = IPlatformInputDeviceMapper::Get().GetPrimaryPlatformUser();
+			const FInputDeviceId Device = IPlatformInputDeviceMapper::Get().GetDefaultInputDevice();
+			FSlateApplication::Get().OnControllerAnalog(FGamepadKeyNames::RightAnalogY, User, Device, 1.f);
+			GetWorldTimerManager().SetTimer(PadTestTimer, FTimerDelegate::CreateWeakLambda(this, [this, Before, User, Device]()
+			{
+				FSlateApplication::Get().OnControllerAnalog(FGamepadKeyNames::RightAnalogY, User, Device, 0.f);
+				const float After = GetControlRotation().GetNormalized().Pitch;
+				UE_LOG(LogTouchdownMars, Display, TEXT("LookTest: stick UP pitch %.1f -> %.1f in 0.25 s (%s)"), Before, After, After > Before ? TEXT("looks UP, correct") : TEXT("looks DOWN, inverted"));
+			}), 0.25f, false);
+		}), 3.f, false);
+	}
 	if (FParse::Param(FCommandLine::Get(), TEXT("TDWorkTest")))
 	{
 		// Plan "Inspect the cargo" for you and stand at its first spot; the harness holds E.

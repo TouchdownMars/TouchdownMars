@@ -13,3 +13,4 @@ Berm,650,650,(),False,250,1100,Site_Berm
 Solar1,2650,2450,(),False,2900,2650,Site_Solar
 EclssInside,1380,250,(),True,1650,250,Site_Eclss
 LabInside,1750,1480,(),True,1750,1750,Site_Lab
+SeisPad,350,-1750,(),False,350,-2050,Site_SeisPad

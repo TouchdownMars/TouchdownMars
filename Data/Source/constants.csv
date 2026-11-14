@@ -1,13 +1,11 @@
 Name,Value,Unit,SourceId,bIsDesignerValue,SourceDetail
 O2PerPersonDay,0.895,kg per crew member per day,BVAD2,False,"Table 3-31 (PDF p. 72): oxygen consumed, 82 kg crew member"
 MarsSurfaceDose,0.65,mSv per day,George2024,False,"Table 2, average dose equivalent rate, Mars surface"
-MoonSurfaceDose,0.81,mSv per day,George2024,False,"Table 2, lunar surface"
 MarsTransitDose,1.58,mSv per day,George2024,False,"Table 2, Mars transit"
 CareerLimit,600,mSv,OCHMO,False,"Career effective dose limit, NASA-STD-3001 Vol. 1 Rev B (brief p. 4)"
 LightTimeNow,11.014,minutes,HorizonsMars,False,"One-way light time Earth-Mars, 2026-11-14 00:00 UT"
 LightTimeMin,3.2,minutes,HorizonsSeries,False,"Minimum of daily series 2017-2032, 2018-07-31"
 LightTimeMax,22.25,minutes,HorizonsSeries,False,"Maximum of daily series 2017-2032, 2019-08-29"
-MoonLightTime,1.353,seconds,HorizonsMoon,False,"One-way light time Earth-Moon, 2026-11-14 00:00 UT (0.02255 min)"
 LettuceDays,33,days,Veggie,False,VEG-01 red romaine lettuce grew for 33 days (fact sheet p. 3)
 PepperDays,137,days,Pepper2021,False,Plant Habitat-04 chile peppers
 StartLevelAir,3,level,,True,gdd.md 2 Mechanic 1
@@ -29,26 +27,15 @@ IdleHintSecondsMax,8,seconds,,True,gdd.md 2 Mechanic 1 edge cases
 DonkiTimeoutSeconds,5,seconds,,True,gdd.md 2 Mechanic 7
 DonkiRangeDays,30,days,,True,gdd.md 2 Mechanic 7
 MarsGravityRatio,0.38,ratio to Earth surface gravity,NSSDCMars,False,"Mars Fact Sheet, bulk parameters: surface gravity ratio (Mars/Earth) 0.380"
-SlsBlock1ToTli,27,t to trans-lunar injection,NasaSlsBlock1B,False,"Block 1B Progress comparison table: Block 1 mass to TLI 59,525 lb / 27 t"
-SlsBlock1BCrewToTli,38,t to trans-lunar injection,NasaSlsBlock1B,False,"Comparison table: Block 1B mass to TLI 84,000 lb / 38 t (crew configuration)"
-SlsBlock1BCargoToTli,42,t to trans-lunar injection,NasaSlsBlock1B,False,"Section Block 1B Cargo Configuration: approximately 42 t (93,000 lb) to the Moon"
 FalconHeavyToLeo,63800,kg,SpaceXFalconHeavy,False,"Overview table, Payload to LEO 63,800 kg (mode not stated)"
 FalconHeavyToMars,16800,kg,SpaceXFalconHeavy,False,"Overview table, Payload to Mars 16,800 kg (mode not stated)"
 Falcon9ToLeo,22800,kg,SpaceXFalcon9,False,"Overview table, Payload to LEO 22,800 kg"
 Falcon9ToMars,4020,kg,SpaceXFalcon9,False,"Overview table, Payload to Mars 4,020 kg"
-StarshipToOrbit,100,t (lower bound),SpaceXStarship,False,"Starship Overview: more than 100 t to orbit, fully reusable"
-StarshipMarsPricePerTonne,100,million USD per t,SpaceXStarship,False,"Mars Missions: surface cargo NET 2028 at $100 million per metric ton (advertised price, not contract)"
-VulcanVc6ToLeo,27200,kg,UlaVulcan,False,"Performance table, 6 Solids, LEO-REF 200 km 28.7 deg"
-NewGlennToLeo,45,t,BlueNewGlenn,False,Upper stage section: 45 metric tons to LEO
-SlsOrionCostPerLaunch,4.1,billion USD,OigIG22003,False,"Report p. 23 (PDF p. 29): SLS/Orion $4.1 billion per launch, Artemis I-IV (OIG estimate)"
-SlsBlock1CostPerLaunch,2.2,billion USD,OigIG22003,False,Report p. 23 (PDF p. 29): single-use SLS $2.2 billion to produce (OIG estimate)
-SlsBlock1BProductionCost,2.5,billion USD,OigIG24001,False,"Results in Brief and p. 8: SLS Block 1B at least $2.5 billion to produce, excl. SE&I (OIG estimate)"
 EuropaClipperLaunchContract,178,million USD,NasaEuropaClipperLaunch,False,"Contract value: total launch services award approx. $178 million, Falcon Heavy (23 Jul 2021)"
-PsycheLaunchContract,117,million USD,NasaPsycheLaunch,False,"Contract value: total cost to launch Psyche and secondary payloads approx. $117 million, Falcon Heavy (28 Feb 2020)"
 MarsCruiseDays,200,days,NasaMarsTimeline,False,"Section Cruise: The Trip to Mars, cruise lasts about 200 days"
 LaunchWindowMonths,26,months,NasaMarsTimeline,False,"Section Cruise: The Trip to Mars, aligned about once every 26 months"
 PerseveranceCruiseDays,213,days,JplM2020LaunchMission,False,"Trip section: 213 days, about 497 million km (20 Jul 2020 launch case)"
-MarsSynodicPeriod,779.94,days,NssdcMarsFact,False,"Orbital parameters table, synodic period"
+MarsSynodicPeriod,779.94,days,NSSDCMars,False,"Orbital parameters table, synodic period"
 LightTimeMinNasaPage,4,minutes,NasaSpaceComms7,False,Delay about four minutes at closest approach
 LightTimeMaxNasaPage,24,minutes,NasaSpaceComms7,False,Delay around 24 minutes at greatest distance
 KilopowerMaxKwe,10,kWe,NasaKilopower2018,False,"Release 18-031: up to 10 kilowatts electrical, at least 10 years"
@@ -58,8 +45,8 @@ FissionSurfacePowerKwe,40,kWe,NasaFsp,False,"Project page: at least 40 kilowatts
 MmrtgPowerBol,110,W,MmrtgFactSheet,False,"p. 2 spec table, Beginning of Life Power 110 W"
 MmrtgPowerAt17Years,72,W,MmrtgFactSheet,False,"p. 2 spec table, est. end-of-design-life power at 17 years"
 MmrtgMass,45,kg,MmrtgFactSheet,False,p. 2 text: about 94 pounds (45 kilograms)
-MarsSolarIrradiance,586.2,W/m2,NssdcMarsFact,False,"Bulk parameters table, solar irradiance Mars (Earth 1361.0)"
-MarsSolarRatio,0.431,ratio Mars/Earth,NssdcMarsFact,False,"Bulk parameters table, solar irradiance ratio"
+MarsSolarIrradiance,586.2,W/m2,NSSDCMars,False,"Bulk parameters table, solar irradiance Mars (Earth 1361.0)"
+MarsSolarRatio,0.431,ratio Mars/Earth,NSSDCMars,False,"Bulk parameters table, solar irradiance ratio"
 InSightSolarWhPerSolStart,5000,Wh per sol,InSightPia25284,False,"Caption: roughly 5,000 Wh per sol after landing (Nov 2018)"
 InSightSolarWhPerSol2022,500,Wh per sol,InSightPia25284,False,Caption: about 500 Wh per sol by spring 2022 (dust on panels)
 InSightArrayWattsEarth,1300,W,JplInSightFacts,False,"Power: about 1,300 W on Earth on a clear day"
@@ -102,7 +89,7 @@ MoxiePower,300,W,M2020Instruments,False,MOXIE: 300 W
 RadMass,1.7,kg,MslLandingKit,False,"p. 20, RAD paragraph: 3.8-pound (1.7-kilogram) RAD instrument"
 CrewSize,4,crew,,True,Scenario: crew of four (NASA human-landing studies size cargo for a crew of four; Edlas2016)
 CellKw,5,kWe per power cell,,True,Game conversion: one power cell = 5 kWe of steady power
-MinCells,5,cells,,True,Lowest cell count a design may launch with
+MinCells,5,cells,,True,"Computed at start: (BaseLoadKw + HeatingKw) / CellKw, rounded up"
 DustStormSolarShare,0.1,share of clear-sky solar output,,True,"Game value for a dust-storm phase, scaled after InSight's fall from about 5,000 to 500 Wh per sol (InSightPia25284)"
 MassMarginGoal,0.1,share of launch capacity,,True,Planner goal: keep 10 % of launch capacity as margin
 ScienceGoal,60,science points,,True,Science Lead goal
@@ -205,3 +192,17 @@ FatigueWorkShare,0.75,share of work hours,,True,Game value: a crew member who br
 EscortStartDistanceCm,1800,cm,,True,Game value: an EVA buddy joins when the player is this far from the hub (NASA rule: never alone outside)
 EscortCalloutDistanceCm,900,cm,,True,Game value: the buddy calls out a site within this distance
 EscortFarDistanceCm,4500,cm,,True,Game value: the buddy warns about the walk back beyond this distance
+SeisDrawKw,0.0085,kWe,NasaInSightInstruments,False,SEIS tech specs: up to 8.5 watts (converted to kW)
+SeisData,10,Mb per sol,,True,Game data volume
+SeisScience,15,science points,,True,Game science value
+TaskHoursDeploySeis,2,hours,,True,Game time to level and shield the seismometer
+TaskHoursStudyQuake,2,hours,,True,Game time to study one catalogue record
+RadHabitatFactor,0.8,share of the outside dose rate,,True,Game assumption: dose inside the habitat walls
+RadShelterFactorBasic,0.6,share of the outside dose rate,,True,Game assumption: aluminium storm shelter during a solar event
+RadShelterFactorWaterWall,0.35,share of the outside dose rate,,True,Game assumption: water-wall shelter during a solar event
+RadShelterFactorRegolith,0.3,share of the outside dose rate,,True,Game assumption: regolith shelter during a solar event
+RadBermFactor,0.8,multiplier,,True,Game assumption: extra regolith berm piled by the crew
+BaseLoadKw,20,kWe,,True,"Game value: steady base load without heating (life support, lab, comms, ISRU)"
+HabitatHeatLossKwPerK,0.06,kW per K,,True,Game model: heat lost through the habitat shell per kelvin of difference
+HabitatCabinC,21,deg C,,True,Game value: cabin air temperature
+HeatingKw,3.8,kWe,,True,Computed at start from MEDA daily mean air (mars_weather.csv) with the game heat-loss model

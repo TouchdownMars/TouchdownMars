@@ -29,7 +29,7 @@ public:
 	void Rebuild();
 	/** Mission Control opens on the tab that needs the player (decision, then power, then crew). */
 	void PickTab();
-	enum class ETab : uint8 { Power, Crew, Decision };
+	enum class ETab : uint8 { Power, Crew, Decision, Data };
 	virtual bool SupportsKeyboardFocus() const override { return true; }
 	virtual FReply OnKeyDown(const FGeometry& MyGeometry, const FKeyEvent& InKeyEvent) override;
 
@@ -42,6 +42,8 @@ private:
 	TSharedRef<SWidget> BuildTabs();
 	TSharedRef<SWidget> BuildPower();
 	TSharedRef<SWidget> BuildDecision();
+	/** Today's Sun (NASA DONKI, LIVE or ARCHIVE) and where every number comes from (Source Panel). */
+	TSharedRef<SWidget> BuildData();
 	ETab Tab = ETab::Power;
 	FText Txt(const TCHAR* Key) const;
 	FText Txt(FName Key) const;

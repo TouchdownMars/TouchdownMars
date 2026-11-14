@@ -156,10 +156,10 @@ void ATDAstronautCharacter::CreateInput()
 		UInputModifierDeadZone* LookDead = NewObject<UInputModifierDeadZone>(this);
 		LookDead->LowerThreshold = 0.15f;
 		PadLook.Modifiers.Add(LookDead);
-		// About 140 degrees per second at full stick, frame-rate independent (Look multiplies by LookSensitivity 0.5).
+		// About 160 degrees per second of yaw and 110 of pitch at full stick (measured with -TDLookTest), frame-rate independent.
 		UInputModifierScalar* LookScale = NewObject<UInputModifierScalar>(this);
 		// Y is negated: stick up looks up (the mouse axis has the opposite sign, Look() is written for the mouse).
-		LookScale->Scalar = FVector(280.0, -200.0, 1.0);
+		LookScale->Scalar = FVector(128.0, -88.0, 1.0);
 		PadLook.Modifiers.Add(LookScale);
 		PadLook.Modifiers.Add(NewObject<UInputModifierScaleByDeltaTime>(this));
 

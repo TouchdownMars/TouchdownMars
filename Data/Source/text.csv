@@ -535,7 +535,7 @@ Cells_Title,POWER CELLS,GÜÇ HÜCRELERİ
 Cells_Clear,CLEAR SKY,AÇIK GÖK
 Cells_Dust,DUST STORM,TOZ FIRTINASI
 Cells_DustLater,Dust storm: you test it in step 5.,Toz fırtınası: 5. adımda deneyeceksin.
-Cells_Note,1 cell = {0} kW. The black line marks the {1} cells the base needs.,1 hücre = {0} kW. Siyah çizgi üssün istediği {1} hücreyi gösterir.
+Cells_Note,"1 cell = {0} kW. The black line marks the {1} cells the base needs: {2} kW of equipment + {3} kW of heating against Jezero's air (Perseverance MEDA, game heat-loss model).","1 hücre = {0} kW. Siyah çizgi üssün istediği {1} hücreyi gösterir: {2} kW ekipman + Jezero havasına karşı {3} kW ısıtma (Perseverance MEDA, oyun ısı kaybı modeli)."
 Storm_Title,"Storm preview: your design, sols {0}-{1}. Sunlight −{2} %.","Fırtına önizlemesi: senin tasarımın, sol {0}-{1}. Güneş ışığı −%{2}."
 Storm_Holds,{0} of {1} cells: life support stays on.,{1} hücreden {0}: yaşam desteği açık kalır.
 Storm_Fails,{0} of {1} cells: life support fails.,{1} hücreden {0}: yaşam desteği çöker.
@@ -823,3 +823,28 @@ Check_Guided,finish the guided step first,önce rehberli adımı bitir
 Check_Poll,consoles GO {0}/{1},konsollar GO {0}/{1}
 Check_Ready,READY: press LAUNCH,HAZIR: FIRLAT'a bas
 Check_NotReady,{0} NO-GO before LAUNCH,FIRLATMA öncesi {0} NO-GO
+MC_TabData,SUN + SOURCES,GÜNEŞ + KAYNAKLAR
+MC_SunWaiting,Asking NASA DONKI for today's Sun...,Bugünün Güneşi NASA DONKI'den isteniyor...
+Opt_Seis,Seismometer (InSight SEIS),Sismometre (InSight SEIS)
+Opt_Seis_Info,Listens to the planet: marsquakes and meteorite impacts. Up to 8.5 W (NASA). Mass not counted: the team found no NASA mass figure.,"Gezegeni dinler: Mars depremleri ve göktaşı çarpmaları. En fazla 8,5 W (NASA). Kütle sayılmadı: ekip NASA kaynaklı bir kütle bulamadı."
+Opt_Seis_Why,Each study of a real InSight record is a science walk.,Gerçek bir InSight kaydının her incelemesi bir bilim yürüyüşü sayılır.
+Site_SeisPad,Seismometer pad,Sismometre alanı
+Task_DeploySeis,Level the seismometer,Sismometreyi dengele
+Task_DeploySeis_Info,EVA: set the three feet level and cover it against wind and cold.,"EVA: üç ayağı dengele, rüzgâra ve soğuğa karşı ört."
+Task_StudyQuake,Study a marsquake record,Bir Mars depremi kaydını incele
+Task_StudyQuake_Info,Read one real record from the InSight catalogue. Each record is a science walk.,InSight kataloğundan gerçek bir kaydı oku. Her kayıt bir bilim yürüyüşü sayılır.
+Effect_Seismic,one InSight record studied,bir InSight kaydı incelendi
+Quake_Record,"SEIS study {0}: {1}, Mw {2}, about {3} km from InSight ({4}). MQS catalogue V14; recorded by InSight in Elysium Planitia, not felt at your base.","SEIS incelemesi {0}: {1}, Mw {2}, InSight'a yaklaşık {3} km ({4}). MQS kataloğu V14; InSight Elysium Planitia'da kaydetti, üssünüzde hissedilmedi."
+Quake_RecordImpact,"SEIS study {0}: {1}, Mw {2}, about {3} km from InSight ({4}). The catalogue marks it a meteorite impact, not a quake. MQS catalogue V14.","SEIS incelemesi {0}: {1}, Mw {2}, InSight'a yaklaşık {3} km ({4}). Katalog bunu deprem değil göktaşı çarpması olarak işaretliyor. MQS kataloğu V14."
+Dose_Phase,"Radiation, sols {0}-{1}: highest crew dose {2} µGy (Curiosity RAD days, Aug-Oct 2017).","Radyasyon, {0}-{1}. soller: en yüksek ekip dozu {2} µGy (Curiosity RAD günleri, Ağu-Eki 2017)."
+Dose_PhaseEventShelter,"Solar storm, sols {0}-{1}: crew in the shelter, highest dose {2} µGy (RAD days from 11 Sep 2017).","Güneş fırtınası, {0}-{1}. soller: ekip sığınakta, en yüksek doz {2} µGy (11 Eylül 2017'den RAD günleri)."
+Dose_PhaseEventOut,"Solar storm, sols {0}-{1}: crew outside or unshielded, highest dose {2} µGy (RAD days from 11 Sep 2017).","Güneş fırtınası, {0}-{1}. soller: ekip dışarıda ya da korumasız, en yüksek doz {2} µGy (11 Eylül 2017'den RAD günleri)."
+Dose_Line,{0} mGy absorbed (RAD) · ≈ {1} mSv est. · {2} % of the career limit,{0} mGy soğurulan (RAD) · ≈ {1} mSv tahmin · kariyer sınırının % {2}'si
+Dose_Header,CREW DOSE (HIGHEST),EKİP DOZU (EN YÜKSEK)
+Dose_Title,Crew radiation dose,Ekip radyasyon dozu
+Dose_How,"Each sol uses one real day of Curiosity RAD dosimetry (Gale crater, 2017). Outside you get the full rate; the habitat and the storm shelter keep part of it out (game assumptions, see the list). mSv is an estimate scaled to the average Mars-surface dose equivalent (George 2024).","Her sol, Curiosity RAD dozimetresinin gerçek bir gününü kullanır (Gale krateri, 2017). Dışarıda tam oranı alırsın; habitat ve fırtına sığınağı bir kısmını keser (oyun varsayımları, listeye bak). mSv, ortalama Mars yüzeyi doz eşdeğerine (George 2024) göre ölçeklenmiş bir tahmindir."
+Dose_Forecast,"Event day (RAD, 11 Sep 2017): {0} µGy for a crew member on a {2} h EVA, {1} µGy in your shelter.","Olay günü (RAD, 11 Eylül 2017): {2} saatlik EVA'daki bir ekip üyesi için {0} µGy, sığınağında {1} µGy."
+Quake_Title,InSight records studied,İncelenen InSight kayıtları
+Quake_None,"No record studied yet. Fly the seismometer, level it outside, then study records in the lab.","Henüz kayıt incelenmedi. Sismometreyi götür, dışarıda dengele, sonra laboratuvarda kayıtları incele."
+Light_Line,"Earth is {0} light-minutes away today (JPL Horizons, 14 Nov 2026): every call home waits for it.","Dünya bugün {0} ışık dakikası uzakta (JPL Horizons, 14 Kasım 2026): eve her çağrı bunu bekler."
+Heat_Phase,"Heating these sols: MEDA mean air {0} °C → heater {1} kW, {2} % of one cell (game heat-loss model).","Bu sollerde ısıtma: MEDA ortalama hava {0} °C → ısıtıcı {1} kW, bir hücrenin % {2}'si (oyun ısı kaybı modeli)."

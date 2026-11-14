@@ -376,6 +376,73 @@ struct FTDWeatherRow : public FTableRowBase
 	FName SourceId;
 };
 
+/** One day of Curiosity RAD dosimetry (CDAWeb MSL_RAD_OBS-L2, daily alive-time-weighted mean). Absorbed dose, not sieverts. */
+USTRUCT(BlueprintType)
+struct FTDRadDoseRow : public FTableRowBase
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Radiation")
+	FString UTCDate;
+
+	/** B detector, silicon, uGy per day. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Radiation")
+	double DoseRateBSi = 0.0;
+
+	/** B detector, silicon, corrected for the rover's own MMRTG, uGy per day (the value the game uses). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Radiation")
+	double DoseRateBSiRtgCorr = 0.0;
+
+	/** E detector, tissue-equivalent plastic, uGy per day. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Radiation")
+	double DoseRateETep = 0.0;
+
+	/** Part of the 11-17 Sep 2017 solar particle event and the drop after it. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Radiation")
+	bool bEvent = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Radiation")
+	FName SourceId;
+};
+
+/** One event of the InSight Marsquake Service catalogue V14 (preferred origin and magnitude). */
+USTRUCT(BlueprintType)
+struct FTDMarsquakeRow : public FTableRowBase
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Marsquake")
+	int32 Rank = 0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Marsquake")
+	FString OriginTimeUTC;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Marsquake")
+	FString MqsEventType;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Marsquake")
+	FString QuakeMLEventType;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Marsquake")
+	double Mw = 0.0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Marsquake")
+	double DistanceDeg = 0.0;
+
+	/** Team conversion of the epicentral distance (degrees x pi/180 x Mars mean radius, NSSDC). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Marsquake")
+	double DistanceKm = 0.0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Marsquake")
+	FString LocationQuality;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Marsquake")
+	FString RegionName;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Marsquake")
+	FName SourceId;
+};
+
 // Runtime structs (not DataTable rows)
 
 USTRUCT(BlueprintType)
@@ -509,6 +576,14 @@ struct FTDMissionState
 	/** Science walks completed on the surface (event choices with science, or walks in first person). */
 	UPROPERTY(BlueprintReadOnly, Category = "Mission|Score")
 	int32 ScienceWalks = 0;
+
+	/** Absorbed dose per crew member this mission (uGy, summed from Curiosity RAD days). */
+	UPROPERTY(BlueprintReadOnly, Category = "Mission|Radiation")
+	TArray<double> CrewDoseUGy;
+
+	/** InSight catalogue records the crew has studied with the seismometer. */
+	UPROPERTY(BlueprintReadOnly, Category = "Mission|Science")
+	int32 QuakeRecordsStudied = 0;
 };
 
 USTRUCT(BlueprintType)

@@ -56,6 +56,8 @@ FTDHandsOnSpec TDHandsOn::SpecFor(FName TaskId)
 		{ TEXT("Logistics"), { ETDWorkVerb::Latch, 3, 2, 0.4f } },
 		{ TEXT("Harvest"), { ETDWorkVerb::Scan, 3, 2, 0.5f } },
 		{ TEXT("RoverExpedition"), { ETDWorkVerb::Plug, 1, 3, 0.5f } },
+		{ TEXT("DeploySeis"), { ETDWorkVerb::Wrench, 3, 3, 0.45f } },
+		{ TEXT("StudyQuake"), { ETDWorkVerb::Scan, 1, 3, 0.6f } },
 	};
 	if (const FTDHandsOnSpec* Found = Specs.Find(TaskId))
 	{

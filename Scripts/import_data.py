@@ -31,6 +31,8 @@ TABLES = [
     ("mars_weather.csv", "DT_TD_MarsWeather", "/Script/TouchdownMars.TDWeatherRow"),
     ("sites.csv", "DT_TD_Sites", "/Script/TouchdownMars.TDSiteRow"),
     ("tasks.csv", "DT_TD_Tasks", "/Script/TouchdownMars.TDTaskRow"),
+    ("rad_dose.csv", "DT_TD_RadDose", "/Script/TouchdownMars.TDRadDoseRow"),
+    ("marsquakes.csv", "DT_TD_Marsquakes", "/Script/TouchdownMars.TDMarsquakeRow"),
 ]
 
 

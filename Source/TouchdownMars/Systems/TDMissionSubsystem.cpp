@@ -63,6 +63,12 @@ bool UTDMissionSubsystem::LoadTables(FString& OutError)
 	OptionsTable = LoadTable<UDataTable>(TEXT("DT_TD_MissionOptions"));
 	ObjectivesTable = LoadTable<UDataTable>(TEXT("DT_TD_Objectives"));
 	WeatherTable = LoadTable<UDataTable>(TEXT("DT_TD_MarsWeather"));
+	RadTable = LoadTable<UDataTable>(TEXT("DT_TD_RadDose"));
+	QuakeTable = LoadTable<UDataTable>(TEXT("DT_TD_Marsquakes"));
+	bRadCached = false;
+	RadQuietDays.Reset();
+	RadEventDays.Reset();
+	ApplyMedaHeating();
 	TasksTable = LoadTable<UDataTable>(TEXT("DT_TD_Tasks"));
 	SitesTable = LoadTable<UDataTable>(TEXT("DT_TD_Sites"));
 	if (!PhasesTable || !AgeBandsTable || !ConstantsTable || !EventsTable || !TextTable || !SourcesTable || !DonkiArchiveTable)
@@ -211,6 +217,7 @@ bool UTDMissionSubsystem::EndPhase()
 		OnEventResolved.Broadcast(EventId, Cause);
 	}
 
+	AccumulateDose(EventId, Outcome.bStormExposure);
 	if (Outcome.bLost)
 	{
 		HandleMissionEnded();
@@ -1041,6 +1048,14 @@ bool UTDMissionSubsystem::RunPhase()
 		Escort->StopEscort();
 		Escort.Reset();
 	}
+	if (PhaseEvaHours.Num() < Ops.Crew.Num())
+	{
+		PhaseEvaHours.SetNumZeroed(Ops.Crew.Num());
+	}
+	for (int32 Index = 0; Index < Ops.Crew.Num(); ++Index)
+	{
+		PhaseEvaHours[Index] += GetPlannedHours(Index, true);
+	}
 	bOpsRunning = true;
 	OpsReport.Reset();
 	OpsCrewRunning = 0;
@@ -1175,6 +1190,10 @@ void UTDMissionSubsystem::FinishRun()
 			continue;
 		}
 		UTDOps::ApplyEffect(*Row, Ops, State, ConstantsTable);
+		if (Row->Effect == ETDTaskEffect::Seismic)
+		{
+			PostQuakeRecord();
+		}
 		TArray<FString> Names;
 		for (int32 Index : Who.FindRef(Id))
 		{
@@ -1208,10 +1227,15 @@ bool UTDMissionSubsystem::CompleteOwnTask(FName TaskId)
 	{
 		Names.Add(GetCrewName(Index).ToString());
 	}
+	AddOwnEvaHours(TaskId);
 	UTDOps::Unplan(Ops, TaskId);
 	Ops.Done.FindOrAdd(TaskId) += 1;
 	RefreshOpsScene();
 	UTDOps::ApplyEffect(*Row, Ops, State, ConstantsTable);
+	if (Row->Effect == ETDTaskEffect::Seismic)
+	{
+		PostQuakeRecord();
+	}
 	const FString EffectName = StaticEnum<ETDTaskEffect>()->GetNameStringByValue(static_cast<int64>(Row->Effect));
 	const FText Line = FText::Format(GetText(TEXT("Ops_Done")), FText::FromString(FString::Join(Names, TEXT(", "))), GetText(Row->NameKey),
 		GetText(FName(*FString::Printf(TEXT("Effect_%s"), *EffectName))));
@@ -1393,4 +1417,274 @@ void UTDMissionSubsystem::TickEscort()
 		bCalledFar = true;
 		Escort->Say(GetText(TEXT("Escort_Far")), 6.f);
 	}
+}
+
+// Crew radiation dose (Curiosity RAD) and the seismometer study (InSight MQS catalogue) ------------------------------
+
+void UTDMissionSubsystem::CacheRadDays() const
+{
+	if (bRadCached || !RadTable)
+	{
+		return;
+	}
+	bRadCached = true;
+	TArray<FTDRadDoseRow*> Rows;
+	RadTable->GetAllRows<FTDRadDoseRow>(TEXT("TDMissionSubsystem"), Rows);
+	Rows.Sort([](const FTDRadDoseRow& A, const FTDRadDoseRow& B) { return A.UTCDate < B.UTCDate; });
+	double QuietSum = 0.0;
+	for (const FTDRadDoseRow* Row : Rows)
+	{
+		(Row->bEvent ? RadEventDays : RadQuietDays).Add(Row);
+		if (!Row->bEvent)
+		{
+			QuietSum += Row->DoseRateBSiRtgCorr;
+		}
+	}
+	RadQuietMean = RadQuietDays.Num() > 0 ? QuietSum / RadQuietDays.Num() : 0.0;
+}
+
+double UTDMissionSubsystem::GetShelterDoseFactor() const
+{
+	// Game assumptions (constants.csv, designer values): how much of the outside rate reaches the crew in the storm shelter.
+	const FTDMissionDesign D = bHasFlownDesign ? FlownDesign : UTDDesignRules::MakeDefaultDesign(OptionsTable, TEXT("FirstLight"));
+	double Factor = GetConstant(TEXT("RadShelterFactorBasic"));
+	if (UTDDesignRules::GetPickCount(D, TEXT("ShelterWaterWall")) > 0)
+	{
+		Factor = GetConstant(TEXT("RadShelterFactorWaterWall"));
+	}
+	if (UTDDesignRules::GetPickCount(D, TEXT("ShelterRegolith")) > 0)
+	{
+		Factor = GetConstant(TEXT("RadShelterFactorRegolith"));
+	}
+	if (State.OpsRadiationRelief > 0)
+	{
+		Factor *= GetConstant(TEXT("RadBermFactor"));
+	}
+	return Factor;
+}
+
+double UTDMissionSubsystem::GetEventPeakRate() const
+{
+	CacheRadDays();
+	return RadEventDays.Num() > 0 ? RadEventDays[0]->DoseRateBSiRtgCorr : 0.0;
+}
+
+double UTDMissionSubsystem::ForecastEventDayDose(bool bOutside) const
+{
+	// One crew member on the event day (RAD, 11 Sep 2017): a full EVA outside, or the day in the shelter.
+	const double Rate = GetEventPeakRate();
+	const double Eva = GetConstant(TEXT("EvaHoursPerEvaSol"));
+	if (bOutside)
+	{
+		return Rate * (Eva / 24.0 + (24.0 - Eva) / 24.0 * GetConstant(TEXT("RadHabitatFactor")));
+	}
+	return Rate * GetShelterDoseFactor();
+}
+
+void UTDMissionSubsystem::AccumulateDose(FName EventId, bool bExposed)
+{
+	CacheRadDays();
+	if (RadQuietDays.Num() == 0)
+	{
+		return;
+	}
+	const int32 CrewCount = FMath::Max(4, Ops.Crew.Num());
+	if (State.CrewDoseUGy.Num() < CrewCount)
+	{
+		State.CrewDoseUGy.SetNumZeroed(CrewCount);
+	}
+	int32 SolStart = 0;
+	int32 SolEnd = 0;
+	GetPhaseSols(State.PhaseIndex, SolStart, SolEnd);
+	const int32 Sols = FMath::Max(1, SolEnd - SolStart + 1);
+	const FTDEventRow* Event = GetEvent(EventId);
+	const bool bRadEvent = Event && Event->Family == ETDEventFamily::Radiation && RadEventDays.Num() > 0;
+	const double Habitat = GetConstant(TEXT("RadHabitatFactor"));
+	const double Shelter = GetShelterDoseFactor();
+	const double EvaPerSortie = GetConstant(TEXT("EvaHoursPerEvaSol"));
+
+	double MaxPhase = 0.0;
+	for (int32 Crew = 0; Crew < CrewCount; ++Crew)
+	{
+		double EvaLeft = PhaseEvaHours.IsValidIndex(Crew) ? PhaseEvaHours[Crew] : 0.0;
+		double Dose = 0.0;
+		// Shelter days (event day and the day after): no EVA; else the EVA hours spread over the other sols.
+		const int32 Blocked = bRadEvent && !bExposed ? FMath::Min(2, Sols) : 0;
+		const int32 FreeSols = FMath::Max(1, Sols - Blocked);
+		for (int32 Index = 0; Index < Sols; ++Index)
+		{
+			// Each sol is one day of the RAD record: the solar event days when the card is a radiation event, else quiet days.
+			const FTDRadDoseRow* Day = bRadEvent && RadEventDays.IsValidIndex(Index) ? RadEventDays[Index]
+				: RadQuietDays[(SolStart - 1 + Index) % RadQuietDays.Num()];
+			const bool bShelterDay = Index < Blocked;
+			double Eva = 0.0;
+			if (!bShelterDay)
+			{
+				Eva = (bRadEvent && bExposed && Index == 0) ? FMath::Min(EvaLeft, EvaPerSortie) : EvaLeft / FreeSols;
+				if (bRadEvent && bExposed && Index == 0)
+				{
+					EvaLeft -= Eva;
+				}
+			}
+			Eva = FMath::Clamp(Eva, 0.0, 24.0);
+			const double Inside = bShelterDay ? Shelter : Habitat;
+			Dose += Day->DoseRateBSiRtgCorr * (Eva / 24.0 + (24.0 - Eva) / 24.0 * Inside);
+		}
+		State.CrewDoseUGy[Crew] += Dose;
+		MaxPhase = FMath::Max(MaxPhase, Dose);
+	}
+	const FText Line = FText::Format(GetText(bRadEvent ? (bExposed ? TEXT("Dose_PhaseEventOut") : TEXT("Dose_PhaseEventShelter")) : TEXT("Dose_Phase")),
+		FText::AsNumber(SolStart), FText::AsNumber(SolEnd), FText::AsNumber(FMath::RoundToInt(MaxPhase)));
+	OpsReport.Add(Line);
+	OnMessageArrived.Broadcast(Line);
+	UE_LOG(LogTouchdownMars, Display, TEXT("Dose: phase %d sols %d-%d radiation event %d exposed %d, highest crew dose %.0f uGy (RAD), mission max %.0f uGy"),
+		State.PhaseIndex, SolStart, SolEnd, bRadEvent ? 1 : 0, bExposed ? 1 : 0, MaxPhase, GetMaxCrewDoseUGy());
+	PhaseEvaHours.Reset();
+}
+
+double UTDMissionSubsystem::GetMaxCrewDoseUGy() const
+{
+	double Max = 0.0;
+	for (double Dose : State.CrewDoseUGy)
+	{
+		Max = FMath::Max(Max, Dose);
+	}
+	return Max;
+}
+
+double UTDMissionSubsystem::GetDoseEquivalentPerUGy() const
+{
+	// Estimate: mSv per uGy, scaled so a quiet RAD day equals the average Mars-surface dose equivalent (George 2024).
+	CacheRadDays();
+	return RadQuietMean > 0.0 ? GetConstant(TEXT("MarsSurfaceDose")) / RadQuietMean : 0.0;
+}
+
+FText UTDMissionSubsystem::GetDoseLine(int32 CrewIndex) const
+{
+	const double UGy = CrewIndex < 0 ? GetMaxCrewDoseUGy() : (State.CrewDoseUGy.IsValidIndex(CrewIndex) ? State.CrewDoseUGy[CrewIndex] : 0.0);
+	const double MSv = UGy * GetDoseEquivalentPerUGy();
+	const double Limit = GetConstant(TEXT("CareerLimit"));
+	FNumberFormattingOptions Two;
+	Two.MinimumFractionalDigits = 2;
+	Two.MaximumFractionalDigits = 2;
+	FNumberFormattingOptions One;
+	One.MaximumFractionalDigits = 1;
+	return FText::Format(GetText(TEXT("Dose_Line")), FText::AsNumber(UGy / 1000.0, &Two), FText::AsNumber(MSv, &One),
+		FText::AsNumber(Limit > 0.0 ? MSv / Limit * 100.0 : 0.0, &Two));
+}
+
+void UTDMissionSubsystem::AddOwnEvaHours(FName TaskId)
+{
+	const FTDTaskRow* Row = TasksTable ? TasksTable->FindRow<FTDTaskRow>(TaskId, TEXT("TDMissionSubsystem"), false) : nullptr;
+	if (!Row || !Row->bEva)
+	{
+		return;
+	}
+	if (PhaseEvaHours.Num() < 4)
+	{
+		PhaseEvaHours.SetNumZeroed(4);
+	}
+	PhaseEvaHours[0] += UTDOps::TaskHours(*Row, ConstantsTable);
+}
+
+const FTDMarsquakeRow* UTDMissionSubsystem::GetQuakeRecord(int32 Index) const
+{
+	if (!QuakeTable)
+	{
+		return nullptr;
+	}
+	TArray<FTDMarsquakeRow*> Rows;
+	QuakeTable->GetAllRows<FTDMarsquakeRow>(TEXT("TDMissionSubsystem"), Rows);
+	Rows.Sort([](const FTDMarsquakeRow& A, const FTDMarsquakeRow& B) { return A.Rank < B.Rank; });
+	return Rows.IsValidIndex(Index) ? Rows[Index] : nullptr;
+}
+
+FText UTDMissionSubsystem::GetQuakeRecordText(int32 Index) const
+{
+	const FTDMarsquakeRow* Row = GetQuakeRecord(Index);
+	if (!Row || !QuakeTable)
+	{
+		return FText::GetEmpty();
+	}
+	FName Name;
+	for (const TPair<FName, uint8*>& Pair : QuakeTable->GetRowMap())
+	{
+		if (reinterpret_cast<const FTDMarsquakeRow*>(Pair.Value) == Row)
+		{
+			Name = Pair.Key;
+		}
+	}
+	FNumberFormattingOptions One;
+	One.MinimumFractionalDigits = 1;
+	One.MaximumFractionalDigits = 1;
+	FNumberFormattingOptions NoGroup;
+	NoGroup.UseGrouping = true;
+	NoGroup.MaximumFractionalDigits = 0;
+	// The catalogue calls two of the biggest events meteorite impacts, not quakes.
+	const bool bImpact = Row->QuakeMLEventType.Contains(TEXT("meteorite"));
+	return FText::Format(GetText(bImpact ? TEXT("Quake_RecordImpact") : TEXT("Quake_Record")), FText::FromName(Name),
+		FText::FromString(Row->OriginTimeUTC.Left(10)), FText::AsNumber(Row->Mw, &One), FText::AsNumber(Row->DistanceKm, &NoGroup),
+		FText::FromString(Row->RegionName));
+}
+
+void UTDMissionSubsystem::PostQuakeRecord()
+{
+	const int32 Index = State.QuakeRecordsStudied - 1;
+	const FText Line = GetQuakeRecordText(Index);
+	if (!Line.IsEmpty())
+	{
+		OpsReport.Add(Line);
+		OnMessageArrived.Broadcast(Line);
+		UE_LOG(LogTouchdownMars, Display, TEXT("Quake: %s"), *Line.ToString());
+	}
+}
+
+// Habitat heating from Perseverance MEDA ------------------------------------------------------------------------------
+
+double UTDMissionSubsystem::GetHeatingKw(int32 SolStart, int32 SolEnd, double* OutMeanAirC) const
+{
+	double Sum = 0.0;
+	int32 Count = 0;
+	for (int32 Sol = SolStart; Sol <= SolEnd; ++Sol)
+	{
+		if (const FTDWeatherRow* Row = GetWeather(Sol))
+		{
+			Sum += (Row->AirMinC + Row->AirMaxC) * 0.5;
+			++Count;
+		}
+	}
+	if (Count == 0)
+	{
+		return 0.0;
+	}
+	const double MeanAir = Sum / Count;
+	if (OutMeanAirC)
+	{
+		*OutMeanAirC = MeanAir;
+	}
+	// Game model: heat loss = conductance x (cabin temperature - outside air); both are designer values.
+	return FMath::Max(0.0, GetConstant(TEXT("HabitatHeatLossKwPerK")) * (GetConstant(TEXT("HabitatCabinC")) - MeanAir));
+}
+
+void UTDMissionSubsystem::ApplyMedaHeating()
+{
+	if (!ConstantsTable || !WeatherTable)
+	{
+		return;
+	}
+	double MeanAir = 0.0;
+	const double Heating = GetHeatingKw(1, 31, &MeanAir);
+	const double CellKw = GetConstant(TEXT("CellKw"));
+	const double Base = GetConstant(TEXT("BaseLoadKw"));
+	FTDConstantRow* MinCells = ConstantsTable->FindRow<FTDConstantRow>(TEXT("MinCells"), TEXT("TDMissionSubsystem"), false);
+	FTDConstantRow* HeatingRow = ConstantsTable->FindRow<FTDConstantRow>(TEXT("HeatingKw"), TEXT("TDMissionSubsystem"), false);
+	if (!MinCells || !HeatingRow || CellKw <= 0.0 || Base <= 0.0 || Heating <= 0.0)
+	{
+		return;
+	}
+	// The cells a design must carry = equipment load + heating from the real Jezero air (rounded up to whole cells).
+	HeatingRow->Value = FMath::RoundToDouble(Heating * 10.0) / 10.0;
+	MinCells->Value = FMath::CeilToDouble((Base + Heating) / CellKw);
+	UE_LOG(LogTouchdownMars, Display, TEXT("Heating: MEDA mean air %.1f C -> heater %.2f kW, base %.1f kW, design needs %.0f cells"),
+		MeanAir, Heating, Base, MinCells->Value);
 }

@@ -258,7 +258,7 @@ void STDBaseComputer::Rebuild()
 	}
 	else
 	{
-		Page->AddSlot().FillHeight(1.f).Padding(0.f, 12.f, 0.f, 0.f)[Tab == ETab::Power ? BuildPower() : BuildDecision()];
+		Page->AddSlot().FillHeight(1.f).Padding(0.f, 12.f, 0.f, 0.f)[Tab == ETab::Power ? BuildPower() : Tab == ETab::Data ? BuildData() : BuildDecision()];
 	}
 	Page->AddSlot().AutoHeight().Padding(0.f, 12.f, 0.f, 0.f)[BuildFooter()];
 	Root->SetContent(Page);
@@ -697,6 +697,7 @@ TSharedRef<SWidget> STDBaseComputer::BuildTabs()
 	Add(ETab::Power, TEXT("MC_TabPower"), bPowerNeeds);
 	Add(ETab::Crew, TEXT("MC_TabCrew"), false);
 	Add(ETab::Decision, TEXT("MC_TabDecision"), bDecisionNeeds);
+	Add(ETab::Data, TEXT("MC_TabData"), false);
 	return Row;
 }
 
@@ -775,6 +776,23 @@ TSharedRef<SWidget> STDBaseComputer::BuildPower()
 		+ SVerticalBox::Slot().AutoHeight().Padding(0.f, 6.f)[Tokens]
 		+ SVerticalBox::Slot().AutoHeight().Padding(0.f, 14.f, 0.f, 4.f)[Label(Txt(TEXT("MC_PowerHow")), 15, Pal::Text())]
 		+ SVerticalBox::Slot().AutoHeight().Padding(0.f, 4.f)[Label(Txt(TEXT("UI_PriorityRule")), 15, Pal::Text2(), true)];
+	{
+		int32 HeatStart = 0;
+		int32 HeatEnd = 0;
+		M->GetPhaseSols(S.PhaseIndex, HeatStart, HeatEnd);
+		double MeanAir = 0.0;
+		const double Heat = M->GetHeatingKw(HeatStart, HeatEnd, &MeanAir);
+		if (Heat > 0.0)
+		{
+			FNumberFormattingOptions One;
+			One.MaximumFractionalDigits = 1;
+			Source->AddSlot().AutoHeight().Padding(0.f, 12.f, 0.f, 0.f)
+			[
+				Box(Label(FText::Format(Txt(TEXT("Heat_Phase")), FText::AsNumber(MeanAir, &One), FText::AsNumber(Heat, &One),
+					FText::AsNumber(Heat / FMath::Max(0.1, M->GetConstant(TEXT("CellKw"))) * 100.0, &One)), 14, Pal::Text(), true), TDTokens::Hex(TEXT("DCEBFA")), 10.f)
+			];
+		}
+	}
 	if (Ops.SolarDustCells > 0)
 	{
 		Source->AddSlot().AutoHeight().Padding(0.f, 8.f)[Label(FText::Format(Txt(TEXT("Ops_Dust")), Ops.SolarDustCells), 14, Pal::Caution(), true)];
@@ -975,6 +993,15 @@ TSharedRef<SWidget> STDBaseComputer::BuildDecision()
 			+ SHorizontalBox::Slot().AutoWidth()[Label(Txt(TEXT("UI_PriorityRule")), 15, Pal::Text2(), true, false)]
 		]
 		+ SVerticalBox::Slot().AutoHeight().Padding(0.f, 12.f, 0.f, 18.f)[Label(M->GetBandText(Row->QuestionKey), 26, Pal::Text(), true)]
+		+ SVerticalBox::Slot().AutoHeight().Padding(0.f, 0.f, 0.f, 14.f)
+		[
+			// Radiation cards: what each choice means in real RAD numbers (event day, 11 Sep 2017).
+			Row->Family == ETDEventFamily::Radiation
+				? StaticCastSharedRef<SWidget>(Box(Label(FText::Format(Txt(TEXT("Dose_Forecast")),
+					FText::AsNumber(FMath::RoundToInt(M->ForecastEventDayDose(true))), FText::AsNumber(FMath::RoundToInt(M->ForecastEventDayDose(false))),
+					FText::AsNumber(M->GetConstant(TEXT("EvaHoursPerEvaSol")))), 16, Pal::Text(), true), TDTokens::Hex(TEXT("FCE9C8")), 12.f))
+				: SNullWidget::NullWidget
+		]
 		+ SVerticalBox::Slot().AutoHeight()
 		[
 			SNew(SHorizontalBox)
@@ -1004,4 +1031,107 @@ TSharedRef<SWidget> STDBaseComputer::BuildDecision()
 		];
 	}
 	return Box(SNew(SScrollBox) + SScrollBox::Slot()[Body], Pal::Panel(), 24.f);
+}
+
+TSharedRef<SWidget> STDBaseComputer::BuildData()
+{
+	UTDMissionSubsystem* M = Mission.Get();
+
+	// Today's Sun: LIVE only with this session's fetch time; otherwise ARCHIVE (never stored data shown as live).
+	TSharedRef<SVerticalBox> Sun = SNew(SVerticalBox)
+		+ SVerticalBox::Slot().AutoHeight()[SNew(STextBlock).Text(Txt(TEXT("Sun_Title"))).Font(HeadFont(18)).ColorAndOpacity(Pal::Text())];
+	if (M->HasSpaceWeather())
+	{
+		const FTDSpaceWeather& W = M->GetSpaceWeather();
+		const bool bLive = W.Status == ETDDataStatus::Live;
+		Sun->AddSlot().AutoHeight().Padding(0.f, 10.f).HAlign(HAlign_Left)
+		[
+			Box(SNew(STextBlock).Text(Txt(bLive ? TEXT("UI_Live") : TEXT("UI_Archive"))).Font(HeadFont(16)).ColorAndOpacity(Pal::White()), bLive ? Pal::Go() : Pal::Text2(), 6.f)
+		];
+		Sun->AddSlot().AutoHeight()[Label(bLive ? FText::Format(Txt(TEXT("Sun_LiveStatus")), FText::FromString(W.FetchedAtUTC.ToString(TEXT("%Y-%m-%d %H:%M"))))
+			: Txt(TEXT("Sun_ArchiveStatus")), 15, Pal::Text(), true)];
+		Sun->AddSlot().AutoHeight().Padding(0.f, 8.f)
+		[
+			Label(FText::Format(Txt(bLive ? TEXT("Sun_SummaryLive") : TEXT("Sun_SummaryArchive")), FText::AsNumber(W.FlareCount),
+				FText::FromString(W.StrongestClass.IsEmpty() ? TEXT("-") : W.StrongestClass), FText::AsNumber(W.CMECount), FText::AsNumber(W.StormCount)), 16, Pal::Text())
+		];
+		int32 Shown = 0;
+		for (const FTDDonkiRow& Row : W.Rows)
+		{
+			if (Row.EventType == TEXT("CME") || Shown >= 8)
+			{
+				continue;
+			}
+			++Shown;
+			Sun->AddSlot().AutoHeight().Padding(0.f, 2.f)
+			[
+				SNew(STextBlock).Text(FText::FromString(FString::Printf(TEXT("%s  %s  %s"), *Row.EventType, *Row.TimeUTC, *Row.ClassType))).Font(NumFont(13)).ColorAndOpacity(Pal::Text())
+			];
+		}
+	}
+	else
+	{
+		Sun->AddSlot().AutoHeight().Padding(0.f, 10.f)[Label(Txt(TEXT("MC_SunWaiting")), 15, Pal::Text2(), true)];
+	}
+	Sun->AddSlot().AutoHeight().Padding(0.f, 12.f, 0.f, 0.f)[Label(Txt(TEXT("UI_DonkiDisclaimer")), 13, Pal::Text2())];
+
+	// Crew dose (Curiosity RAD) and the InSight records the crew studied.
+	Sun->AddSlot().AutoHeight().Padding(0.f, 22.f, 0.f, 6.f)[SNew(STextBlock).Text(Txt(TEXT("Dose_Title"))).Font(HeadFont(18)).ColorAndOpacity(Pal::Text())];
+	Sun->AddSlot().AutoHeight().Padding(0.f, 2.f, 0.f, 6.f)[Label(Txt(TEXT("Dose_How")), 13, Pal::Text2())];
+	for (int32 Crew = 0; Crew < FMath::Max(4, M->GetOps().Crew.Num()); ++Crew)
+	{
+		Sun->AddSlot().AutoHeight().Padding(0.f, 2.f)
+		[
+			SNew(SHorizontalBox)
+			+ SHorizontalBox::Slot().AutoWidth().Padding(0.f, 0.f, 8.f, 0.f)[SNew(SBox).WidthOverride(70.f)[Label(M->GetCrewName(Crew), 14, Pal::Text(), true, false)]]
+			+ SHorizontalBox::Slot().FillWidth(1.f)[SNew(STextBlock).Text(M->GetDoseLine(Crew)).Font(NumFont(12)).ColorAndOpacity(Pal::Text()).AutoWrapText(true)]
+		];
+	}
+	Sun->AddSlot().AutoHeight().Padding(0.f, 22.f, 0.f, 6.f)[SNew(STextBlock).Text(Txt(TEXT("Quake_Title"))).Font(HeadFont(18)).ColorAndOpacity(Pal::Text())];
+	if (M->GetState().QuakeRecordsStudied <= 0)
+	{
+		Sun->AddSlot().AutoHeight()[Label(Txt(TEXT("Quake_None")), 13, Pal::Text2())];
+	}
+	for (int32 Index = 0; Index < M->GetState().QuakeRecordsStudied; ++Index)
+	{
+		Sun->AddSlot().AutoHeight().Padding(0.f, 3.f)[Label(M->GetQuakeRecordText(Index), 13, Pal::Text())];
+	}
+	{
+		FNumberFormattingOptions One;
+		One.MaximumFractionalDigits = 1;
+		Sun->AddSlot().AutoHeight().Padding(0.f, 18.f, 0.f, 0.f)
+		[
+			Label(FText::Format(Txt(TEXT("Light_Line")), FText::AsNumber(M->GetConstant(TEXT("LightTimeNow")), &One)), 14, Pal::Text(), true)
+		];
+	}
+
+	// Where every number comes from (the Source Panel).
+	TSharedRef<SVerticalBox> Sources = SNew(SVerticalBox)
+		+ SVerticalBox::Slot().AutoHeight()[SNew(STextBlock).Text(Txt(TEXT("UI_WhereFrom"))).Font(HeadFont(18)).ColorAndOpacity(Pal::Text())]
+		+ SVerticalBox::Slot().AutoHeight().Padding(0.f, 8.f, 0.f, 2.f)[Label(Txt(TEXT("UI_NotEndorsed")), 15, Pal::Red(), true)]
+		+ SVerticalBox::Slot().AutoHeight().Padding(0.f, 2.f, 0.f, 10.f)[Label(Txt(TEXT("UI_TimeCompression")), 14, Pal::Text())];
+	if (const UDataTable* Constants = M->GetConstantsTable())
+	{
+		for (const TPair<FName, uint8*>& Pair : Constants->GetRowMap())
+		{
+			const FTDConstantRow& Row = *reinterpret_cast<const FTDConstantRow*>(Pair.Value);
+			FString Line = FString::Printf(TEXT("%s: %s %s"), *Pair.Key.ToString(), *FString::SanitizeFloat(Row.Value, 0), *Row.Unit);
+			FLinearColor Ink = Pal::Text2();
+			if (Row.bIsDesignerValue)
+			{
+				Line += TEXT("  ·  ") + Txt(TEXT("UI_DesignerValue")).ToString();
+			}
+			else if (const FTDSourceRow* Source = M->GetSource(Row.SourceId))
+			{
+				Ink = Pal::Text();
+				Line += FString::Printf(TEXT("  ·  %s (%s)  %s  [%s, %s]"), *Source->Title, *Row.SourceDetail, *Source->URL,
+					*Txt(TEXT("UI_NasaMeasurement")).ToString(), *FText::Format(Txt(TEXT("UI_Retrieved")), FText::FromString(Source->RetrievedOn)).ToString());
+			}
+			Sources->AddSlot().AutoHeight().Padding(0.f, 2.f)[Label(FText::FromString(Line), 13, Ink)];
+		}
+	}
+
+	return SNew(SHorizontalBox)
+		+ SHorizontalBox::Slot().FillWidth(0.34f).Padding(0.f, 0.f, 12.f, 0.f)[Box(SNew(SScrollBox) + SScrollBox::Slot()[Sun], Pal::Panel(), 20.f)]
+		+ SHorizontalBox::Slot().FillWidth(0.66f)[Box(SNew(SScrollBox) + SScrollBox::Slot()[Sources], Pal::Panel(), 20.f)];
 }

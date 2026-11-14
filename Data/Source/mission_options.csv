@@ -19,3 +19,4 @@ Moxie,Instrument,Science,Opt_Moxie,Opt_Moxie_Info,Opt_Moxie_Why,MoxieMass,,Moxie
 Rad,Instrument,Science,Opt_Rad,Opt_Rad_Info,Opt_Rad_Why,RadMass,,,InstrumentCost,,RadData,RadScience,False,False,0,0,0,False,1,False,RD,Curiosity RAD,False,AI illustration (Gemini)
 DirectLink,Comms,Comms,Opt_DirectLink,Opt_DirectLink_Info,Opt_DirectLink_Why,DirectLinkMass,,,DirectLinkCost,,DirectLinkMbPerSol,,False,False,0,0,0,False,1,True,DL,High-gain antenna to the Deep Space Network,False,AI illustration (Gemini)
 RelayOrbiter,Comms,Comms,Opt_RelayOrbiter,Opt_RelayOrbiter_Info,Opt_RelayOrbiter_Why,RelayOrbiterMass,,,RelayOrbiterCost,,RelayMroMbPerDay,,False,True,0,0,0,False,1,False,RL,Mars Reconnaissance Orbiter relay,True,AI illustration (Gemini)
+Seis,Instrument,Science,Opt_Seis,Opt_Seis_Info,Opt_Seis_Why,,,SeisDrawKw,InstrumentCost,,SeisData,SeisScience,False,False,0,0,0,False,1,False,SE,InSight SEIS,False,

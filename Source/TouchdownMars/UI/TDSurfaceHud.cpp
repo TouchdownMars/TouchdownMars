@@ -275,6 +275,16 @@ TSharedRef<SWidget> STDSurfaceHud::BuildLife()
 		]
 		+ SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)[Cells]
 	];
+	// Crew radiation dose, summed from Curiosity RAD days.
+	Rows->AddSlot().AutoHeight().Padding(0.f, 10.f, 0.f, 0.f)
+	[
+		SNew(STextBlock).Text(Txt(TEXT("Dose_Header"))).Font(HeadFont(12)).ColorAndOpacity(Text2())
+	];
+	Rows->AddSlot().AutoHeight()
+	[
+		SNew(STextBlock).Font(NumFont(12)).ColorAndOpacity(Text()).AutoWrapText(true)
+		.Text_Lambda([this]() { return Mission.IsValid() ? Mission->GetDoseLine(-1) : FText::GetEmpty(); })
+	];
 	// Jezero weather of the phase's first sol (MEDA archive; labelled ARCHIVE, never live).
 	Rows->AddSlot().AutoHeight().Padding(0.f, 8.f, 0.f, 0.f)
 	[

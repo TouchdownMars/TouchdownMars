@@ -1752,7 +1752,8 @@ TSharedRef<SWidget> STDDesignRoom::BuildCells(const FTDDesignBudget& B, bool bHi
 	];
 	Body->AddSlot().AutoHeight().Padding(0.f, 2.f, 0.f, 10.f)
 	[
-		Label(FText::Format(Txt(TEXT("Cells_Note")), Num(Mission->GetConstant(TEXT("CellKw")), 0), Need), 11, Pal::Text2())
+		Label(FText::Format(Txt(TEXT("Cells_Note")), Num(Mission->GetConstant(TEXT("CellKw")), 0), Need,
+			Num(Mission->GetConstant(TEXT("BaseLoadKw")), 0), Num(Mission->GetConstant(TEXT("HeatingKw")), 1)), 11, Pal::Text2())
 	];
 	return Glow(Body, bHighlight);
 }

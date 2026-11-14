@@ -381,6 +381,21 @@ public:
 
 	/** Comms log for the helmet HUD (Capcom lines and crew/base messages), newest last. */
 	void PushComms(const FText& Line);
+
+	/** Radiation (Curiosity RAD days): highest crew dose, per-crew line, the event-day forecast for a decision. */
+	double GetMaxCrewDoseUGy() const;
+	/** mSv per uGy estimate: a quiet RAD day equals the average Mars-surface dose equivalent (George 2024). */
+	double GetDoseEquivalentPerUGy() const;
+	FText GetDoseLine(int32 CrewIndex) const;
+	double GetShelterDoseFactor() const;
+	double GetEventPeakRate() const;
+	double ForecastEventDayDose(bool bOutside) const;
+	void AddOwnEvaHours(FName TaskId);
+	/** InSight catalogue record (rank order) and its one-line text. */
+	const FTDMarsquakeRow* GetQuakeRecord(int32 Index) const;
+	FText GetQuakeRecordText(int32 Index) const;
+	/** Heater load for a span of mission sols from MEDA daily mean air temperature (game model, kW). */
+	double GetHeatingKw(int32 SolStart, int32 SolEnd, double* OutMeanAirC = nullptr) const;
 	const TArray<FText>& GetComms() const { return Comms; }
 	double GetLastCommsTime() const { return LastCommsTime; }
 
@@ -457,6 +472,24 @@ private:
 
 	UPROPERTY(Transient)
 	TObjectPtr<UDataTable> WeatherTable;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UDataTable> RadTable;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UDataTable> QuakeTable;
+
+	void CacheRadDays() const;
+	/** Habitat heating from MEDA air temperatures: sets the in-memory MinCells and HeatingKw rows (game model). */
+	void ApplyMedaHeating();
+	void AccumulateDose(FName EventId, bool bExposed);
+	void PostQuakeRecord();
+	mutable bool bRadCached = false;
+	mutable TArray<const FTDRadDoseRow*> RadQuietDays;
+	mutable TArray<const FTDRadDoseRow*> RadEventDays;
+	mutable double RadQuietMean = 0.0;
+	/** EVA hours per crew member this phase (planned work and your own hands-on EVA work). */
+	TArray<double> PhaseEvaHours;
 
 	UPROPERTY(Transient)
 	TObjectPtr<UDataTable> TasksTable;
