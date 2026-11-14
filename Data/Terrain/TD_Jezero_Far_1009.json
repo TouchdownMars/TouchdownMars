@@ -1,0 +1,22 @@
+{
+  "source_label": "JEZ_hirise_soc_006_DTM_MOLAtopography_DeltaGeoid_1m_Eqc_latTs0_lon0_blend40",
+  "centre_row": 13314,
+  "centre_col": 13507,
+  "size": 1009,
+  "metres_per_pixel": 15,
+  "height_min_m": -104.51940405237423,
+  "height_max_m": 510.86400858194276,
+  "curvature": "drop d^2/2R applied, R = 3396190 m (Mars 2000 sphere)",
+  "no_data_share": 0.12585933732188304,
+  "near_sink_m": 4.0,
+  "ue_scale": [
+    1500.0,
+    1500.0,
+    132.21128005815405
+  ],
+  "ue_location": [
+    -756000.0,
+    -756000.0,
+    20317.23022647843
+  ]
+}

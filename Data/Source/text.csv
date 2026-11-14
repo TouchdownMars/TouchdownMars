@@ -814,6 +814,7 @@ Dose_Forecast,"Event day (RAD, 11 Sep 2017): {0} µGy for a crew member on a {2}
 Quake_Title,InSight records studied,İncelenen InSight kayıtları
 Quake_None,"No record studied yet. Fly the seismometer, level it outside, then study records in the lab.","Henüz kayıt incelenmedi. Sismometreyi götür, dışarıda dengele, sonra laboratuvarda kayıtları incele."
 Light_Line,"Earth is {0} light-minutes away today (JPL Horizons, 14 Nov 2026): every call home waits for it.","Dünya bugün {0} ışık dakikası uzakta (JPL Horizons, 14 Kasım 2026): eve her çağrı bunu bekler."
+Sky_Line,"Local solar time at the base {0}, sun {1} degrees above the horizon, season Ls {2} degrees (computed with NASA GISS Mars24 for the mission date).","Üsteki yerel güneş saati {0}, Güneş ufkun {1} derece üstünde, mevsim Ls {2} derece (görev tarihi için NASA GISS Mars24 ile hesaplandı)."
 Heat_Phase,"Heating these sols: MEDA mean air {0} °C → heater {1} kW, {2} % of one cell (game heat-loss model).","Bu sollerde ısıtma: MEDA ortalama hava {0} °C → ısıtıcı {1} kW, bir hücrenin % {2}'si (oyun ısı kaybı modeli)."
 Capcom_Advice,"Earth here, answering your call from sols {0} to {1}. Then {2} was your weakest system: put power there first.",Dünya konuşuyor; {0}-{1}. sollerdeki çağrına yanıt veriyoruz. O sırada en zayıf sistemin {2} idi: önce oraya güç ver.
 Capcom_AdviceStale,This advice is one phase old. Now your weakest system is {0}. You decide.,Bu tavsiye bir evre eski. Şu an en zayıf sistemin {0}. Karar senin.

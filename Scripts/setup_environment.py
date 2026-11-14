@@ -1,5 +1,5 @@
 # Copyright 2026 Team Touchdown. Licensed under the Apache License, Version 2.0.
-"""Mars look for L_TD_Outpost: butterscotch daytime sky (weak Rayleigh, strong warm Mie from suspended dust),
+"""Mars look for L_TD_Outpost: butterscotch daytime sky (weak Rayleigh, blue-absorbing Mie from suspended dust),
 warm dust haze and one unbound post-process volume. Values are artistic (no NASA number is shown or implied).
 Run in the editor after setup_outpost.py (PIE stopped):
     exec(open(r"<ProjectDir>/Scripts/setup_environment.py", encoding="utf-8").read())
@@ -24,20 +24,23 @@ def lc(r, g, b):
     return unreal.LinearColor(r, g, b, 1.0)
 
 
-# Sky: thin CO2 air scatters little blue (low Rayleigh); fine dust scatters warm light forward (high Mie).
+# Sky (research_notes/Mars gokyuzu ve zemin/references.md): dust optical depth about 0.45 at Jezero (Bell et al.
+# 2022, Mastcam-Z) over a dust scale height of about 11 km (Lemmon et al. 2004), so Mie extinction is about
+# 0.045 per km. The dust absorbs blue: light that has gone a long way (or scattered many times) turns butterscotch,
+# while the narrow forward glow around the sun keeps a pale, bluish white. Rayleigh is tiny (thin CO2 air).
 sky = find("TD_SkyAtmosphere").get_component_by_class(unreal.SkyAtmosphereComponent)
 for prop, value in (
-        ("rayleigh_scattering_scale", 0.0015),
+        ("rayleigh_scattering_scale", 0.0008),
         ("rayleigh_scattering", lc(0.20, 0.40, 1.0)),
         ("rayleigh_exponential_distribution", 11.0),
-        ("mie_scattering_scale", 0.045),
-        ("mie_scattering", lc(1.0, 0.66, 0.42)),
-        ("mie_absorption_scale", 0.0025),
-        ("mie_absorption", lc(0.10, 0.35, 0.90)),
+        ("mie_scattering_scale", 0.034),
+        ("mie_scattering", lc(0.88, 0.92, 1.0)),
+        ("mie_absorption_scale", 0.014),
+        ("mie_absorption", lc(0.04, 0.32, 1.0)),
         ("mie_anisotropy", 0.75),
         ("mie_exponential_distribution", 11.0),
-        ("ground_albedo", unreal.Color(r=150, g=95, b=60, a=255)),
-        ("multi_scattering_factor", 1.6)):
+        ("ground_albedo", unreal.Color(r=130, g=100, b=80, a=255)),   # broadband albedo about 0.16 (MEDA, OMEGA)
+        ("multi_scattering_factor", 1.5)):
     sky.set_editor_property(prop, value)
 
 # Dust haze: warm inscattering, a little denser far away so the horizon softens.
@@ -49,7 +52,11 @@ fog.set_editor_property("start_distance", 3000.0)
 
 # Sun: slightly warm.
 sun = find("TD_Sun").get_component_by_class(unreal.DirectionalLightComponent)
-sun.set_editor_property("light_color", unreal.Color(r=255, g=236, b=214, a=255))
+sun.set_editor_property("light_color", unreal.Color(r=255, g=248, b=240, a=255))
+sun.set_editor_property("intensity", 6.0)
+sun.set_editor_property("light_source_angle", 0.35)   # the sun from Mars: about 0.35 degrees wide (NSSDC, scaled)
+sun.set_mobility(unreal.ComponentMobility.MOVABLE)     # UTDSkySubsystem moves it through the sol
+find("TD_SkyLight").get_component_by_class(unreal.SkyLightComponent).set_mobility(unreal.ComponentMobility.MOVABLE)
 
 # One unbound post-process volume: stable exposure, gentle warm grade, soft vignette, light bloom.
 for actor in actors.get_all_level_actors():

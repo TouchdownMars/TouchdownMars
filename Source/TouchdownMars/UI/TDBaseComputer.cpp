@@ -8,6 +8,7 @@
 #include "Styling/CoreStyle.h"
 #include "Model/TDMissionRules.h"
 #include "Systems/TDMissionSubsystem.h"
+#include "Systems/TDSkySubsystem.h"
 #include "Systems/TDShotDirector.h"
 #include "UI/TDDesignTokens.h"
 #include "Widgets/Input/SButton.h"
@@ -1128,6 +1129,20 @@ TSharedRef<SWidget> STDBaseComputer::BuildData()
 		[
 			Label(FText::Format(Txt(TEXT("Light_Line")), FText::AsNumber(M->GetConstant(TEXT("LightTimeNow")), &One)), 14, Pal::Text(), true)
 		];
+		// Where the sun stands over the base right now (computed, not stored data).
+		if (const UTDSkySubsystem* SkyNow = M->GetWorld() ? M->GetWorld()->GetSubsystem<UTDSkySubsystem>() : nullptr)
+		{
+			const float Hours = SkyNow->GetLocalSolarHours();
+			const int32 H = FMath::FloorToInt(Hours);
+			const int32 Min = FMath::Clamp(FMath::FloorToInt((Hours - H) * 60.f), 0, 59);
+			FNumberFormattingOptions Whole;
+			Whole.MaximumFractionalDigits = 0;
+			Sun->AddSlot().AutoHeight().Padding(0.f, 8.f, 0.f, 0.f)
+			[
+				Label(FText::Format(Txt(TEXT("Sky_Line")), FText::FromString(FString::Printf(TEXT("%02d:%02d"), H, Min)),
+					FText::AsNumber(SkyNow->GetSunElevationDeg(), &Whole), FText::AsNumber(SkyNow->GetSolarLongitudeDeg(), &Whole)), 14, Pal::Text(), true)
+			];
+		}
 	}
 
 	// Where every number comes from (the Source Panel).

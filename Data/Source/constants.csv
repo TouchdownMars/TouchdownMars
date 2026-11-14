@@ -206,3 +206,7 @@ BaseLoadKw,20,kWe,,True,"Game value: steady base load without heating (life supp
 HabitatHeatLossKwPerK,0.06,kW per K,,True,Game model: heat lost through the habitat shell per kelvin of difference
 HabitatCabinC,21,deg C,,True,Game value: cabin air temperature
 HeatingKw,3.8,kWe,,True,Computed at start from MEDA daily mean air (mars_weather.csv) with the game heat-loss model
+BaseLatitudeDeg,18.4447,degrees north,MarsTrek,False,"Centre of the terrain window, the Perseverance landing site (Scripts/dem_to_heightmap.py)"
+DayStartHour,9,local solar hour,,True,Designer value: local solar time when a surface phase starts
+DayEndHour,17.5,local solar hour,,True,Designer value: local solar time the sun reaches as the phase goes on
+DayRealSeconds,600,seconds,,True,Designer value: real seconds for the sun to move from DayStartHour to DayEndHour
