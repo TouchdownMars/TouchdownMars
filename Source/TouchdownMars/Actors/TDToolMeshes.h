@@ -49,6 +49,30 @@ namespace TDTools
 			Out.Scale = 36.f / 1538.f;
 			Out.Location = FVector(12.4f, 0.f, 6.4f);
 			break;
+		case ETDWorkVerb::Scoop:
+		{
+			// Tripo round 2 (AI-generated). Modelled on a slant: grip top (30, -39, 80), pan (-25, 31, 5) in mesh units.
+			// The grip sits in the hand and the pan points forward and down (crew: straight down). 55 cm [DESIGNER VALUE].
+			Path = TEXT("/Game/TouchdownMars/Tripo/ToolScoop/TD_Tripo_ToolScoop/StaticMeshes/TD_Tripo_ToolScoop.TD_Tripo_ToolScoop");
+			const FVector Grip(30.f, -39.f, 80.f);
+			const FVector Pan(-25.f, 31.f, 5.f);
+			Out.Scale = 55.f / (Pan - Grip).Size();
+			const FVector Target = bCrew ? FVector(0.f, 0.f, -1.f) : FVector(0.85f, 0.f, -0.53f).GetSafeNormal();
+			const FQuat Turn = FQuat::FindBetweenNormals((Pan - Grip).GetSafeNormal(), Target);
+			Out.Rotation = Turn.Rotator();
+			Out.Location = -Turn.RotateVector(Grip * Out.Scale);
+			break;
+		}
+		case ETDWorkVerb::Latch:
+		case ETDWorkVerb::Scan:
+		case ETDWorkVerb::Switch:
+			// Tripo round 2 field tablet (AI-generated): face is mesh -Y; held upright toward the camera (crew: at the
+			// side). 30 cm wide in first person, 14 cm on the crew scale [DESIGNER VALUE].
+			Path = TEXT("/Game/TouchdownMars/Tripo/ToolTablet/TD_Tripo_ToolTablet/StaticMeshes/TD_Tripo_ToolTablet.TD_Tripo_ToolTablet");
+			Out.Scale = bCrew ? 0.14f : 0.3f;
+			Out.Rotation = bCrew ? FRotator::ZeroRotator : FRotator(0.f, -90.f, 0.f);
+			Out.Location = FVector(bCrew ? 0.f : 6.f, 0.f, bCrew ? -40.f * Out.Scale : -4.f);
+			break;
 		default:
 			return false;
 		}

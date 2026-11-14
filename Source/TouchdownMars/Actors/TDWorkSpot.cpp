@@ -129,6 +129,13 @@ void ATDWorkSpot::Setup(ETDWorkVerb InVerb, int32 InBeats, float InFaceYaw)
 	UMaterialInterface* Solar = ProjectMat(TEXT("MI_TD_Base_Solar"));
 	UMaterialInterface* White = ProjectMat(TEXT("MI_TD_Plain_White"));
 	FVector LampAt(0.f, 0.f, 60.f);
+	// Tripo round 2 meshes (AI-generated, sources.csv) where they are imported; basic shapes otherwise.
+	auto Tripo = [](const TCHAR* Name)
+	{
+		return LoadObject<UStaticMesh>(nullptr, *FString::Printf(TEXT("/Game/TouchdownMars/Tripo/%s/TD_Tripo_%s/StaticMeshes/TD_Tripo_%s.TD_Tripo_%s"), Name, Name, Name, Name));
+	};
+	UStaticMesh* Case = Tripo(TEXT("PayloadCase"));
+	UStaticMesh* Mound = Tripo(TEXT("ShelterMound"));
 
 	switch (Verb)
 	{
@@ -154,9 +161,19 @@ void ATDWorkSpot::Setup(ETDWorkVerb InVerb, int32 InBeats, float InFaceYaw)
 		LampAt = FVector(-18.f, 18.f, 12.f);
 		break;
 	case ETDWorkVerb::Latch:
-		AddPart(Cube, FVector(0.f, 0.f, 28.f), FVector(0.6f, 0.9f, 0.56f), FRotator::ZeroRotator, Hull);
+		if (Case)
+		{
+			// Hard-shell payload case, long side across (90 x 63 x 52 cm [DESIGNER VALUE]).
+			UStaticMeshComponent* Body = AddPart(Case, FVector::ZeroVector, FVector(0.9f), FRotator(0.f, 90.f, 0.f), nullptr);
+			Body->EmptyOverrideMaterials();
+		}
+		else
+		{
+			AddPart(Cube, FVector(0.f, 0.f, 28.f), FVector(0.6f, 0.9f, 0.56f), FRotator::ZeroRotator, Hull);
+		}
 		Extra = AddPart(Cube, FVector(0.f, 0.f, 59.f), FVector(0.62f, 0.92f, 0.06f), FRotator::ZeroRotator, Dark);
 		ExtraScale = Extra->GetRelativeScale3D();
+		Extra->SetVisibility(!Case);   // the payload case has its own lid
 		Moving = AddPart(Cube, FVector(31.f, 0.f, 44.f), FVector(0.04f, 0.16f, 0.22f), FRotator::ZeroRotator, Accent);
 		LampAt = FVector(31.f, 30.f, 50.f);
 		break;
@@ -176,14 +193,32 @@ void ATDWorkSpot::Setup(ETDWorkVerb InVerb, int32 InBeats, float InFaceYaw)
 		LampAt = FVector(-10.f, 0.f, 152.f);
 		break;
 	case ETDWorkVerb::Scan:
-		AddPart(Cube, FVector(0.f, 0.f, 23.f), FVector(0.5f, 0.7f, 0.46f), FRotator::ZeroRotator, Hull);
+		if (Case)
+		{
+			UStaticMeshComponent* Body = AddPart(Case, FVector::ZeroVector, FVector(0.75f), FRotator(0.f, 90.f, 0.f), nullptr);
+			Body->EmptyOverrideMaterials();
+		}
+		else
+		{
+			AddPart(Cube, FVector(0.f, 0.f, 23.f), FVector(0.5f, 0.7f, 0.46f), FRotator::ZeroRotator, Hull);
+		}
 		Moving = AddPart(Cube, FVector(26.f, 0.f, 28.f), FVector(0.01f, 0.32f, 0.16f), FRotator::ZeroRotator, White);
 		ScanBar = AddPart(Cube, FVector(27.f, 0.f, 21.f), FVector(0.004f, 0.34f, 0.012f), FRotator::ZeroRotator, Accent);
 		ScanBar->SetVisibility(false);
 		LampAt = FVector(26.f, 24.f, 40.f);
 		break;
 	case ETDWorkVerb::Scoop:
-		Moving = AddPart(Sphere, FVector(30.f, 0.f, 0.f), FVector(1.f, 1.f, 0.5f), FRotator::ZeroRotator, Regolith);
+		if (Mound)
+		{
+			// A small regolith pile (100 x 100 x 50 cm [DESIGNER VALUE]); it shrinks as it is shovelled away.
+			Moving = AddPart(Mound, FVector(30.f, 0.f, 0.f), FVector(1.f, 1.f, 1.43f), FRotator::ZeroRotator, nullptr);
+			Moving->EmptyOverrideMaterials();
+			ScoopPileZ = 1.43f;
+		}
+		else
+		{
+			Moving = AddPart(Sphere, FVector(30.f, 0.f, 0.f), FVector(1.f, 1.f, 0.5f), FRotator::ZeroRotator, Regolith);
+		}
 		AddPart(Cube, FVector(-55.f, 0.f, 30.f), FVector(0.5f, 0.6f, 0.6f), FRotator::ZeroRotator, Dark);
 		Extra = AddPart(Cube, FVector(-55.f, 0.f, 4.f), FVector(0.44f, 0.54f, 0.04f), FRotator::ZeroRotator, Regolith);
 		ExtraScale = Extra->GetRelativeScale3D();
@@ -330,7 +365,7 @@ void ATDWorkSpot::ApplyVisual()
 	case ETDWorkVerb::Scan:
 		break;
 	case ETDWorkVerb::Scoop:
-		Moving->SetRelativeScale3D(FVector(FMath::Lerp(1.f, 0.35f, P), FMath::Lerp(1.f, 0.35f, P), FMath::Lerp(0.5f, 0.12f, P)));
+		Moving->SetRelativeScale3D(FVector(FMath::Lerp(1.f, 0.35f, P), FMath::Lerp(1.f, 0.35f, P), FMath::Lerp(ScoopPileZ, ScoopPileZ * 0.24f, P)));
 		if (Extra)
 		{
 			const float H = FMath::Lerp(0.04f, 0.5f, P);
@@ -539,14 +574,28 @@ ATDMissionControlStation* ATDMissionControlStation::Ensure(UWorld* World)
 		C->RegisterComponent();
 		return C;
 	};
-	Part(Cyl, FVector(0.f, 0.f, 2.f), FVector(2.6f, 2.6f, 0.04f), FRotator::ZeroRotator, Dark, false);
-	Part(Cube, FVector(0.f, 0.f, 48.f), FVector(0.7f, 1.7f, 0.96f), FRotator::ZeroRotator, Hull, true);
-	Part(Cube, FVector(22.f, 0.f, 97.f), FVector(0.5f, 1.72f, 0.04f), FRotator(-12.f, 0.f, 0.f), Dark, false);
+	TArray<UStaticMeshComponent*> Body;
+	Body.Add(Part(Cyl, FVector(0.f, 0.f, 2.f), FVector(2.6f, 2.6f, 0.04f), FRotator::ZeroRotator, Dark, false));
+	Body.Add(Part(Cube, FVector(0.f, 0.f, 48.f), FVector(0.7f, 1.7f, 0.96f), FRotator::ZeroRotator, Hull, true));
+	Body.Add(Part(Cube, FVector(22.f, 0.f, 97.f), FVector(0.5f, 1.72f, 0.04f), FRotator(-12.f, 0.f, 0.f), Dark, false));
 	for (const float Side : { -95.f, 95.f })
 	{
-		Part(Cube, FVector(-20.f, Side, 115.f), FVector(0.14f, 0.14f, 2.3f), FRotator::ZeroRotator, Rib, true);
+		Body.Add(Part(Cube, FVector(-20.f, Side, 115.f), FVector(0.14f, 0.14f, 2.3f), FRotator::ZeroRotator, Rib, true));
 	}
-	Part(Cube, FVector(-20.f, 0.f, 228.f), FVector(0.22f, 2.06f, 0.18f), FRotator::ZeroRotator, Accent, false);
+	Body.Add(Part(Cube, FVector(-20.f, 0.f, 228.f), FVector(0.22f, 2.06f, 0.18f), FRotator::ZeroRotator, Accent, false));
+	// Tripo console body (round 2, AI-generated, sources.csv) where it is imported: 206 cm wide [DESIGNER VALUE],
+	// its front (mesh +Y) toward the player. The procedural parts stay as invisible colliders, and the live screen,
+	// bars and cell lamps stay in front of the console's own bezel. Without the mesh, the procedural body shows.
+	float BeaconZ = 252.f;
+	if (UStaticMesh* ConsoleMesh = LoadObject<UStaticMesh>(nullptr, TEXT("/Game/TouchdownMars/Tripo/OpsConsole/TD_Tripo_OpsConsole/StaticMeshes/TD_Tripo_OpsConsole.TD_Tripo_OpsConsole")))
+	{
+		for (UStaticMeshComponent* C : Body)
+		{
+			C->SetVisibility(false);
+		}
+		UStaticMeshComponent* Shell = Part(ConsoleMesh, FVector(-20.f, 0.f, 0.f), FVector(2.06f), FRotator(0.f, -90.f, 0.f), nullptr, false);
+		BeaconZ = Shell->Bounds.Origin.Z + Shell->Bounds.BoxExtent.Z - Station->GetActorLocation().Z + 12.f;
+	}
 	Station->Screen = Part(Cube, FVector(-14.f, 0.f, 150.f), FVector(0.05f, 1.6f, 0.85f), FRotator(-15.f, 0.f, 0.f), nullptr, false);
 	// Screen readout, in the screen's own tilted frame.
 	USceneComponent* ScreenFace = NewObject<USceneComponent>(Station);
@@ -583,7 +632,7 @@ ATDMissionControlStation* ATDMissionControlStation::Ensure(UWorld* World)
 	{
 		Station->CellLamps.Add(ScreenFacePart(FVector(3.f, 65.f - (Index % 6) * 11.f, 18.f - (Index / 6) * 14.f), FVector(0.02f, 0.08f, 0.08f), Station->CellMats));
 	}
-	UStaticMeshComponent* Beacon = Part(Sphere, FVector(-20.f, 0.f, 252.f), FVector(0.26f), FRotator::ZeroRotator, nullptr, false);
+	UStaticMeshComponent* Beacon = Part(Sphere, FVector(-20.f, 0.f, BeaconZ), FVector(0.26f), FRotator::ZeroRotator, nullptr, false);
 	if (UMaterialInterface* Base = ShapeMat())
 	{
 		Station->ScreenMat = UMaterialInstanceDynamic::Create(Base, Station);
@@ -603,7 +652,7 @@ ATDMissionControlStation* ATDMissionControlStation::Ensure(UWorld* World)
 	Station->ScreenLight->RegisterComponent();
 	Station->BeaconLight = NewObject<UPointLightComponent>(Station);
 	Station->BeaconLight->SetupAttachment(Station->Root);
-	Station->BeaconLight->SetRelativeLocation(FVector(-20.f, 0.f, 262.f));
+	Station->BeaconLight->SetRelativeLocation(FVector(-20.f, 0.f, BeaconZ + 10.f));
 	Station->BeaconLight->SetAttenuationRadius(700.f);
 	Station->BeaconLight->SetCastShadows(false);
 	Station->BeaconLight->SetMobility(EComponentMobility::Movable);

@@ -99,6 +99,7 @@ private:
 	UPROPERTY() TObjectPtr<UStaticMeshComponent> ScanBar;
 	float DustGravity = 300.f;
 	float ScanSweep = 0.f;
+	float ScoopPileZ = 0.5f;   // pile height scale: basic sphere 0.5, Tripo mound 1.43
 	FVector ExtraScale = FVector::OneVector;
 };
 
