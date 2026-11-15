@@ -592,9 +592,9 @@ Trace_CloseMass,Closest call: the rockets were {0} % full.,En yakın sınır: ro
 Choice_Switch,Add {0} × {1},{0} × {1} ekle
 Review_Later,{0} more lines open in the next steps.,{0} satır daha sonraki adımlarda açılacak.
 CrewName_0,You,Sen
-CrewName_1,Deniz,Deniz
-CrewName_2,Mira,Mira
-CrewName_3,Arda,Arda
+CrewName_1,John,John
+CrewName_2,Emily,Emily
+CrewName_3,Michael,Michael
 Ops_Returning,Heading back,Üsse dönüyor
 Ops_Done,{0}: {1}. {2},{0}: {1}. {2}
 Bark_Start_1,Suit seals checked. On my way.,Kıyafet contaları tamam. Yola çıkıyorum.

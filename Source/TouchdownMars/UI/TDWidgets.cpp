@@ -794,6 +794,7 @@ void UTDSettingsWidget::RefreshTexts()
 	Button(NewMissionButton, NewMissionLabel, Txt(TEXT("UI_NewMission")));
 	if (BandButton) { BandButton->SetVisibility(ESlateVisibility::Collapsed); }
 	Button(LanguageButton, LanguageLabel, FText::FromString(Mission->GetLanguage() == ETDLanguage::EN ? TEXT("Language: English") : TEXT("Dil: Türkçe")));
+	if (LanguageButton && !UTDMissionSubsystem::bTurkishEnabled) { LanguageButton->SetVisibility(ESlateVisibility::Collapsed); }
 	Button(SoundButton, SoundLabel, OnOff(TEXT("UI_Sound"), Mission->IsSoundOn()));
 	Button(MotionButton, MotionLabel, OnOff(TEXT("UI_ReduceMotion"), Mission->IsReduceMotion()));
 	Button(ScreenButton, ScreenLabel, Txt(Mission->IsFullscreen() ? TEXT("UI_Fullscreen") : TEXT("UI_Window")));

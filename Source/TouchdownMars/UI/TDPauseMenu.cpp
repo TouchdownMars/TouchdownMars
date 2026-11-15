@@ -145,6 +145,7 @@ void STDPauseMenu::Rebuild()
 			Act([](UTDMissionSubsystem* S) { S->SetTapToWork(!S->IsTapToWork()); }), Raised())
 	];
 	List->AddSlot().AutoHeight().Padding(0.f, 14.f, 0.f, 4.f)[SNew(STextBlock).Text(Txt(TEXT("Pause_Game"))).Font(HeadFont(13)).ColorAndOpacity(Text2())];
+	if (UTDMissionSubsystem::bTurkishEnabled)
 	List->AddSlot().AutoHeight().Padding(0.f, 3.f)
 	[
 		Row(Txt(TEXT("Pause_Language")), FText::FromString(M->GetLanguage() == ETDLanguage::EN ? TEXT("English") : TEXT("Türkçe")),

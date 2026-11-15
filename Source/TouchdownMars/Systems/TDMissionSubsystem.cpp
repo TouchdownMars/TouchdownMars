@@ -564,7 +564,7 @@ void UTDMissionSubsystem::SaveSettings()
 
 void UTDMissionSubsystem::SetLanguage(ETDLanguage NewLanguage)
 {
-	Settings->Language = NewLanguage;
+	Settings->Language = bTurkishEnabled ? NewLanguage : ETDLanguage::EN;
 	SaveSettings();
 	if (bHasMission)
 	{
@@ -574,7 +574,7 @@ void UTDMissionSubsystem::SetLanguage(ETDLanguage NewLanguage)
 
 ETDLanguage UTDMissionSubsystem::GetLanguage() const
 {
-	return Settings ? Settings->Language : ETDLanguage::EN;
+	return Settings && bTurkishEnabled ? Settings->Language : ETDLanguage::EN;
 }
 
 void UTDMissionSubsystem::SetPreferredBand(ETDAgeBand NewBand)

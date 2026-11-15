@@ -148,7 +148,7 @@ Also from the challenge text:
 
 **Everywhere**
 - **Source Panel:** every number is listed with its source and where in the source it is, or labelled as a game value.
-- **Languages and controls:** English and Turkish. Keyboard and mouse, or a gamepad.
+- **Languages and controls:** English (the Turkish text is kept in `text.csv` but switched off in this build). Keyboard and mouse, or a gamepad.
 - **Settings:** Guided or Advanced model, Reduce motion, sound.
 - **Privacy:** no accounts, no data collection. The game writes a local run record file for each flight (`Saved/Runs/`); nothing leaves the machine.
 

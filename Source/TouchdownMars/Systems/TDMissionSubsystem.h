@@ -236,7 +236,7 @@ public:
 	/** Dev (-TDWorkTask=Id): give a task to you without its prerequisites, to test its hands-on work. */
 	void DevGiveOwnTask(FName TaskId) { if (Ops.Crew.Num() > 0) { Ops.Crew[0].Tasks.AddUnique(TaskId); OnOpsChanged.Broadcast(); } }
 
-	/** Lines of the last phase's work ("Deniz and Mira unpacked the science payload."). */
+	/** Lines of the last phase's work ("John and Emily unpacked the science payload."). */
 	const TArray<FText>& GetOpsReport() const { return OpsReport; }
 
 	/** Level-space position of a site (Z from the ground under it is resolved by the walker). */
@@ -330,6 +330,10 @@ public:
 	bool HasText(FName Key) const;
 
 	// Settings (saved in slot TD_Settings)
+
+	/** Turkish is switched off for the submission build (15 Nov 2026): the game runs in English only. The TR column of
+	 *  text.csv stays; set bTurkishEnabled to true to bring the language option back. */
+	static constexpr bool bTurkishEnabled = false;
 
 	UFUNCTION(BlueprintCallable, Category = "Touchdown Mars|Settings")
 	void SetLanguage(ETDLanguage NewLanguage);
