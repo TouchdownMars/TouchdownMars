@@ -33,6 +33,7 @@
 #include "Framework/Application/NavigationConfig.h"
 #include "Framework/Application/SlateApplication.h"
 #include "Engine/World.h"
+#include "Systems/TDCutsceneSubsystem.h"
 #include "Systems/TDMissionSubsystem.h"
 #include "TouchdownMars.h"
 #include "UI/TDWidgets.h"
@@ -350,6 +351,17 @@ void ATDPlayerController::ShowDebrief()
 
 void ATDPlayerController::HandleTransitDone()
 {
+	// Landing cutscene (the lander touching down at Jezero) before the player steps onto the surface.
+	if (!bLandingCutscenePlayed && UTDCutsceneSubsystem::Enabled())
+	{
+		bLandingCutscenePlayed = true;
+		UTDCutsceneSubsystem::Play(this, {TEXT("CS_Landing")}, [WeakThis = TWeakObjectPtr<ATDPlayerController>(this)]()
+		{
+			if (WeakThis.IsValid()) { WeakThis->HandleTransitDone(); }
+		});
+		return;
+	}
+	bLandingCutscenePlayed = false;
 	HideDesignScreen();
 	UE_LOG(LogTouchdownMars, Display, TEXT("Design: landed, surface mission running"));
 #if !UE_BUILD_SHIPPING

@@ -46,6 +46,8 @@ public:
 
 	UFUNCTION(BlueprintPure, Category = "Touchdown Mars|Design")
 	bool IsDesignScreenOpen() const { return bDesignScreenOpen; }
+	/** The landing cutscene ran for this transit (HandleTransitDone runs twice: before and after it). */
+	bool bLandingCutscenePlayed = false;
 
 	/** Base computer (key B): crew plan and task board for the current phase. */
 	void ToggleBaseComputer();

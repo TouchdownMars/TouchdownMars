@@ -5,6 +5,7 @@
 #include "Engine/DataTable.h"
 #include "Brushes/SlateColorBrush.h"
 #include "Styling/CoreStyle.h"
+#include "Systems/TDCutsceneSubsystem.h"
 #include "Systems/TDMissionSubsystem.h"
 #include "UI/TDDesignTokens.h"
 #include "Widgets/Images/SImage.h"
@@ -1321,8 +1322,16 @@ TSharedRef<SWidget> STDDesignRoom::BuildPoll(const FTDDesignBudget& Budget)
 			{
 				Mission->FirstFlight.FocusSlot = -1;
 				SetBeat(EBeat::Done);
-				Show(ETDDesignScreen::Transit);
-				OnLaunched.ExecuteIfBound();
+				// Launch cutscene first (rocket lift-off from Earth), then the cruise card.
+				TWeakPtr<SWidget> WeakSelf = AsShared();
+				UTDCutsceneSubsystem::Play(Mission.Get(), {TEXT("CS_Launch")}, [this, WeakSelf]()
+				{
+					if (WeakSelf.IsValid())
+					{
+						Show(ETDDesignScreen::Transit);
+						OnLaunched.ExecuteIfBound();
+					}
+				});
 			}
 			return FReply::Handled();
 		}), Budget.ConceptMaturity >= 4 && bPollOpen, Pal::Red(), 20), Step == EGuide::Launch)

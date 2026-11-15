@@ -17,6 +17,8 @@
 #include "Engine/World.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Model/TDMissionRules.h"
+#include "Systems/TDCutsceneSubsystem.h"
+#include "Systems/TDSoundscapeSubsystem.h"
 #include "Systems/TDMissionSubsystem.h"
 #include "Systems/TDShotDirector.h"
 #include "TimerManager.h"
@@ -1052,8 +1054,20 @@ void UTDHudWidget::HandleEnded(ETDMissionResult Result)
 		}
 		else if (BackToLander) { BackToLander->ShowLost(); }
 	}
+	else if (MissionReport && UTDCutsceneSubsystem::Enabled() && !bReturnCutscenePlayed)
+	{
+		// Lift-off from Mars and the return to Earth, then the departure shot and the report.
+		bReturnCutscenePlayed = true;
+		UTDCutsceneSubsystem::Play(this, {TEXT("CS_LiftOff"), TEXT("CS_Return")}, [WeakThis = TWeakObjectPtr<UTDHudWidget>(this), Result]()
+		{
+			UTDSoundscapeSubsystem::LiftOffMusic(WeakThis.Get());   // the swell comes back in over the report
+			if (WeakThis.IsValid()) { WeakThis->HandleEnded(Result); }
+		});
+		return;
+	}
 	else if (MissionReport)
 	{
+		bReturnCutscenePlayed = false;
 		// Departure Outcome Shot (S07) first; the report follows on OnShotFinished.
 		UTDShotDirector* Director = UTDShotDirector::Get(this);
 		UTDMissionSubsystem* Mission = GetMission();

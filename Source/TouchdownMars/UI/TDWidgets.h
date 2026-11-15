@@ -501,6 +501,8 @@ private:
 	UFUNCTION() void HandlePhaseResolved(const FText& Cause);
 	UFUNCTION() void HandleMessage(const FText& Message);
 	UFUNCTION() void HandleEnded(ETDMissionResult Result);
+	/** The lift-off and return cutscenes ran (HandleEnded runs again after them). */
+	bool bReturnCutscenePlayed = false;
 	UFUNCTION() void HandleWeather(const FTDSpaceWeather& Weather);
 	UFUNCTION() void HandleSettingsChanged();
 	UFUNCTION() void HandleCallHome();

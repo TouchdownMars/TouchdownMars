@@ -846,3 +846,8 @@ Bark_Idle_Sky_1,Sky looks clear to the east.,Doğuda gökyüzü açık görünü
 Bark_Idle_Sample_0,Bagging a regolith sample.,Regolit örneğini torbalıyorum.
 Bark_Idle_Chat_0,Buddy check. Your pack reads fine.,Eş kontrolü. Sırt çantan normal görünüyor.
 Bark_Idle_Chat_1,Radio check. I hear you five by five.,Telsiz kontrolü. Seni net duyuyorum.
+Cutscene_Skip,Press any key to skip,Geçmek için bir tuşa bas
+Cutscene_CS_Launch,Launch day. Your cargo and crew leave Earth for Mars.,Fırlatma günü. Kargon ve ekibin Dünya'dan Mars'a yola çıkıyor.
+Cutscene_CS_Landing,Months later: touchdown at Jezero crater.,Aylar sonra: Jezero kraterine iniş.
+Cutscene_CS_LiftOff,Mission complete. The ascent vehicle lifts off from Mars.,Görev tamam. Dönüş aracı Mars'tan kalkıyor.
+Cutscene_CS_Return,Home: the crew splashes down on Earth.,Eve dönüş: ekip Dünya'da okyanusa iniyor.

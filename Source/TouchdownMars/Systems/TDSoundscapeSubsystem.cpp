@@ -12,6 +12,7 @@
 #include "Sound/SoundWave.h"
 #include "Actors/TDAstronautCharacter.h"
 #include "Actors/TDPlayerController.h"
+#include "Systems/TDCutsceneSubsystem.h"
 #include "Systems/TDMissionSubsystem.h"
 #include "Systems/TDSkySubsystem.h"
 
@@ -246,6 +247,7 @@ void UTDSoundscapeSubsystem::TickMusic(bool bSoundOn, bool bWalking, float Dust)
 	if (!bSoundOn)
 	{
 		StopCue(0.5f);
+		LiftOffUntil = 0.0;
 		return;
 	}
 	if (Clock < LiftOffUntil)
@@ -329,7 +331,8 @@ void UTDSoundscapeSubsystem::Tick(float DeltaTime)
 	const APlayerController* PC = World->GetFirstPlayerController();
 	const ATDPlayerController* TDPC = Cast<ATDPlayerController>(PC);
 	const ATDAstronautCharacter* Player = PC ? Cast<ATDAstronautCharacter>(PC->GetPawn()) : nullptr;
-	const bool bSoundOn = Mission->IsSoundOn();
+	const bool bCutscene = UTDCutsceneSubsystem::IsPlaying(this);   // the video carries its own sound
+	const bool bSoundOn = Mission->IsSoundOn() && !bCutscene;
 	const bool bWalking = bSoundOn && Mission->IsMissionRunning() && Player && !(TDPC && TDPC->IsDesignScreenOpen());
 	const UTDSkySubsystem* Sky = World->GetSubsystem<UTDSkySubsystem>();
 	const float Dust = Sky ? Sky->GetDustAmount() : 0.f;

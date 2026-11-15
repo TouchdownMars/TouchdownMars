@@ -33,7 +33,10 @@ public class TouchdownMars : ModuleRules
 			"AIModule",
 			"Landscape",
 			"ApplicationCore",
-			"Niagara"
+			"Niagara",
+			"MediaAssets",
+			"AudioMixer",
+			"Media"
 		});
 	}
 }
