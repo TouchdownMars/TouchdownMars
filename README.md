@@ -78,7 +78,7 @@ Also from the challenge text:
 
 ## Status
 
-15 November 2026. The game loop is in place end to end: design room → launch → surface mission → debrief → redesign. The source defines 30 automation tests (`TD.Design.*` 10, `TD.Model.*` 12, `TD.Ops.*` 8); 30 of 30 passed on 15 November 2026 at commit `cb823a7` (result lines in `Evidence/tests_2026-11-15.txt`). On 15 November 2026 eight adult volunteers from outside the team played the game and answered a short anonymous form; the results, the method and the limits are in `Evidence/playtest/`. No learning claim is made.
+15 November 2026. The game loop is in place end to end: design room → launch → surface mission → debrief → redesign. The source defines 30 automation tests (`TD.Design.*` 10, `TD.Model.*` 12, `TD.Ops.*` 8); 30 of 30 passed on 15 November 2026 at commit `00a9e95` (result lines in `Evidence/tests_2026-11-15.txt`). On 15 November 2026 eight adult volunteers from outside the team played the game and answered a short anonymous form; the results, the method and the limits are in `Evidence/playtest/`. No learning claim is made.
 
 ## Verified and planned
 
