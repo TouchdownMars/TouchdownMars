@@ -232,9 +232,28 @@ obj = g.node(unreal.MaterialExpressionObjectPositionWS, -900, 1000)
 height = g.op(unreal.MaterialExpressionSubtract, g.mask(world, False, False, True, -750, 900), g.mask(obj, False, False, True, -750, 1000), -600, 950)
 g.link(g.op(unreal.MaterialExpressionSubtract, g.const(1.0, -600, 1050), g.op(unreal.MaterialExpressionDivide, height, g.const(45.0, -600, 1100), -500, 1000), -400, 1000), boots)
 dusty = g.lerp(coloured, g.const(DUST, -250, 100), g.op(unreal.MaterialExpressionMultiply, boots, g.const(0.55, -250, 200), -150, 150), 0, 0)
-MEL.connect_material_property(dusty, "", unreal.MaterialProperty.MP_BASE_COLOR)
+# Gold sun visor: the generated texture paints the visor yellow. Real EVA helmets have a gold-coated visor
+# (a thin gold film reflects infrared and sunlight), so yellow texels become a polished gold metal.
+tex_r = g.mask(base, True, False, False, 100, -700)
+tex_g = g.mask(base, False, True, False, 100, -640)
+tex_b = g.mask(base, False, False, True, 100, -580)
+warm = g.op(unreal.MaterialExpressionSubtract, g.op(unreal.MaterialExpressionSubtract, g.op(unreal.MaterialExpressionMin, tex_r, tex_g, 250, -680),
+                                                    tex_b, 380, -660), g.const(0.18, 380, -600), 500, -660)
+warm_sat = g.node(unreal.MaterialExpressionSaturate, 750, -660)
+g.link(g.op(unreal.MaterialExpressionMultiply, warm, g.const(6.0, 600, -600), 620, -660), warm_sat)
+bright = g.node(unreal.MaterialExpressionSaturate, 750, -560)
+g.link(g.op(unreal.MaterialExpressionMultiply, g.op(unreal.MaterialExpressionSubtract, tex_r, g.const(0.45, 450, -520), 550, -560),
+            g.const(5.0, 550, -500), 650, -560), bright)
+visor = g.op(unreal.MaterialExpressionMultiply, warm_sat, bright, 900, -620)
+gold = g.const((0.95, 0.66, 0.22), 900, -500)
+final_base = g.lerp(dusty, gold, visor, 1100, -200)
+rough = g.lerp(g.mask(rgh, True, False, False, -500, 600), g.const(0.12, 900, 650), visor, 1100, 600)
+MEL.connect_material_property(final_base, "", unreal.MaterialProperty.MP_BASE_COLOR)
+MEL.connect_material_property(visor, "", unreal.MaterialProperty.MP_METALLIC)
 MEL.connect_material_property(nrm, "", unreal.MaterialProperty.MP_NORMAL)
-MEL.connect_material_property(g.mask(rgh, True, False, False, -500, 600), "", unreal.MaterialProperty.MP_ROUGHNESS)
+MEL.connect_material_property(rough, "", unreal.MaterialProperty.MP_ROUGHNESS)
+# The suit is a skeletal mesh: without this flag a cooked build falls back to the default grey material.
+mat.set_editor_property("used_with_skeletal_mesh", True)
 MEL.recompile_material(mat)
 EAL.save_asset(suit_path)
 
