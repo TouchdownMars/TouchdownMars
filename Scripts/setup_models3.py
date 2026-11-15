@@ -221,5 +221,12 @@ if mound:
         sign.set_actor_location(unreal.Vector(5380.0, 925.0, ground(5380.0, 925.0, 0.0) + 260.0), False, False)
         log.append("power yard sign above the berm")
 
+# Floating 3D text: the module names (B1 COMMAND, LIFE SUPPORT, ISRU PLANT, POWER YARD ...) hung in the air over
+# the base. The HUD names what the player looks at, so the world text goes.
+labels = [a for a in eas.get_all_level_actors() if isinstance(a, unreal.TextRenderActor)]
+for a in labels:
+    hide(a)
+log.append(f"floating text labels hidden: {len(labels)}")
+
 les.save_current_level()
 print("setup_models3:\n" + "\n".join(log))
