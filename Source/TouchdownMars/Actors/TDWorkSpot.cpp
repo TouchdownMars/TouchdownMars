@@ -590,11 +590,9 @@ ATDMissionControlStation* ATDMissionControlStation::Find(const UWorld* World)
 	{
 		return nullptr;
 	}
-	for (TActorIterator<ATDMissionControlStation> It(const_cast<UWorld*>(World)); It; ++It)
-	{
-		return *It;
-	}
-	return nullptr;
+	// The first station in the world (clang on Mac rejects a loop that always returns on its first pass).
+	TActorIterator<ATDMissionControlStation> It(const_cast<UWorld*>(World));
+	return It ? *It : nullptr;
 }
 
 ATDMissionControlStation* ATDMissionControlStation::Ensure(UWorld* World)
