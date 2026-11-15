@@ -587,6 +587,7 @@ ATDMissionControlStation* ATDMissionControlStation::Ensure(UWorld* World)
 	// its front (mesh +Y) toward the player. The procedural parts stay as invisible colliders, and the live screen,
 	// bars and cell lamps stay in front of the console's own bezel. Without the mesh, the procedural body shows.
 	float BeaconZ = 252.f;
+	bool bShell = false;
 	if (UStaticMesh* ConsoleMesh = LoadObject<UStaticMesh>(nullptr, TEXT("/Game/TouchdownMars/Tripo/OpsConsole/TD_Tripo_OpsConsole/StaticMeshes/TD_Tripo_OpsConsole.TD_Tripo_OpsConsole")))
 	{
 		for (UStaticMeshComponent* C : Body)
@@ -595,6 +596,7 @@ ATDMissionControlStation* ATDMissionControlStation::Ensure(UWorld* World)
 		}
 		UStaticMeshComponent* Shell = Part(ConsoleMesh, FVector(-20.f, 0.f, 0.f), FVector(2.06f), FRotator(0.f, -90.f, 0.f), nullptr, false);
 		BeaconZ = Shell->Bounds.Origin.Z + Shell->Bounds.BoxExtent.Z - Station->GetActorLocation().Z + 12.f;
+		bShell = true;
 	}
 	Station->Screen = Part(Cube, FVector(-14.f, 0.f, 150.f), FVector(0.05f, 1.6f, 0.85f), FRotator(-15.f, 0.f, 0.f), nullptr, false);
 	// Screen readout, in the screen's own tilted frame.
@@ -640,6 +642,19 @@ ATDMissionControlStation* ATDMissionControlStation::Ensure(UWorld* World)
 		Station->Screen->SetMaterial(0, Station->ScreenMat);
 		Station->BeaconMat = UMaterialInstanceDynamic::Create(Base, Station);
 		Beacon->SetMaterial(0, Station->BeaconMat);
+	}
+	if (bShell)
+	{
+		// The Tripo console has its own screens and lamps: the procedural screen slab, bars, cell lamps and the
+		// beacon ball would float in front of it (the HUD already shows the power cells). Only their glow stays.
+		for (UStaticMeshComponent* C : Station->Bars) { C->DestroyComponent(); }
+		for (UStaticMeshComponent* C : Station->CellLamps) { C->DestroyComponent(); }
+		Station->Bars.Empty();
+		Station->CellLamps.Empty();
+		Station->BarMats.Empty();
+		Station->CellMats.Empty();
+		Station->Screen->SetVisibility(false);
+		Beacon->SetVisibility(false);
 	}
 	Station->ScreenLight = NewObject<UPointLightComponent>(Station);
 	Station->ScreenLight->SetupAttachment(Station->Root);
