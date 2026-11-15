@@ -1142,7 +1142,11 @@ bool UTDMissionSubsystem::RunPhase()
 	}
 	// Time-lapse: the busiest crew member's plan takes about 14 s; walking is sped up to match.
 	const float SecondsPerHour = FMath::Clamp(14.f / MaxHours, 0.4f, 2.5f);
-	const float WalkCmPerSec = 450.f;
+	float WalkCmPerSec = 450.f;
+#if !UE_BUILD_SHIPPING
+	// -TDCrewWalk=<cm/s>: dev, crew walk at this pace during the phase (trailer footage at a real walking pace, about 90).
+	FParse::Value(FCommandLine::Get(), TEXT("TDCrewWalk="), WalkCmPerSec);
+#endif
 	{
 		TArray<FString> Plan;
 		for (int32 Index = 0; Index < Ops.Crew.Num(); ++Index)
