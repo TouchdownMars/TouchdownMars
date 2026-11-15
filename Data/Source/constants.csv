@@ -34,7 +34,7 @@ Falcon9ToMars,4020,kg,SpaceXFalcon9,False,"Overview table, Payload to Mars 4,020
 EuropaClipperLaunchContract,178,million USD,NasaEuropaClipperLaunch,False,"Contract value: total launch services award approx. $178 million, Falcon Heavy (23 Jul 2021)"
 MarsCruiseDays,200,days,NasaMarsTimeline,False,"Section Cruise: The Trip to Mars, cruise lasts about 200 days"
 LaunchWindowMonths,26,months,NasaMarsTimeline,False,"Section Cruise: The Trip to Mars, aligned about once every 26 months"
-PerseveranceCruiseDays,213,days,JplM2020LaunchMission,False,"Trip section: 213 days, about 497 million km (20 Jul 2020 launch case)"
+PerseveranceCruiseDays,203,days,JplM2020LandingQF,False,"Quick Facts: launch 30 Jul 2020, landing 18 Feb 2021 (203 days)"
 MarsSynodicPeriod,779.94,days,NSSDCMars,False,"Orbital parameters table, synodic period"
 LightTimeMinNasaPage,4,minutes,NasaSpaceComms7,False,Delay about four minutes at closest approach
 LightTimeMaxNasaPage,24,minutes,NasaSpaceComms7,False,Delay around 24 minutes at greatest distance
