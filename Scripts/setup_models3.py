@@ -215,6 +215,11 @@ if mound:
         berm.set_actor_scale3d(unreal.Vector(320.0 / msz.x, 640.0 / msz.y, 200.0 / msz.z))
         berm.tags = [unreal.Name("M3From_")]
     log.append("reactor berms: 2")
+    # The POWER YARD sign stood where the berms are now: lift it above them, on the base side.
+    sign = by_label("TD_Base_Label_Power")
+    if sign:
+        sign.set_actor_location(unreal.Vector(5380.0, 925.0, ground(5380.0, 925.0, 0.0) + 260.0), False, False)
+        log.append("power yard sign above the berm")
 
 les.save_current_level()
 print("setup_models3:\n" + "\n".join(log))
