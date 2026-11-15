@@ -78,7 +78,7 @@ Also from the challenge text:
 
 ## Status
 
-14 November 2026. The game loop is in place end to end: design room → launch → surface mission → debrief → redesign. The source defines 30 automation tests (`TD.Design.*` 10, `TD.Model.*` 12, `TD.Ops.*` 8); 30 of 30 passed on 14 November 2026. Play tests with people outside the team are still to come, so no learning claim is made.
+14 November 2026. The game loop is in place end to end: design room → launch → surface mission → debrief → redesign. The source defines 30 automation tests (`TD.Design.*` 10, `TD.Model.*` 12, `TD.Ops.*` 8); 30 of 30 passed on 14 November 2026. On 15 November 2026 five adult volunteers from outside the team played the game and answered a short anonymous form; the results, the method and the limits are in `Evidence/playtest/`. No learning claim is made.
 
 ## Verified and planned
 
@@ -89,7 +89,7 @@ Also from the challenge text:
 | Guided and Advanced fly the same six phases and the same delay | Verified | automatic Guided flight, 14 Nov 2026 (six phases, mission completed) |
 | Every event card fact was checked against its source page | Verified | `Evidence/cards_check.md` |
 | Crew dose is summed from real Curiosity RAD days | Verified | `Data/Source/rad_dose.csv`; `crew_dose_ugy_total_after` in the run records |
-| Play tests with people outside the team | Planned | none yet |
+| Play tests with people outside the team | Done, 5 players | `Evidence/playtest/` (anonymous answers, coding rules, limits) |
 
 ## What is in the game
 
