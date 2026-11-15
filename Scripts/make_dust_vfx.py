@@ -29,15 +29,16 @@ log = []
 
 # ---------------------------------------------------------------- material
 
-def make_material():
-    path = f"{FOLDER}/M_TD_DustSprite"
+def make_material(name="M_TD_DustSprite", lighting=unreal.TranslucencyLightingMode.TLM_VOLUMETRIC_NON_DIRECTIONAL):
+    path = f"{FOLDER}/{name}"
     if EAL.does_asset_exist(path):
         EAL.delete_asset(path)
-    mat = unreal.AssetToolsHelpers.get_asset_tools().create_asset("M_TD_DustSprite", FOLDER, unreal.Material, unreal.MaterialFactoryNew())
+    mat = unreal.AssetToolsHelpers.get_asset_tools().create_asset(name, FOLDER, unreal.Material, unreal.MaterialFactoryNew())
     mat.set_editor_property("blend_mode", unreal.BlendMode.BLEND_TRANSLUCENT)
     mat.set_editor_property("shading_model", unreal.MaterialShadingModel.MSM_DEFAULT_LIT)
-    # Lit by the sun and sky through the translucency volume: dust darkens in shadow and glows toward the sun.
-    mat.set_editor_property("translucency_lighting_mode", unreal.TranslucencyLightingMode.TLM_VOLUMETRIC_NON_DIRECTIONAL)
+    # Near dust: lit through the translucency volume (darkens in shadow, glows toward the sun). Far dust (devils,
+    # storm sheets) lies beyond the translucency volume, so it is lit per pixel by the sun instead.
+    mat.set_editor_property("translucency_lighting_mode", lighting)
     mat.set_editor_property("used_with_niagara_sprites", True)
     mat.set_editor_property("two_sided", True)
 
@@ -179,7 +180,7 @@ def enable(m, on=True):
     setp(m, "bModuleEnabled", "True" if on else "False")
 
 
-def make_system(name, spec, material):
+def make_system(name, spec, material, far_material):
     path = f"{FOLDER}/{name}"
     if EAL.does_asset_exist(path):
         EAL.delete_asset(path)
@@ -243,7 +244,8 @@ def make_system(name, spec, material):
     enable(stretch, "stretch" in spec)
 
     ren = L.get_array_object(em, "RendererProperties", 0)
-    setp(ren, "Material", f"/Script/Engine.Material'{material.get_path_name()}'")
+    chosen = far_material if spec.get("far") else material
+    setp(ren, "Material", f"/Script/Engine.Material'{chosen.get_path_name()}'")
     setp(ren, "bCastShadows", "False")
     setp(ren, "SortMode", "ViewDepth")
     setp(ren, "bMotionBlurEnabled", "False")
@@ -276,7 +278,7 @@ SPECS = {
         rate=160, life=(7.0, 10.0), size=(2500, 6000), shape=("box", 30000, 30000, 2500),
         velocity=((1100, -150, -20), (1700, 150, 80)), curl=(150, 4), drag=0.02,
         color=((*DARK, 0.12), (*DUST, 0.25)), fade=[(0.0, 0.0), (0.3, 1.0), (0.7, 1.0), (1.0, 0.0)],
-        grow=[(0.0, 0.8), (1.0, 1.5)], bounds=(40000, 40000, 3000, 9000)),
+        grow=[(0.0, 0.8), (1.0, 1.5)], bounds=(40000, 40000, 3000, 9000), far=True),
     # Saltating sand in a storm: grains hop low and fast along the ground and fall back under Mars gravity
     # (3.73 m/s2, NSSDC fact sheet); millimetre grains moved at Jezero in the Jan 2022 storm (Lemmon 2022 GRL, 3.5).
     "NS_TD_SandSkim": dict(
@@ -286,16 +288,17 @@ SPECS = {
         grow=[(0.0, 1.0), (1.0, 1.0)], stretch=(800, 9.0), bounds=(6000, 6000, 300, 600)),
     # Dust devil column: tens of metres wide at the base, rising and widening (Hueso 2023, Toledo 2023 sizes).
     "NS_TD_DustDevil": dict(
-        rate=140, life=(9.0, 13.0), size=(900, 2200), shape=("cyl", 1800, 200),
+        rate=180, life=(9.0, 13.0), size=(1600, 3600), shape=("cyl", 2600, 200),
         velocity=((-150, -150, 2200), (150, 150, 3400)), curl=(700, 6), drag=0.02,
-        color=((*DARK, 0.20), (*DUST, 0.38)), fade=[(0.0, 0.0), (0.1, 1.0), (0.6, 0.8), (1.0, 0.0)],
-        grow=[(0.0, 0.6), (1.0, 3.5)], bounds=(12000, 12000, 500, 50000)),
+        color=((0.62, 0.43, 0.29, 0.22), (0.74, 0.53, 0.37, 0.40)), fade=[(0.0, 0.0), (0.1, 1.0), (0.6, 0.8), (1.0, 0.0)],
+        grow=[(0.0, 0.6), (1.0, 3.5)], bounds=(15000, 15000, 500, 50000), far=True),
 }
 
 if not EAL.does_directory_exist(FOLDER):
     EAL.make_directory(FOLDER)
 material = make_material()
+far_material = make_material("M_TD_DustSpriteFar", unreal.TranslucencyLightingMode.TLM_SURFACE_PER_PIXEL_LIGHTING)
 for name, spec in SPECS.items():
-    make_system(name, spec, material)
+    make_system(name, spec, material, far_material)
 print("\n".join(log))
 print("make_dust_vfx: done")
