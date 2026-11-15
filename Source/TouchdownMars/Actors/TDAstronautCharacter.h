@@ -111,6 +111,10 @@ private:
 	void Look(const FInputActionValue& Value);
 	void ToggleConsole();
 	void UpdateFocus();
+	/** Interaction highlight: a warm breathing rim (M_TD_Highlight overlay) on what the player looks at. */
+	void SetHighlight(AActor* Target);
+	TWeakObjectPtr<AActor> HighlightActor;
+	UPROPERTY(Transient) TObjectPtr<class UMaterialInterface> HighlightMaterial;
 	bool ApplyMarsGravity();
 	void SyncHud();
 

@@ -353,6 +353,27 @@ void ATDPlayerController::HandleTransitDone()
 	HideDesignScreen();
 	UE_LOG(LogTouchdownMars, Display, TEXT("Design: landed, surface mission running"));
 #if !UE_BUILD_SHIPPING
+	if (FParse::Param(FCommandLine::Get(), TEXT("TDHighlightTest")))
+	{
+		// Dev: stand 3 m from a crew member and look at them; the interaction rim must show (shot after 3 s).
+		static FTimerHandle HighlightTimer;
+		GetWorldTimerManager().SetTimer(HighlightTimer, FTimerDelegate::CreateWeakLambda(this, [this]()
+		{
+			TActorIterator<ATDCrewMember> It(GetWorld());
+			APawn* Me = GetPawn();
+			if (!It || !Me)
+			{
+				return;
+			}
+			const FVector Crew = It->GetActorLocation() + FVector(0.f, 0.f, 110.f);
+			const FVector Stand = It->GetActorLocation() + FVector(-300.f, 120.f, 100.f);
+			Me->SetActorLocation(Stand, false, nullptr, ETeleportType::TeleportPhysics);
+			SetControlRotation((Crew - (Stand + FVector(0.f, 0.f, 60.f))).Rotation());
+			UE_LOG(LogTouchdownMars, Display, TEXT("HighlightTest: looking at %s"), *It->GetName());
+			FTimerHandle Shot;
+			GetWorldTimerManager().SetTimer(Shot, FTimerDelegate::CreateWeakLambda(this, [this]() { ConsoleCommand(TEXT("shot")); }), 3.f, false);
+		}), 8.f, false);
+	}
 	if (FParse::Param(FCommandLine::Get(), TEXT("TDIdleCam")))
 	{
 		// Dev: watch the idle crew (idle life checks). Every 8 s the camera moves to the next crew member, and a

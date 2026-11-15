@@ -31,6 +31,8 @@
 #include "Model/TDTypes.h"
 #include "Systems/TDMissionSubsystem.h"
 #include "Systems/TDSkySubsystem.h"
+#include "Misc/ScopeExit.h"
+#include "Components/MeshComponent.h"
 #include "Systems/TDDustFXSubsystem.h"
 #include "TouchdownMars.h"
 
@@ -404,9 +406,42 @@ void ATDAstronautCharacter::TickAmbience()
 	}
 }
 
+void ATDAstronautCharacter::SetHighlight(AActor* Target)
+{
+	if (HighlightActor.Get() == Target)
+	{
+		return;
+	}
+	if (!HighlightMaterial)
+	{
+		HighlightMaterial = LoadObject<UMaterialInterface>(nullptr, TEXT("/Game/TouchdownMars/Materials/M_TD_Highlight.M_TD_Highlight"));
+	}
+	auto Apply = [](AActor* Actor, UMaterialInterface* Overlay)
+	{
+		if (!Actor)
+		{
+			return;
+		}
+		TArray<UMeshComponent*> Meshes;
+		Actor->GetComponents<UMeshComponent>(Meshes);
+		for (UMeshComponent* Mesh : Meshes)
+		{
+			if (Mesh && Mesh->IsVisible())
+			{
+				Mesh->SetOverlayMaterial(Overlay);
+			}
+		}
+	};
+	Apply(HighlightActor.Get(), nullptr);
+	HighlightActor = Target;
+	Apply(Target, HighlightMaterial);
+}
+
 void ATDAstronautCharacter::UpdateFocus()
 {
 	FocusText = FText::GetEmpty();
+	AActor* Found = nullptr;
+	ON_SCOPE_EXIT { SetHighlight(Found); };
 	if (bConsoleOpen)
 	{
 		return;
@@ -430,6 +465,7 @@ void ATDAstronautCharacter::UpdateFocus()
 		if (const ATDCrewMember* Crew = Cast<ATDCrewMember>(Actor))
 		{
 			FocusText = Mission->GetText(FName(*FString::Printf(TEXT("Crew_%s"), *StaticEnum<ETDSystem>()->GetNameStringByValue(static_cast<int64>(Crew->System)))));
+			Found = const_cast<AActor*>(Actor);
 			return;
 		}
 		for (const FName& Tag : Actor->Tags)
@@ -438,6 +474,7 @@ void ATDAstronautCharacter::UpdateFocus()
 			if (TagString.StartsWith(TEXT("Inspect_")))
 			{
 				FocusText = Mission->GetText(FName(*TagString));
+				Found = const_cast<AActor*>(Actor);
 				return;
 			}
 		}
