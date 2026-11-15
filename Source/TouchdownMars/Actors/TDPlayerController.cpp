@@ -544,6 +544,15 @@ void ATDPlayerController::HandleTransitDone()
 			}), 0.25f, false);
 		}), 3.f, false);
 	}
+	// -TDNoUI: trailer footage with no screen UI (the tablet and other in-world screens stay).
+	if (FParse::Param(FCommandLine::Get(), TEXT("TDNoUI")))
+	{
+		static FTimerHandle NoUiTimer;
+		GetWorldTimerManager().SetTimer(NoUiTimer, FTimerDelegate::CreateWeakLambda(this, [this]()
+		{
+			if (GEngine && GEngine->GameViewport) { GEngine->GameViewport->RemoveAllViewportWidgets(); }
+		}), 0.1f, true);
+	}
 	if (FParse::Param(FCommandLine::Get(), TEXT("TDWorkTest")))
 	{
 		// Plan "Inspect the cargo" for you and stand at its first spot; the harness holds E.
