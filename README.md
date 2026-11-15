@@ -155,7 +155,7 @@ Also from the challenge text:
 ## Known limits
 
 - **Game values.** Module masses, most prices, data volumes, science values, the power cell size, task effects and the budget caps are game values, labelled in the Source Panel. The cruise and landing hardware in the Advanced model is a game assumption per kilogram of landed payload, not a NASA landing efficiency. Curiosity's launch mass breakdown is shown only as a historical example.
-- **Reference numbers.** Some sourced numbers (radiation dose rates and the career limit, Earth-Mars light time, Deep Space Network dish sizes) are listed in the Source Panel for context and do not drive a game rule.
+- **Reference numbers.** Some sourced numbers only feed a display (the mSv estimate and the share of the career limit, today's Earth-Mars light time) or are listed in the Source Panel for context (Deep Space Network dish sizes and the other values in group 4 of Data and third-party assets); they do not change the outcome.
 - **Time and scale.** 31 sols are played in a few minutes. Mission Control delay is shown as phases, not minutes. Crew dose is summed from real RAD days, but the habitat and shelter factors are game assumptions and no health effect is computed.
 - **Team play.** Four roles share one screen; there is no network play.
 - **Not in this build.** VR and voice.
@@ -198,52 +198,68 @@ Scripts in this order (inside the editor, Play-in-Editor stopped): `setup_outpos
 
 ## Data and third-party assets
 
-Full list with URLs, retrieval dates and licences: `Data/Source/sources.csv`.
+`Data/Source/sources.csv` is the full ledger: 127 rows and 94 distinct URLs (the 33 Tripo rows share one URL, and the Gemini illustration and video rows share another), each with its retrieval date, licence and use. Its `Kind` column says what a source's numbers are: Measured (42 rows), Plan (12: NASA studies and targets, not flown results), Manufacturer (2: SpaceX) or Reference (71: assets, tools and context pages). Of the 211 constants in `constants.csv`, 104 carry a source and the place in that source; 107 are game values and are labelled as game values in the Source Panel.
 
-**NASA data that drives the game**
-- NASA CCMC DONKI API: live and archived space weather (Today's Sun panel).
-- NASA Mars Trek: MRO HiRISE Jezero DEM (1 m per pixel), a 1 km window near the Perseverance landing site, for the outpost terrain.
-- NASA PDS, Perseverance MEDA: Jezero air temperature and pressure for mission sols 1 to 31.
-- NASA HEOMD-415, Mars Surface Activities reference mission (NTRS): crew work hours, first spacewalk sol and spacewalk durations.
-- NASA BVAD Rev 2: oxygen, water and packaged food per crew member per day, in the cargo mass.
-- NASA Science Perseverance instrument pages and the MSL landing press kit: instrument mass and power on the option cards, and Curiosity's launch mass breakdown.
-- NASA Kilopower release, NASA MMRTG fact sheet, NASA Photojournal PIA25284: fission output and the loss of solar output to dust.
-- NASA Mars Relay Network page: relay data volume per day.
-- NASA/JPL Mars 2020 and InSight press kits, NASA Mars mission timeline, NASA Mars EDL white paper (2025), NSSDC Mars fact sheet: transit card, debrief comparison and Mars gravity.
-- NASA launch services contract release for Europa Clipper: Falcon Heavy launch price.
+The groups below follow what each source does in the game. A source counts as used only when its data is in a file that the code reads, or when it is an asset in the level.
 
-**Dated NASA events on the 15 event cards**
-- NASA and NASA/JPL mission news pages (2017 and 2024 solar storms at Mars, InSight 2022, Opportunity 2018, MOXIE, solar conjunction, CHAPEA, ISS plant growth), George et al. 2024 on Artemis I radiation, the Artemis II agenda and Flight Day 8 blog, NASA SAC21 (NTRS), NASA OCHMO Carbon Dioxide brief, the Apollo 13 Flight Journal, and the InSight Marsquake Service catalogue V14 with Kawamura et al. 2023.
+**1. Data that sets a design limit or a surface rule**
+- NASA BVAD Rev 2, Table 3-31: oxygen, potable water and packaged food per crew member per day (`constants.csv`). `TDMissionDesign.cpp` adds them to the cargo mass for a crew of four; the design review blocks the launch when the cargo is heavier than the rockets can send.
+- SpaceX Falcon 9 and Falcon Heavy vehicle pages (manufacturer values): payload to Mars, the launch capacity in `TDMissionDesign.cpp`.
+- NASA release 21-098 (Europa Clipper launch services contract): the Falcon Heavy launch price in the budget. The Falcon 9 price is a game value.
+- NASA Science, Perseverance science instruments: mass and power of Mastcam-Z, SuperCam, PIXL, SHERLOC, MEDA and MOXIE. MSL landing press kit: RAD mass. NASA InSight instrument page: SEIS power (its mass is not counted). All through `mission_options.csv` into the mass and power budget.
+- NASA release 18-031 (Kilopower): 10 kWe per fission unit, turned into power cells. Unit mass and price, and the solar field output, mass and price, are game values.
+- NASA Photojournal PIA25284: InSight fell from about 5,000 to about 500 Wh per sol. The game value `DustStormSolarShare` (0.1, the share of solar output left in a dust-storm phase) is scaled after it.
+- NASA Mars Relay Network page: MRO relay volume per day, the data per sol of the relay option. The direct-link volume is a game value.
+- NASA HEOMD-415 (NTRS 20220000589): crew work hours per sol, the first spacewalk sol, spacewalk hours and task durations (`constants.csv`, `tasks.csv`); `TDOperations.cpp` and `TDMissionSubsystem.cpp` limit the crew plan with them.
+- Russell and Klaus 2007: 3.0 crew-hours per day of life-support maintenance; the maintenance task length (a game value) is set from it.
+- Perseverance MEDA (NASA PDS): daily air temperature for mission sols 1 to 31 (`mars_weather.csv`). `TDMissionSubsystem.cpp` turns it into the habitat heating load with a game heat-loss model, which raises the power cells a design must carry. The weather is also shown on the helmet display.
+- NSSDC Mars Fact Sheet: 0.38 g for first-person walking (`TDAstronautCharacter.cpp`, `TDWorkSpot.cpp`).
+- InSight Marsquake Service catalogue V14: the ten largest events (`marsquakes.csv`), studied one by one in the seismometer task; each counts as a science walk.
 
-**Measurements that drive a rule on the surface**
-- Curiosity RAD Level 2 daily dose (CDAWeb, Aug to Oct 2017): every crew member's dose; George et al. 2024 average Mars-surface dose equivalent for the mSv estimate; NASA OCHMO career limit for comparison.
-- Perseverance MEDA daily air temperature: the habitat heater load in the cells a design must carry.
-- InSight Marsquake Service catalogue V14: the records studied with the seismometer; NASA InSight instrument page: seismometer power.
-- NASA/JPL Horizons: today's Earth-Mars light time on the Mission Control console.
+**2. Data that builds the world or is shown in the game, without changing the outcome**
+- NASA Mars Trek, MRO HiRISE Jezero DEM (1 m per pixel): `Scripts/dem_to_heightmap.py` makes the heightmap in `Data/Terrain/`, the outpost terrain (a 1 km window centred at 18.4447 N, 77.4508 E). The base pad is levelled (designer change).
+- NASA GISS Mars24 algorithm: `TDSkySubsystem.cpp` computes the sun position over the base for the phase date. The day length on screen is a designer value.
+- Curiosity RAD Level 2 daily dose (SPDF CDAWeb, 20 Aug to 9 Oct 2017; `rad_dose.csv`): each sol adds one real day to every crew member's dose (`TDMissionSubsystem.cpp`). The habitat, shelter and berm factors are game assumptions. The dose is shown on the helmet, in the Mission Control console (including the event-day dose for a spacewalk versus the shelter) and in the run record; it does not change the score and no health effect is computed. George et al. 2024 (average Mars-surface dose equivalent) scales the mSv estimate; the NASA OCHMO career limit is shown for comparison only.
+- NASA CCMC DONKI: the Today's Sun panel, live (`TDDonkiClient.cpp`) or the stored September 2017 archive (`donki_archive.csv`). It never changes gameplay.
+- NASA/JPL Horizons: today's Earth-Mars light time on the Mission Control console. The Mission Control delay in the game is counted in phases.
+- Transit card and debrief comparison (`TDDesignRoom.cpp`): NASA Mars mission timeline (cruise of about 200 days), Mars 2020 launch press kit (213 days), Mars 2020 landing quick facts (rover mass and cost), MMRTG fact sheet (110 W), MSL landing press kit (Curiosity masses), InSight landing press kit (cost), PIA25284 (InSight energy per sol) and the NASA Mars EDL white paper 2025 (landed mass of flown and human-class landers).
+- Kleinhenz and Paz (NTRS 20170005179) and Mueller et al., RASSOR 2.0 (NTRS 20210011366): clay water content and digging rate. They give the kilograms of water and regolith shown on the console after the water and berm tasks (game values derived from them); the task effects are game values.
 
-**Space Mission Design Game challenge resources**
-- JPL Concept Maturity Levels (Wessen et al., AIAA 2013): the concept maturity meter in the design room.
-- NASA Design and Develop Science Missions (2025) and the NASA GSFC Mission Design Lab: design references for the design, simulate, evaluate, redesign loop and the disciplines behind the four roles. No number in the game comes from them.
-- GMAT is not used: transfer orbits are not computed (see Known limits).
+**3. Event cards (15).** Each card shows the date, instrument, measurement and source on its "What really happened?" side; the cost of each choice is a game value. Facts checked in `Evidence/cards_check.md`.
+- Radiation: NASA/JPL 2017 solar storm at Mars (Curiosity RAD); NASA 2024 solar storm at Mars; George et al. 2024 (Artemis I storm shelter); NASA Artemis II daily agenda and Flight Day 8 blog.
+- Power: NASA/JPL InSight waits out dust storm (2022); NASA/JPL Opportunity hunkers down (2018); NASA SAC21 human Mars architecture (Rucker et al. 2022) and its NTRS record, labelled "NASA plan".
+- Equipment: NASA OCHMO carbon dioxide brief and the Apollo 13 Flight Journal; NASA MOXIE completes Mars mission (2023); InSight Marsquake Service catalogue V14 and Kawamura et al. 2023 (S1222a).
+- Comms: NASA, What's Mars Solar Conjunction (2019 moratorium); NASA CHAPEA, labelled "Analog mission on Earth".
+- Food: NASA Veggie fact sheet; NASA second pepper harvest (2021); NASA lost ISS tomatoes (2023).
 
-**Reference values listed in the Source Panel** (context only)
-- NASA Deep Space Network and telecom pages, NASA Fission Surface Power and KRUSTY, NASA human Mars landing study, NASA ISRU and excavation references. Papers and data bundles not read by a rule are marked "Reference only" in the source list; reference-only tables are in `Data/Reference/`.
+**4. Reference values in the Source Panel only** (no rule and no other screen reads them): Horizons shortest and longest light time; NASA Goddard Space Communications, 7 Things; NASA Deep Space Network; NASA/JPL MRO data milestone (2010); Mars 2020 telecommunications press kit; KRUSTY test results (NTRS 20180005435); NASA Fission Surface Power; NASA/JPL Opportunity recovery (dust optical depth); Cianciolo and Polsgrove, human Mars EDL study (NTRS 20160011571).
 
-**Manufacturer data**
-- SpaceX Falcon 9 and Falcon Heavy vehicle pages: payload to Mars.
+**5. Look and sound references.** No number from these is shown in the game; sizes, counts and levels are look values. They are not rows in `sources.csv`.
+- Bell et al. 2022, Science Advances 8, eabo4856 (doi:10.1126/sciadv.abo4856): dust optical depth about 0.45 at Jezero for the sky (`setup_environment.py`); most raised rocks under 30 cm (`scatter_pebbles.py`).
+- Lemmon et al. 2004, Science 306 (doi:10.1126/science.1104474): dust scale height of about 11 km for the sky (`setup_environment.py`).
+- Lemmon et al. 2022, GRL 49(17) (doi:10.1029/2022GL100126): the dust-storm sky multiplier (`TDSkySubsystem.cpp`).
+- Tomasko et al. 1999, JGR Planets 104(E4) (doi:10.1029/1998JE900016): forward-scattering dust in the air (`setup_graphics.py`, `TDDustFXSubsystem.cpp`).
+- Newman et al. 2022, Science Advances 8, eabn3783 (doi:10.1126/sciadv.abn3783): daytime wind direction and dust devil hours (`TDDustFXSubsystem.cpp`).
+- NASA Photojournal PIA26074, Martian Whirlwind Takes the Thorofare: dust devil drift speed (`TDDustFXSubsystem.cpp`).
+- NASA Photojournal PIA19400, Sunset in Mars' Gale Crater: colour of the blue glow around a low sun (`make_sky_glow.py`).
+- Maurice et al. 2022, Nature 605 (doi:10.1038/s41586-022-04679-0): Mars sound is quiet and loses its high frequencies within metres, the basis of the four-layer sound mix (`TDSoundscapeSubsystem.h`).
+- Polsgrove et al. 2017 (NTRS 20170003391) and 2019 (NTRS 20190001229), NASA human Mars Ascent Vehicle studies: the shape of the crew ascent vehicle model at LZ-1 (`setup_models4.py`).
+- Golombek et al. 2021: the shape of the rock size-frequency model behind the pebble density (`scatter_pebbles.py`).
 
-**NASA 3D models**
-- NASA 3D Resources: Habitat Demonstration Unit, Z2 Spacesuit, Space Exploration Vehicle, RASSOR and Tall Dish meshes, with every texture removed (no insignia).
+**6. Read but not used by the game** (marked "Reference only" in `sources.csv`): MSL REMS PDS bundle; Curiosity REMS daily weather feed and InSight weather feed (their tables are in `Data/Reference/`, which no code reads); InSight TWINS and PS PDS bundles; Zeitlin et al. 2018; Hassler et al. 2014.
 
-**Third-party assets and tools**
+**7. Design references (challenge resources).** JPL Concept Maturity Levels (Wessen et al., AIAA 2013): the four levels of the maturity meter (`TDMissionDesign.cpp`). NASA Design and Develop Science Missions (2025) and the NASA GSFC Mission Design Lab: the design, simulate, evaluate, redesign loop and the disciplines behind the four roles. No number in the game comes from them. GMAT is not used: transfer orbits are not computed (see Known limits).
+
+**8. Assets in the game**
+- NASA 3D Resources, nine meshes with every texture removed (no insignia): Habitat Demonstration Unit, Z2 Spacesuit, Space Exploration Vehicle, RASSOR, Tall Dish, Radome, Hammer, Wrench and Pistol Grip Tool.
+- Quixel Megascans via Fab (Fab Standard License, Personal tier, free). The source assets are **not redistributed in this repository**; ten are cooked into the packaged Windows build as part of the game: Icelandic Porous Rock, Icelandic Boulder, Desert Western Cluster Rock Medium 05, Icelandic Sand Rock, Desert Western Pile Rock Small 01, Stones and Pebbles Pack, Gravel on Soil, Dry Soil Ground, Dry Rippled Sand and Painted Metal. An eleventh listing in `sources.csv`, Red Desert Sand, is not used.
+- Tripo AI: 33 AI-generated 3D models in `Content/TouchdownMars/Tripo/`, each placed by a setup script or loaded by the game code (see AI use). The first ascent vehicle model is kept in the project, but since 15 November its actor shows the newer crew ascent vehicle mesh.
+- Google Gemini: 25 design-room illustrations (20 option cards, 4 objective cards, the cold open), each tagged "AI illustration (Gemini)"; and four AI-generated cutscene videos made with Gemini (Veo) in `Content/Movies` (launch from Earth, landing at Jezero, lift-off from Mars, return to Earth), each skippable.
+- Sound: 50 sound effects and 6 music cues in `Data/Audio`. Fifteen sounds (the UI sounds, alarm, card flip, stamp, radio call, system up and down, and the latch, plug, scan, switch and done work sounds) are synthesized by `Scripts/make_sfx.py` (Apache 2.0, not AI-generated). Thirty-five sounds are AI-generated with ElevenLabs Sound Effects in the team's ElevenLabs account (`ElevenLabsSFX`, `bIsAIGenerated=True`): Mars wind, dust storm, habitat hum, suit breathing, regolith footsteps, lift-off and the drill, hammer, ratchet, scoop and brush work sounds, plus the in-helmet set (suit fan, heavy breathing, suit fabric, boot contact thumps, storm buffeting, sand on the visor, caution tone, radio squelch) and the rover, excavator and power-unit machine sounds. The six instrumental music cues (exploring, dust storm, design screen, lift-off) are AI-generated with ElevenLabs Music (`ElevenLabsMusic`, `bIsAIGenerated=True`).
+- Fonts: Barlow Semi Condensed and IBM Plex Mono (SIL Open Font License 1.1, licence files in `Content/TouchdownMars/UI/Fonts`); Roboto, Unreal's default UI font (Apache 2.0).
 - Unreal Engine 5.8 (Epic Games, Unreal Engine EULA).
-- Quixel Megascans via Fab (Fab Standard License, Personal tier, free). The source assets are **not redistributed in this repository**; ten are cooked into the packaged Windows build as part of the game: Icelandic Porous Rock, Icelandic Boulder, Desert Western Cluster Rock Medium 05, Icelandic Sand Rock, Desert Western Pile Rock Small 01, Stones and Pebbles Pack, Gravel on Soil, Dry Soil Ground, Dry Rippled Sand and Painted Metal. Each is listed in `sources.csv`.
-- Sound effects, two sets. The UI sounds and the latch, plug, scan, switch and done work sounds are synthesized by `Scripts/make_sfx.py` (Apache 2.0, not AI-generated). Thirty-five sounds are AI-generated with ElevenLabs Sound Effects in the team's ElevenLabs account (`Data/Audio`; listed in `sources.csv` as `ElevenLabsSFX` with `bIsAIGenerated=True`): Mars wind, dust storm, habitat hum, suit breathing, regolith footsteps, lift-off and the drill, hammer, ratchet, scoop and brush work sounds, plus the in-helmet set (suit fan, heavy breathing, suit fabric, boot contact thumps, storm buffeting, sand on the visor, caution tone, radio squelch) and the rover, excavator and power-unit machine sounds.
-- Music: six instrumental cues (exploring, dust storm, design screen, lift-off) are AI-generated with ElevenLabs Music in the team's ElevenLabs account (`Data/Audio/MUS_TD_*`; listed in `sources.csv` as `ElevenLabsMusic` with `bIsAIGenerated=True`).
-- Tripo AI (27 AI-generated 3D models, made in the team's Tripo Studio account; listed in `sources.csv` with `bIsAIGenerated=True`): ascent vehicle, fission power unit, greenhouse dome, plant rack, cargo crates, shelter hatch and the rigged crew astronaut; across the outpost, corridor tubes, habitat modules, airlock, light masts, regolith mounds, weather mast, water wall frames, ISRU plant, storage tanks, the Mission Control console body, payload cases, junction boxes, a field tablet, a sample scoop, solar array tables, an insulated pipe run, an oxygen production unit, a corridor end bulkhead, the crew ascent vehicle on its lander and the cargo lander.
-- Design-room pictures: Google Gemini illustrations in one locked style (20 option cards, 4 objective cards, the cold open). Each card shows the tag "AI illustration (Gemini)"; listed in `sources.csv` as `GeminiIllustrations` with `bIsAIGenerated=True`.
-- Fonts: Barlow Semi Condensed and IBM Plex Mono (SIL Open Font License 1.1, licence files in `Content/TouchdownMars/UI/Fonts`).
-- Editor tooling only, not shipped and not in this repository: Epic's Unreal MCP, VibeUE (MIT), a private team fork of the StraySpark Unreal MCP Server.
+
+**9. Tools, not shipped and not in this repository:** Claude Code (Anthropic), Epic's Unreal MCP, VibeUE (MIT) and a private team fork of the StraySpark Unreal MCP Server. Tripo Studio, ElevenLabs and Google Gemini made the assets above (see AI use).
 
 No NASA logo, flag, insignia or mission patch is used anywhere in the game.
 
@@ -253,7 +269,7 @@ The game concept, the mission architecture, the design decisions and the choice 
 
 - **ChatGPT and Claude** were used to draft and revise the team's work plan, to analyse the challenge documents and to set up this repository. Claude was used for competitor analysis and source checking.
 - **Anthropic Claude (Claude Code, an AI coding assistant)** wrote the C++ code, the Python editor scripts and the packaging script, built the levels, widgets and DataTables in the Unreal Editor through MCP editor tooling, and drafted the documents, the card research and the English and Turkish game text from the team's research and decisions. Every card fact was checked against its source page.
-- **Tripo AI** generated 27 3D models from text prompts run in the team's Tripo Studio account. The first seven, from prompts written by Claude Code: ascent vehicle, fission power unit, greenhouse dome, plant rack, cargo crates, shelter hatch and the rigged crew astronaut (retopologised and auto-rigged with six preset animations; its textures also dress the crew suits). Twenty more across the outpost: corridor tubes, habitat modules, airlock, light masts, regolith mounds, weather mast, water wall frames, ISRU plant, storage tanks, the Mission Control console body, payload cases, junction boxes, a field tablet, a sample scoop, solar array tables, an insulated pipe run, an oxygen production unit, a corridor end bulkhead, the crew ascent vehicle on its lander and the cargo lander. All are listed in `sources.csv` with `bIsAIGenerated=True`.
+- **Tripo AI** generated 33 3D models from text prompts run in the team's Tripo Studio account. The first seven, from prompts written by Claude Code: ascent vehicle, fission power unit, greenhouse dome, plant rack, cargo crates, shelter hatch and the rigged crew astronaut (retopologised and auto-rigged with six preset animations; its textures also dress the crew suits). Twenty more across the outpost: corridor tubes, habitat modules, airlock, light masts, regolith mounds, weather mast, water wall frames, ISRU plant, storage tanks, the Mission Control console body, payload cases, junction boxes, a field tablet, a sample scoop, solar array tables, an insulated pipe run, an oxygen production unit, a corridor end bulkhead, the crew ascent vehicle on its lander and the cargo lander. Six small kit models mark the hands-on work spots: a service panel, a core drill rig, a survey stake, an anchor plate, a regolith hopper and a test solar panel. All are listed in `sources.csv` with `bIsAIGenerated=True`.
 - **Google Gemini** generated the 25 design-room illustrations (option cards, objective cards and the cold open of a fictional crew) from prompts written by Claude Code, in one locked style that matches the UI palette. The team checked every image at full size for logos, insignia, flags, mission patches, text and faces and rejected any that had them. Every card carries a visible "AI illustration (Gemini)" tag. Real NASA photos are not used for fictional scenes.
 - **ElevenLabs Sound Effects** generated 35 sound effects from text prompts written by Claude Code in the team's ElevenLabs account: Mars wind, dust storm, habitat hum, suit breathing, regolith footsteps, lift-off, the drill, hammer, ratchet, scoop and brush work sounds, the in-helmet set (suit fan, heavy breathing, suit fabric, boot contact thumps, storm buffeting, sand on the visor, caution tone, radio squelch) and the rover, excavator and power-unit machine sounds. They are listed in `sources.csv` as `ElevenLabsSFX` with `bIsAIGenerated=True`.
 - **ElevenLabs Music** generated the six instrumental music cues (exploring, dust storm, design screen, lift-off) from text prompts written by Claude Code in the team's ElevenLabs account. They are listed in `sources.csv` as `ElevenLabsMusic` with `bIsAIGenerated=True`.
