@@ -4,6 +4,7 @@
 Runs outside Unreal with Python 3.9+ and the standard library only:
     python Scripts/playtest_report.py "Touchdown Mars_ Playtest.csv.zip"
     python Scripts/playtest_report.py export.csv --fix-player 1810=4
+    python Scripts/playtest_report.py export.csv --fix-row 9=8
 
 Reads
     the Forms export (.csv, or the .zip that "Download responses" gives)
@@ -56,13 +57,13 @@ OPEN = {
 EN_FIELDS = tuple(f"{name}_en" for name in OPEN.values())
 
 CODING_FIELDS = (
-    "player", "form_player", "exclude_reason", "model", "group", "minutes",
-    "dust_storm", "cause_match", *EN_FIELDS, "note",
+    "player", "form_player", "form_row", "exclude_reason", "model", "group", "minutes",
+    "dust_storm", "cause_match", "not_counted", *EN_FIELDS, "note",
 )
 CODES = {
     "model": ("Guided", "Advanced", "mixed"),
     "group": ("solo", "team"),
-    "dust_storm": ("correct", "partial", "wrong"),
+    "dust_storm": ("correct", "partial", "wrong", "no_answer"),
     "cause_match": ("match", "partial", "no_match", "na"),
 }
 
@@ -172,13 +173,19 @@ def read_coding(path: Path) -> dict[int, dict[str, str]]:
                 raise ReportError(f"{where}: {field} is {entry[field]!r}; use one of {', '.join(allowed)} or leave it empty")
         if entry["minutes"] and not entry["minutes"].isdigit():
             raise ReportError(f"{where}: minutes is {entry['minutes']!r}; use a whole number or leave it empty")
+        if entry["form_row"] and not entry["form_row"].isdigit():
+            raise ReportError(f"{where}: form_row is {entry['form_row']!r}; use the row number of the export or leave it empty")
+        unknown_items = [item for item in entry["not_counted"].split(";") if item and item not in LIKERT.values()]
+        if unknown_items:
+            raise ReportError(f"{where}: not_counted names {', '.join(unknown_items)}; use statement columns such as s3_debrief_cause")
         sheet[player] = entry
     return sheet
 
 
 def player_fixes(coding: dict[int, dict[str, str]], arguments: list[str]) -> dict[str, int]:
     """Map a mistyped form player number to the assigned one: stored in coding.csv, or given with --fix-player."""
-    fixes = {entry["form_player"]: player for player, entry in coding.items() if entry["form_player"]}
+    # A row fix also stores the typed number; that number belongs to another player, so it is not a typed-number fix.
+    fixes = {entry["form_player"]: player for player, entry in coding.items() if entry["form_player"] and not entry["form_row"]}
     for argument in arguments:
         typed, separator, assigned = argument.partition("=")
         typed = typed.strip()
@@ -188,6 +195,20 @@ def player_fixes(coding: dict[int, dict[str, str]], arguments: list[str]) -> dic
         if fixes.get(typed, player) != player:
             raise ReportError(f"--fix-player {argument}: coding.csv already maps {typed} to P{fixes[typed]:02d}")
         fixes[typed] = player
+    return fixes
+
+
+def row_fixes(coding: dict[int, dict[str, str]], arguments: list[str]) -> dict[int, int]:
+    """Map an export row to a player, for two players who typed the same number: stored in coding.csv, or given with --fix-row."""
+    fixes = {int(entry["form_row"]): player for player, entry in coding.items() if entry["form_row"]}
+    for argument in arguments:
+        row, separator, assigned = argument.partition("=")
+        if not separator or not row.strip().isdigit():
+            raise ReportError(f"--fix-row {argument}: write it as ROW=ASSIGNED, for example 9=8 (row 1 is the header)")
+        player = parse_player(assigned.strip(), f"--fix-row {argument}")
+        if fixes.get(int(row), player) != player:
+            raise ReportError(f"--fix-row {argument}: coding.csv already maps row {row} to P{fixes[int(row)]:02d}")
+        fixes[int(row)] = player
     return fixes
 
 
@@ -240,7 +261,17 @@ def session_model(player: int, coded: str, flights: list[dict]) -> str:
     return flown[0] if len(flown) == 1 else "mixed"
 
 
-def build(export_rows, mapping, coding, flights, fixes):
+def resolve_player(line: int, typed: str, fixes: dict[str, int], rows_fixed: dict[int, int]) -> int:
+    """The counted player of one export row: a row fix first, then a typed-number fix, then the typed number."""
+    if line in rows_fixed:
+        return rows_fixed[line]
+    if typed in fixes:
+        return fixes[typed]
+    hint = f" If it is a typing mistake, run again with --fix-player {typed}=<assigned number>."
+    return parse_player(typed, f"form row {line}", hint)
+
+
+def build(export_rows, mapping, coding, flights, fixes, rows_fixed):
     """Check every form row. Returns counted rows, excluded players, rows without consent and the coder sheet to save."""
     sheet = {player: dict(entry) for player, entry in coding.items()}
     counted: dict[int, dict] = {}
@@ -253,20 +284,19 @@ def build(export_rows, mapping, coding, flights, fixes):
             no_consent += 1
             continue
         typed = raw[mapping["player"]]
-        if typed in fixes:
-            player = fixes[typed]
-        else:
-            hint = f" If it is a typing mistake, run again with --fix-player {typed}=<assigned number>."
-            player = parse_player(typed, where, hint)
+        player = resolve_player(line, typed, fixes, rows_fixed)
         if player in form_row_of:
             raise ReportError(
                 f"{where}: P{player:02d} is already in form row {form_row_of[player]}. "
-                "If one of the two typed a wrong number, use --fix-player TYPED=ASSIGNED."
+                "If one of the two typed a wrong number, use --fix-player TYPED=ASSIGNED, "
+                "or --fix-row ROW=ASSIGNED when both typed the same number."
             )
         form_row_of[player] = line
         entry = sheet.setdefault(player, dict.fromkeys(CODING_FIELDS, ""))
         entry["player"] = f"P{player:02d}"
-        if typed in fixes:
+        if line in rows_fixed:
+            entry["form_row"] = str(line)
+        if typed in fixes or line in rows_fixed:
             entry["form_player"] = typed
         if entry["exclude_reason"]:
             excluded.append((player, entry["exclude_reason"]))
@@ -290,6 +320,7 @@ def build(export_rows, mapping, coding, flights, fixes):
         row["run_causes"] = ";".join("+".join(flight["causes"]) or "none" for flight in flown)
         row["dust_storm"] = entry["dust_storm"]
         row["cause_match"] = entry["cause_match"]
+        row["not_counted"] = entry["not_counted"]
         counted[player] = row
     for player, entry in sheet.items():
         entry["player"] = f"P{player:02d}"
@@ -323,9 +354,20 @@ def results_block(rows, excluded, no_consent, form_rows, sheet) -> str:
         lines.append(f"Not counted: {len(excluded)} ({reasons}).")
     if no_consent:
         lines.append(f"Form rows without the consent box, not used and not published: {no_consent}.")
-    corrected = [f"typed `{entry['form_player']}`, counted as {entry['player']}" for entry in sheet if entry["form_player"]]
+    corrected = [
+        f"typed `{entry['form_player']}`"
+        + (f" (form row {entry['form_row']}, the same number as another player)" if entry["form_row"] else "")
+        + f", counted as {entry['player']}"
+        for entry in sheet if entry["form_player"]
+    ]
     if corrected:
         lines.append(f"Mistyped player number corrected by the observer: {'; '.join(corrected)}.")
+    skipped = [
+        row["player"] + ": " + ", ".join(f"`{item}`" for item in row["not_counted"].split(";"))
+        for row in rows if row["not_counted"]
+    ]
+    if skipped:
+        lines.append(f"Answers kept in `responses.csv` but not counted (reason in `coding.csv`): {'; '.join(skipped)}.")
     lines += [
         "",
         "**Knowledge of space mission engineering before playing:** "
@@ -337,7 +379,7 @@ def results_block(rows, excluded, no_consent, form_rows, sheet) -> str:
         "| :-- | --: | --: | --: | --: | --: | --: | --: |",
     ]
     for statement, column in LIKERT.items():
-        answers = [row[column] for row in rows if row[column] != ""]
+        answers = [row[column] for row in rows if row[column] != "" and column not in row["not_counted"].split(";")]
         cells = " | ".join(str(answers.count(score)) for score in range(1, 6))
         median = f"{statistics.median(answers):g}" if answers else "-"
         agree = sum(1 for answer in answers if answer >= 4)
@@ -380,13 +422,14 @@ def write_csv(path: Path, fields: tuple[str, ...] | list[str], rows: list[dict])
         writer.writerows(rows)
 
 
-def run(export: Path, out: Path, fix_arguments: list[str]) -> None:
+def run(export: Path, out: Path, fix_arguments: list[str], row_arguments: list[str]) -> None:
     headers, export_rows = read_table(load_text(export), export.name)
     mapping, dropped = column_map(headers, export.name)
     coding = read_coding(out / "coding.csv")
     fixes = player_fixes(coding, fix_arguments)
+    rows_fixed = row_fixes(coding, row_arguments)
     flights, ignored = read_runs(out / "runs")
-    rows, excluded, no_consent, sheet = build(export_rows, mapping, coding, flights, fixes)
+    rows, excluded, no_consent, sheet = build(export_rows, mapping, coding, flights, fixes, rows_fixed)
     block = results_block(rows, excluded, no_consent, len(export_rows), sheet)
 
     readme = out / "README.md"
@@ -401,6 +444,7 @@ def run(export: Path, out: Path, fix_arguments: list[str]) -> None:
     fields = [
         "player", "prior_knowledge", *LIKERT.values(), *OPEN.values(), *en_fields,
         "model", "group", "minutes", "flights", "run_results", "run_causes", "dust_storm", "cause_match",
+        *(["not_counted"] if any(row["not_counted"] for row in rows) else []),
     ]
     out.mkdir(parents=True, exist_ok=True)
     write_csv(out / "responses.csv", fields, [{field: row[field] for field in fields} for row in rows])
@@ -430,12 +474,16 @@ def main() -> int:
         "--fix-player", action="append", default=[], metavar="TYPED=ASSIGNED",
         help="a player typed a wrong number in the form, e.g. 1810=4; saved in coding.csv, so it is needed once",
     )
+    parser.add_argument(
+        "--fix-row", action="append", default=[], metavar="ROW=ASSIGNED",
+        help="two players typed the same number; give the export row (row 1 is the header) and the assigned number, e.g. 9=8",
+    )
     arguments = parser.parse_args()
     for stream in (sys.stdout, sys.stderr):
         if hasattr(stream, "reconfigure"):
             stream.reconfigure(errors="replace")
     try:
-        run(arguments.export, arguments.out, arguments.fix_player)
+        run(arguments.export, arguments.out, arguments.fix_player, arguments.fix_row)
     except ReportError as error:
         print(f"error: {error}", file=sys.stderr)
         return 1

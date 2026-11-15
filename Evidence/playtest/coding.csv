@@ -1,6 +1,9 @@
-player,form_player,exclude_reason,model,group,minutes,dust_storm,cause_match,went_wrong_en,change_second_flight_en,dust_storm_answer_en,confused_most_en,note
-P01,,,,,,correct,,,,,,
-P02,,,,,,correct,,,,,,
-P03,,,,,,wrong,,,,,,
-P04,1810,,,,,wrong,,,,,,
-P05,,,,,,partial,,,,,,
+player,form_player,form_row,exclude_reason,model,group,minutes,dust_storm,cause_match,not_counted,went_wrong_en,change_second_flight_en,dust_storm_answer_en,confused_most_en,note
+P01,,,,,,,correct,na,,,,,,
+P02,,,,,,,correct,na,,,,,,
+P03,,,,,,,wrong,na,,,,,,
+P04,1810,,,,,,wrong,na,,,,,,
+P05,,,,,,,partial,na,,,,,,
+P06,,,,,solo,21,correct,na,,,,,,"Screen-recorded session (observer_notes.md): mission complete, 94/100, one flight. At the debrief picked Power units as the decision to change; the debrief traced the shortfall to the link to Earth."
+P07,,,,,,,correct,na,,,,,,
+P08,6,9,,,solo,10,no_answer,na,s3_debrief_cause;s5_refly_taught,,,,,"Screen-recorded session (observer_notes.md): quit on sols 7-10, so no debrief and no second flight. s3 and s5 ask about both, so they are not counted. Typed 6, the number of another player. Minutes: recorded part only."
