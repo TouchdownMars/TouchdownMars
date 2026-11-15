@@ -335,8 +335,8 @@ Design_Issue_RoleGoalMissed,A role goal is open.,Bir rol hedefi açık.
 Dash_Title,MISSION DASHBOARD,GÖREV GÖSTERGELERİ
 Dash_Mass,Mass to Mars,Mars'a kütle
 Dash_MassValue,{0} / {1} t,{0} / {1} t
-Dash_MassDetail,"Hardware {0} t · crew food, water and oxygen {1} t (NASA BVAD, crew of 4: you and three) · cruise and landing hardware {2} t (game assumption) · {3} launch(es), each a separate package","Donanım {0} t · ekip gıda, su ve oksijeni {1} t (NASA BVAD, 4 kişi: sen ve üç kişi) · yolculuk ve iniş donanımı {2} t (oyun varsayımı) · {3} fırlatma, her biri ayrı paket"
-Dash_MassDetailSimple,"Hardware {0} t · crew food, water and oxygen {1} t (NASA BVAD) · {2} launch(es). The guided model leaves out the cruise and landing hardware.","Donanım {0} t · ekip gıda, su ve oksijeni {1} t (NASA BVAD) · {2} fırlatma. Rehberli model yolculuk ve iniş donanımını hesaba katmaz."
+Dash_MassDetail,"Hardware {0} t · crew food, water and oxygen {1} t (NASA BVAD, crew of 4: you and three) · cruise and landing hardware {2} t (game assumption) · {3} {3}|plural(one=launch,other=launches), each a separate package","Donanım {0} t · ekip gıda, su ve oksijeni {1} t (NASA BVAD, 4 kişi: sen ve üç kişi) · yolculuk ve iniş donanımı {2} t (oyun varsayımı) · {3} fırlatma, her biri ayrı paket"
+Dash_MassDetailSimple,"Hardware {0} t · crew food, water and oxygen {1} t (NASA BVAD) · {2} {2}|plural(one=launch,other=launches). The guided model leaves out the cruise and landing hardware.","Donanım {0} t · ekip gıda, su ve oksijeni {1} t (NASA BVAD) · {2} fırlatma. Rehberli model yolculuk ve iniş donanımını hesaba katmaz."
 Dash_Power,Power cells,Güç hücreleri
 Dash_PowerValue,{0} cells (needs {1}),{0} hücre (gereken {1})
 Dash_PowerDetail,"{0} kWe made, {1} kWe used by instruments and robots; 1 cell = {2} kWe. In a dust storm: {3} cells.","{0} kWe üretim, {1} kWe cihaz ve robot tüketimi; 1 hücre = {2} kWe. Toz fırtınasında: {3} hücre."
@@ -369,7 +369,7 @@ Poll_CallGo,call GO,GO de
 Poll_Launch,LAUNCH,FIRLAT
 Design_Code,Design code: {0},Tasarım kodu: {0}
 Transit_Title,Launch and cruise,Fırlatma ve yolculuk
-Transit_Launch,{0} launch(es) send {1} t toward Mars.,{0} fırlatma Mars'a {1} t gönderiyor.
+Transit_Launch,"{0} {0}|plural(one=launch sends,other=launches send) {1} t toward Mars.",{0} fırlatma Mars'a {1} t gönderiyor.
 Transit_Cruise,The cruise takes about {0} days (NASA); Perseverance took {1}.,Yolculuk yaklaşık {0} gün sürer (NASA); Perseverance'ınki {1} gün sürdü.
 Transit_Landing,"The cargo lands at Jezero before the crew, with {0} t of cruise and landing hardware (game assumption).","Kargo, {0} t yolculuk ve iniş donanımıyla (oyun varsayımı) ekipten önce Jezero'ya iner."
 Transit_Crew,The crew follows. Power on the surface: {0} cells ({1} in a dust storm).,Ekip arkadan gelir. Yüzeyde güç: {0} hücre (toz fırtınasında {1}).
@@ -589,7 +589,7 @@ Trace_Instruments,{0} instruments → {1} of {2} science,{0} cihaz → {2} bilim
 Trace_Rockets,Rockets with {1} t of room carried {0} t → you paid for empty space,{1} t yerli roketler {0} t taşıdı → boş yere para ödedin
 Trace_ClosePower,"Closest call: {0} cells in a dust storm, the base needs {1}.","En yakın sınır: toz fırtınasında {0} hücre, üs {1} istiyor."
 Trace_CloseMass,Closest call: the rockets were {0} % full.,En yakın sınır: roketler %{0} doluydu.
-Choice_Switch,Switch to {0} × {1},{0} × {1} ile değiştir
+Choice_Switch,Add {0} × {1},{0} × {1} ekle
 Review_Later,{0} more lines open in the next steps.,{0} satır daha sonraki adımlarda açılacak.
 CrewName_0,You,Sen
 CrewName_1,Deniz,Deniz
@@ -851,3 +851,4 @@ Cutscene_CS_Launch,Launch day. Your cargo and crew leave Earth for Mars.,Fırlat
 Cutscene_CS_Landing,Months later: touchdown at Jezero crater.,Aylar sonra: Jezero kraterine iniş.
 Cutscene_CS_LiftOff,Mission complete. The ascent vehicle lifts off from Mars.,Görev tamam. Dönüş aracı Mars'tan kalkıyor.
 Cutscene_CS_Return,Home: the crew splashes down on Earth.,Eve dönüş: ekip Dünya'da okyanusa iniyor.
+MC_PlaceRest,Place the rest (crew first),Kalanları yerleştir (önce ekip)

@@ -64,6 +64,10 @@ TStatId UTDCutsceneSubsystem::GetStatId() const
 bool UTDCutsceneSubsystem::Enabled()
 {
 	const TCHAR* Cmd = FCommandLine::Get();
+	if (FParse::Param(Cmd, TEXT("TDCutscenesOn")))
+	{
+		return true;   // dev: keep the cutscenes in a shortcut run (e.g. -TDSurface -TDOpsDemo -TDCutscenesOn)
+	}
 	return !(FParse::Param(Cmd, TEXT("TDSurface")) || FParse::Param(Cmd, TEXT("TDShotTour")) || FParse::Param(Cmd, TEXT("TDWorkTest"))
 		|| FParse::Param(Cmd, TEXT("TDNoCutscenes")) || FString(Cmd).Contains(TEXT("-TDCam=")) || GIsAutomationTesting);
 }

@@ -800,6 +800,36 @@ TSharedRef<SWidget> STDBaseComputer::BuildPower()
 				.ColorAndOpacity(Placed < S.CellsTotal ? Pal::Red() : Pal::Go())
 		]
 		+ SVerticalBox::Slot().AutoHeight().Padding(0.f, 6.f)[Tokens]
+		// One click for the rest (playtest: twelve single clicks were a chore): the game's own priority rule,
+		// crew first (AIR), then the base (SHELTER), then science (GREENHOUSE); every need first, then the spare.
+		+ SVerticalBox::Slot().AutoHeight().Padding(0.f, 10.f, 0.f, 0.f).HAlign(HAlign_Left)
+		[
+			Button(Txt(TEXT("MC_PlaceRest")), FOnClicked::CreateLambda([this, Demand]()
+			{
+				UTDMissionSubsystem* Mi = Mission.Get();
+				if (!Mi) { return FReply::Handled(); }
+				const ETDSystem Order[] = { ETDSystem::Air, ETDSystem::Shelter, ETDSystem::Greenhouse };
+				bool bPlaced = false;
+				for (ETDSystem Sys : Order)   // needs first
+				{
+					const int32 I = static_cast<int32>(Sys);
+					while (Mi->GetState().Allocation.IsValidIndex(I) && Demand.IsValidIndex(I) && Mi->GetState().Allocation[I] < Demand[I]
+						&& !Mi->IsSystemLocked(Sys) && Mi->PlaceCell(Sys)) { bPlaced = true; }
+				}
+				for (int32 Guard = 0; Guard < 64; ++Guard)   // then the spare cells, in turn
+				{
+					bool bAny = false;
+					for (ETDSystem Sys : Order)
+					{
+						if (!Mi->IsSystemLocked(Sys) && Mi->PlaceCell(Sys)) { bAny = true; bPlaced = true; }
+					}
+					if (!bAny) { break; }
+				}
+				if (bPlaced) { Mi->PlaySfxPitched(TEXT("SystemUp"), 1.4f, 0.7f); }
+				Rebuild();
+				return FReply::Handled();
+			}), bCanEdit && Placed < S.CellsTotal, Pal::Red(), 16)
+		]
 		+ SVerticalBox::Slot().AutoHeight().Padding(0.f, 14.f, 0.f, 4.f)[Label(Txt(TEXT("MC_PowerHow")), 15, Pal::Text())]
 		+ SVerticalBox::Slot().AutoHeight().Padding(0.f, 4.f)[Label(Txt(TEXT("UI_PriorityRule")), 15, Pal::Text2(), true)];
 	{

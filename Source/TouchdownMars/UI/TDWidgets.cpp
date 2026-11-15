@@ -1014,6 +1014,16 @@ void UTDHudWidget::HandlePhaseResolved(const FText& Cause)
 {
 	SetLabel(ResultText, Cause, TDTokens::SizeBody, TDTokens::CoreText());
 	ShowPanelOf(ResultText, !Cause.IsEmpty());
+	// The phase result is a headline, not a sign: it clears after a few seconds (playtest: it stayed for minutes).
+	const int32 Ticket = ++ResultTicket;
+	if (UWorld* World = GetWorld())
+	{
+		FTimerHandle Handle;
+		World->GetTimerManager().SetTimer(Handle, FTimerDelegate::CreateWeakLambda(this, [this, Ticket]()
+		{
+			if (Ticket == ResultTicket && !bPendingReport && ResultText) { ShowPanelOf(ResultText, false); }
+		}), 8.f, false);
+	}
 }
 
 void UTDHudWidget::ShowPanelOf(UTextBlock* Text, bool bShown)

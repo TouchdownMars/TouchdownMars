@@ -503,6 +503,8 @@ private:
 	UFUNCTION() void HandleEnded(ETDMissionResult Result);
 	/** The lift-off and return cutscenes ran (HandleEnded runs again after them). */
 	bool bReturnCutscenePlayed = false;
+	/** Last phase result shown (the auto-hide timer only clears its own banner). */
+	int32 ResultTicket = 0;
 	UFUNCTION() void HandleWeather(const FTDSpaceWeather& Weather);
 	UFUNCTION() void HandleSettingsChanged();
 	UFUNCTION() void HandleCallHome();

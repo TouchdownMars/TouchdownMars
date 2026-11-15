@@ -363,7 +363,8 @@ TSharedRef<SWidget> STDSurfaceHud::BuildCentre()
 				.Station_Lambda([Work]() { return Work().bStation; })
 			]
 		]
-		+ SVerticalBox::Slot().AutoHeight().HAlign(HAlign_Center).Padding(0.f, 70.f, 0.f, 0.f)
+		// Well below the ring: the phase result banner sits just under the screen centre (playtest: they overlapped).
+		+ SVerticalBox::Slot().AutoHeight().HAlign(HAlign_Center).Padding(0.f, 150.f, 0.f, 0.f)
 		[
 			SNew(SBorder).BorderImage(White()).BorderBackgroundColor(Hex(TEXT("15181C"), 0.88f)).Padding(FMargin(18.f, 9.f))
 			.Visibility_Lambda([Work]() { return Work().bShow ? EVisibility::HitTestInvisible : EVisibility::Collapsed; })
