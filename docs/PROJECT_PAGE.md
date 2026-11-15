@@ -1,0 +1,323 @@
+# Touchdown Mars: The Manifest, NASA Space Apps project page
+
+This file holds the text of every field on the team's NASA Space Apps 2026 project page. It was checked against this repository at commit `9df727f` on 15 November 2026; the source lists are built from `Data/Source/sources.csv`. Each section replaces the whole content of the page field with the same name.
+
+**Superseded text.** These older statements must not stay on the page: 113, 114, 118 or 120 source records; 847 or 849 text rows; 21, 25 or 27 Tripo models; "no AI-generated video is used"; "Not in this build: VR, music and voice"; Zeitlin et al. 2018, Hassler et al. 2014 and Lemmon et al. 2022 listed as event card sources; "follows NASA's human Mars studies" for the cargo-first scenario; the NASA Webb "Build It Yourself" game and NASA CubeSat 101 as references; Starship, Vulcan Centaur, New Glenn, SLS Block 1B, NASA OIG IG-22-003 and IG-24-001, the Psyche launch contract, a Horizons Moon query, NASA "appendix-f-vol-2"; "Moon mode", "First Light", "Junior Astronaut".
+
+## Summary
+
+Touchdown Mars: The Manifest is a Mars mission design game with a first-person mission simulation. One player, or a team of up to four with separate roles, designs the cargo mission that lands at Jezero crater before a crew of four: rockets and launches, surface power, radiation shelter, greenhouse, spare parts, science instruments and the link to Earth, under mass, power, budget and data limits. A live dashboard and a design review show each trade-off and block the launch when the rockets cannot carry the cargo. The team then flies the mission and lives 31 sols on the surface: it plans the crew's work hours, splits the power its own design produces, and answers dated NASA events. Real NASA data runs inside the mission: Jezero air temperatures from Perseverance's MEDA set the heating load, Curiosity RAD days set the crew's dose, and InSight's marsquake catalogue gives the seismometer its records. A debrief scores success, science value, efficiency and decisions, and traces each problem back to the design decision that caused it. The team then redesigns and flies the same mission again. Crew transport and return are assumed to be provided; the game covers cargo planning and surface operations.
+
+## Project (link)
+
+https://github.com/TouchdownMars/TouchdownMars
+
+Download link for the Windows build: to be added when the team publishes it.
+
+## Project Details
+
+### What it does
+
+**Act 1: Mission Design Room.** The team picks one of four objectives: a first-crew baseline (bring the crew home and leave the base running), Science First (more instruments and science walks), Lasting Base (leave every system healthy for the next crew) and a Sandbox with no budget cap. Each objective has its own requirements, budget and score weights.
+
+Four roles share one screen: Mission Planner (launch), Systems Engineer (power, shelter, greenhouse, spares), Science Lead (instruments) and Comms & Budget (link to Earth, money). Each role changes only its own systems and has its own goal, so the goals pull against each other over the shared mass, power and budget. One player can play all four roles.
+
+There are seven design slots and 21 options: Falcon 9 or Falcon Heavy and the number of launches; fission power units and solar fields; three radiation shelters; two greenhouse sizes; two spares kits; eight instruments based on flown hardware (Mastcam-Z, SuperCam, PIXL, SHERLOC, MEDA, MOXIE, RAD and InSight's SEIS seismometer); a direct-to-Earth antenna or a relay orbiter. Every option card shows its mass, power, cost, data and science value, a "Why it matters" line, the hardware it is based on, and whether its numbers are NASA or manufacturer values or game values.
+
+The dashboard adds up the cargo against the launch capacity: hardware, crew food, water and oxygen from NASA's BVAD for a crew of four, and, in the Advanced model, cruise and landing hardware (a labelled game assumption; the Guided model leaves it out). Each launch is a separate package and a module cannot be split between launches. It also shows power cells in clear sky and in a dust storm against the cells the base needs: the equipment load plus heating against Jezero's air from Perseverance's MEDA station (game heat-loss model). It shows budget, data per sol and science value too.
+
+A design review lists what blocks the launch (for example "the cargo is 18.8 t but the rockets send only 16.8 t to Mars") and what is only a risk. A "Known before launch" panel names the risks ahead: solar conjunction, dust storms, solar storms and failures. A meter after JPL's Concept Maturity Levels climbs as the design becomes complete. A pre-launch checklist shows empty slots and open red lines. Launch needs all four roles to call GO, and any change clears the poll.
+
+The first flight of a session is the tutorial: a short cold open shows a fictional solar-only crew losing power in a dust storm, then guided steps teach the cause-and-effect logic of the design room.
+
+**Act 2: Fly and live.** Short cutscene videos show the launch from Earth, the landing at Jezero, the lift-off from Mars and the return to Earth; each has a caption in English or Turkish and can be skipped (AI-generated, see Use of Artificial Intelligence). A transit card shows the launches, the cruise (about 200 days, NASA; Perseverance took 213) and the cruise and landing hardware. The cargo lands at Jezero before the crew. The crew follows, and the player walks a connected base in first person on Mars gravity (0.38 g). The terrain is real: a 1 km window of the MRO HiRISE Jezero elevation model near the Perseverance landing site. The parts the team designed (fission units, solar fields, shelter shielding, relay antenna) appear on the surface.
+
+The surface mission has six phases from sol 1 to sol 31. In each phase the player walks to the Mission Control console beside the habitat (an objective tracker and a marker show the way) and uses its three tabs:
+
+- **DECISION:** answers a dated NASA event card on which both choices cost something.
+- **POWER:** places the power cells the design produces into AIR, GREENHOUSE and SHELTER. A system with fewer cells than it needs drops a level; with more, it rises.
+- **CREW PLAN:** gives the crew their work hours. There are 17 crew tasks, for example inspect the cargo by robot, suit checkout, off-load the rover and the science payload, start the greenhouse, stand up the weather mast, a science traverse to the delta, survey for water-bearing clays, bake water out of clay, pile regolith on the shelter, clean the solar arrays, life-support maintenance, level the seismometer, study a marsquake record and a 5-sol rover traverse. Crew day length, the first spacewalk sol and spacewalk durations follow a NASA Mars surface operations study.
+
+A GO / NO-GO check lets the sols run only when every power cell is placed, the event is answered and the crew's work is planned. The sols then run as a time-lapse in which the AI crew walk to the work sites. The player can take a task and do it by hand outside (hammer stakes, plug in cables, brush dust off the panels, drill a rock core, shovel regolith); otherwise it is done in the time-lapse. A short, skippable cinematic shows the result of the event, and the card flips to "What really happened?" with the date, instrument, measurement and source.
+
+Tasks change the mission: the weather mast halves dust on the arrays, a regolith berm lowers the power a radiation storm needs, water from clay raises AIR, maintenance raises the weakest system. The base shows what the crew has set up: the rover stays on the lander deck until it is off-loaded, the mast stands only after it is deployed. When the player walks away from the hub, an AI crew member suits up and walks beside them, so nobody is outside alone. A spacewalk can be ordered without a rest sol, but the crew member works fewer hours in the next phase and the debrief lists the broken rule.
+
+The design changes the events: in a dust-storm phase solar power falls but fission does not; a shielded shelter needs less power in a radiation storm; spare parts make a repair cheaper. Mission Control's reply arrives one phase late and names the system that was weakest when the crew called; by the time it arrives it may be out of date, and the debrief counts how many replies were. During solar conjunction no link works, relay or not. Science data waits in storage for an open link; what does not reach Earth by lift-off does not count.
+
+The helmet display shows life support, power cells, the crew's radiation dose, comms and the Jezero weather of the sol from Perseverance's MEDA station (archive, labelled ARCHIVE). A "Today's Sun" panel shows live NASA DONKI space weather (labelled LIVE with the fetch time) or the September 2017 archive (labelled ARCHIVE) when offline.
+
+**Real data inside the mission.**
+
+- **Heating from MEDA:** the daily air temperatures set the habitat heater load (game heat-loss model), which is part of the power cells a design must carry.
+- **Crew radiation dose from Curiosity RAD:** each sol uses one real day of RAD dosimetry (CDAWeb, Aug-Oct 2017). Outside time gets the full rate; the habitat and the storm shelter keep part of it out (labelled game assumptions). A radiation card replays the 11-17 Sep 2017 solar event, and the decision card shows the event-day dose for a spacewalk versus the shelter. The mSv value is an estimate scaled to the average Mars-surface dose equivalent and compared with the NASA career limit.
+- **Seismometer (InSight SEIS, up to 8.5 W):** level it outside, then study real records from the InSight Marsquake Service catalogue V14 in the lab, one science walk each. The records are what InSight measured in Elysium Planitia, not shaking at the base.
+
+**Act 3: Mission Debrief.** The acceptance criteria of the objective come first, each met or missed. Four score axes follow, then a total weighted by the objective: mission success, science value (only data that reached Earth counts), efficiency (counted only after a successful lift-off, so an empty rocket cannot win) and decisions. A "What broke" panel names the design decision behind each problem, and a team debrief shows which role goals held. The debrief compares the flight with the team's other flights in the session and with real NASA missions. "Redesign (same seed)" starts again from the flown design, and a "This flight vs the one before" view states whether the seed and the event list were the same, so that only the design changed, and what the team changed.
+
+**Everywhere.** A Source Panel lists every number in the game with its source and location in the source, or labels it as a game value. English and Turkish. Keyboard and mouse, or a gamepad. Guided or Advanced model, Reduce motion and sound settings. No accounts and no data collection.
+
+### How it works
+
+- **Design rules (C++).** A pure module evaluates a design: mass, launch capacity, landing-system mass, power cells in clear sky and in a dust storm, cost, data and science. It produces the review list, the maturity level, the role goals, the effects handed to the surface rules and the four-axis score.
+- **Mission rules (C++).** A second pure module runs the six phases: allocation, events, exposures, delayed messages and report. A seeded random stream makes the same seed and the same design give the same mission, which is what makes the redesign comparison fair.
+- **Base operations (C++).** A third module plans crew hours, checks task prerequisites and spacewalk rules, and applies task effects to the mission.
+- **Heating and crew dose (C++).** At start the mission subsystem sets the cells the base needs from the MEDA air temperatures; during the mission it sums each crew member's dose from the RAD days and their outside hours.
+- **Automated tests.** 30 automation tests cover the three modules (TD.Design: 10, TD.Model: 12, TD.Ops: 8); 30 of 30 passed on 15 November 2026 at commit 0465558 (result lines in Evidence/tests_2026-11-15.txt).
+- **Data-driven content.** Everything lives in CSV files imported into Unreal DataTables: 21 design options, 4 objectives, 15 event cards, 17 crew tasks, 211 constants (104 with a source and its location, 107 labelled as game values), 127 source records, 853 English/Turkish text rows, 31 sols of Jezero weather, 51 days of Curiosity RAD dosimetry and the 10 largest InSight catalogue events.
+- **Interface.** The design room and the debrief are built in Slate; the surface uses a Mission Control console, a helmet display, an objective tracker and a shot director for the cinematics.
+- **Today's Sun.** One read request to NASA CCMC DONKI at start, with a timeout. It never changes gameplay.
+
+### Benefits
+
+- **Trade-offs come before the mission, as in real mission design.** Players meet launch capacity, landing mass, power through a dust storm, data return and cost before anything flies.
+- **Every decision says why it matters.** Each problem is traced back to the decision that caused it, so players learn why, not only right or wrong.
+- **Real hardware and events, with sources.** Real instruments, launch vehicles and dated NASA events, each with its source. Game values are labelled; archive data is never shown as live.
+- **One to four players** on one screen, in English and Turkish, offline.
+
+### Play test (15 November 2026)
+
+On 15 November, five adult volunteers from outside the team played Touchdown Mars and answered an anonymous form. Four of five said that flying the same mission again with a changed design taught them something new, and four of five understood what to do without outside help. Two of five fully explained why solar power drops in a dust storm while fission does not, and one more explained half of it. Only two of five could tell NASA values from game values; that is our next fix. Five players do not show a learning effect, and we do not claim one. Answers, method and limits: https://github.com/TouchdownMars/TouchdownMars/tree/main/Evidence/playtest
+
+### Design approach
+
+- **Design, simulate, evaluate, redesign.** NASA's "Design and Develop Science Missions" starts from the need and goals and designs across segments. JPL's Concept Maturity Levels give the meter; GSFC's Mission Design Lab gives the disciplines behind the four roles. The four roles, the two power options and the four score axes are our design choices.
+- **Risks shown before the decision.** The design room lists known risks before launch, and each event card is shown before the power split.
+- **Several score axes instead of one number, and no global leaderboard.** Players compare with their own flights and with real missions.
+- **Cargo lands before the crew.** The cargo lands before the crew, as in NASA's SAC21 human Mars architecture analysis, where cargo landers are pre-deployed ahead of the crew (Rucker et al. 2022). SAC21 is an analysis, not a committed mission.
+
+### Tools and languages
+
+- Unreal Engine 5.8, C++ (game module TouchdownMars), Slate and UMG, Enhanced Input.
+- Python editor scripts for data import, level setup, terrain, cameras and props; PowerShell for packaging.
+- CSV data imported into DataTables; Unreal HTTP and Json modules for the DONKI request; Git with Git LFS.
+- Editor tooling (not shipped): Epic's Unreal MCP, VibeUE, a private team fork of the StraySpark Unreal MCP Server, and Claude Code.
+- Asset generation: Tripo AI (3D models), Google Gemini (illustrations and Veo cutscene videos), ElevenLabs (sound effects and music); see Use of Artificial Intelligence.
+
+### Known limits
+
+- **Scope.** The game covers cargo planning and surface operations. Crew transport and return are assumed. Transfer orbits are not computed.
+- **Game values.** Module masses, most prices, data volumes, science values, the power cell size, the base load, the habitat heat-loss model, the radiation shielding factors, task effects and the budget caps are game values, labelled in the Source Panel. The cruise and landing hardware in the Advanced model is a game assumption per kilogram of landed payload, not a NASA landing efficiency; Curiosity's launch mass breakdown is shown only as a historical example.
+- **Seismometer.** Its mass is not counted: the team found no NASA mass figure. Its records come from InSight in Elysium Planitia, not from the base.
+- **Reference numbers.** Some sourced numbers only feed a display or the Source Panel: today's Earth-Mars light time on the console, the Mars transit dose rate and Deep Space Network dish sizes. The crew dose in mSv and its share of the NASA career limit are estimates shown for context; they do not change the score.
+- **Time and scale.** 31 sols are played in a few minutes; Mission Control delay is shown as phases, not minutes. Crew dose is summed from real RAD days, but the habitat and shelter factors are game assumptions and no health effect is computed.
+- **Team play.** Four roles share one screen; no network play.
+- **Not in this build.** VR and voice.
+- **Art.** NASA 3D Resources meshes with textures removed; Quixel Megascans rocks and ground surfaces (in the Windows build, not in the public repository); AI-generated 3D models, illustrations and cutscene videos (see Use of Artificial Intelligence); team-made materials.
+- **SAC21 is an analysis option**, labelled "NASA plan" in the game; it is not a committed NASA mission.
+
+Not endorsed by NASA.
+
+## NASA Data
+
+List field, 25 entries at most. One entry per line; if the form has a separate URL box, put the link there. Tags: [measured] = measured or flown value; [NASA study or target, not a flown result]. Further NASA sources are in References.
+
+1. NASA Life Support Baseline Values and Assumptions Document (BVAD), Rev 2 [NASA study or target, not a flown result]: oxygen, potable water and packaged food per crew member per day, added to the cargo mass that must fit the rockets. https://ntrs.nasa.gov/api/citations/20210024855/downloads/BVAD_2.15.22-final.pdf
+2. NASA Science, Perseverance Science Instruments [measured]: mass and power of Mastcam-Z, SuperCam, PIXL, SHERLOC, MEDA and MOXIE on the option cards and in the mass and power budget. https://science.nasa.gov/mission/mars-2020-perseverance/science-instruments/
+3. NASA/JPL, Mars Science Laboratory Landing press kit (July 2012) [measured]: RAD mass on its option card; Curiosity masses in the debrief comparison and as the scale of the game's cruise and landing hardware assumption. https://www.jpl.nasa.gov/news/press_kits/MSLLanding.pdf
+4. NASA Science, InSight science instruments (SEIS tech specs) [measured]: seismometer power draw (up to 8.5 W); its mass is not counted. https://science.nasa.gov/mission/insight/science-instruments/
+5. NASA release 18-031, Demonstration Proves Nuclear Fission System Can Provide Space Exploration Power [NASA study or target, not a flown result]: 10 kWe per fission unit, turned into power cells (unit mass and price are game values). https://www.nasa.gov/news-release/demonstration-proves-nuclear-fission-system-can-provide-space-exploration-power/
+6. NASA Photojournal PIA25284, InSight's Power Generation After Landing and Spring 2022 [measured]: InSight fell from about 5,000 to about 500 Wh per sol; the dust-storm solar share (game value 0.1) is scaled after it; also in the debrief comparison. https://science.nasa.gov/photojournal/insights-power-generation-after-landing-and-spring-2022
+7. NASA Science, Mars Relay Network [measured]: MRO relay data volume per day, the data per sol of the relay option (the direct-link volume is a game value). https://science.nasa.gov/mars/mars-relay-network/
+8. NASA HEOMD-415: Mars Surface Activities for Crewed Mission Systems and Utilization Reference Mission (Jan 2022) [NASA study or target, not a flown result]: crew work hours per sol, the first spacewalk sol, spacewalk hours and task durations that limit the crew plan. https://ntrs.nasa.gov/api/citations/20220000589/downloads/MarsSAC21SurfaceOps_2022-Jan_Version%201%20FINAL_update.pdf
+9. Mars 2020 MEDA Bundle (Rodriguez-Manfredi & de la Torre Juarez 2021), NASA PDS, doi:10.17189/1522849 [measured]: Jezero daily air temperature for mission sols 1 to 31 (Perseverance sols 305 to 335): the habitat heating load in the power cells a design must carry, and the weather on the helmet display. https://atmos.nmsu.edu/PDS/data/PDS4/Mars2020/mars2020_meda/
+10. NASA NSSDC, Mars Fact Sheet [measured]: surface gravity ratio 0.38 for first-person walking. https://nssdc.gsfc.nasa.gov/planetary/factsheet/marsfact.html
+11. InSight Marsquake Service (2023) Mars Seismic Catalogue, InSight Mission; V14 2023-04-01. ETHZ, IPGP, JPL, ICL, Univ. Bristol. doi:10.12686/a21 (copy in PDS InSight SEIS bundle doi:10.17189/1517570) [measured]: the ten largest marsquakes, studied one by one in the seismometer task (one science walk each); also the S1222a event card. https://pds-geosciences.wustl.edu/insight/urn-nasa-pds-insight_seis/data_derived/mqs_catalog_v14/
+12. NASA Mars Trek, MRO HiRISE Jezero DEM, Controlled (JEZ_hirise_soc_006_DTM_MOLAtopography_DeltaGeoid_1m_Eqc_latTs0_lon0_blend40, 1 m/px) [measured]: the outpost terrain: a 1 km window of the 1 m/px elevation model centred at 18.4447 N, 77.4508 E; only the base pad is levelled. https://trek.nasa.gov/mars/TrekWS/rest/cat/data/stream?label=JEZ_hirise_soc_006_DTM_MOLAtopography_DeltaGeoid_1m_Eqc_latTs0_lon0_blend40
+13. NASA GISS Mars24 Sunclock: algorithm and worked examples (Allison and McEwen 2000, Planet. Space Sci. 48, 215-235): algorithm for the sun position over the base on the phase date. https://www.giss.nasa.gov/tools/mars24/help/algorithm.html
+14. Hassler D. M. (2026) MSL RAD Level 2 Observation Dosimetry, LET, and Neutral-Particle Data, SPDF, doi:10.48322/20qb-4e17 [measured]: each sol adds one real day of RAD dose (20 Aug to 9 Oct 2017) to every crew member; shown on the helmet, the console and in the run record; habitat and shelter factors are game assumptions and the dose does not change the score. https://cdaweb.gsfc.nasa.gov/cgi-bin/eval2.cgi?dataset=MSL_RAD_OBS-L2&index=sp_phys
+15. NASA CCMC DONKI (Space Weather Database Of Notifications, Knowledge, Information) [measured]: the Today's Sun panel, live, labelled LIVE with the fetch time; it never changes gameplay. https://ccmc.gsfc.nasa.gov/tools/DONKI/
+16. NASA/JPL Horizons API, Mars (499) observed from Earth, 14-16 Nov 2026 [measured]: today's Earth-Mars light time on the Mission Control console (the in-game delay is counted in phases). https://ssd.jpl.nasa.gov/api/horizons.api?format=json&COMMAND='499'&OBJ_DATA='NO'&MAKE_EPHEM='YES'&EPHEM_TYPE='OBSERVER'&CENTER='500@399'&START_TIME='2026-11-14'&STOP_TIME='2026-11-16'&STEP_SIZE='1%20d'&QUANTITIES='20,21,23'
+17. NASA release 21-098, NASA Awards Launch Services Contract for Europa Clipper Mission: contract value used as the Falcon Heavy launch price in the budget (the Falcon 9 price is a game value). https://www.nasa.gov/news-release/nasa-awards-launch-services-contract-for-europa-clipper-mission/
+18. NASA Moon to Mars Architecture Workshops, Mars Entry, Descent, and Landing (EDL), February 2025 [NASA study or target, not a flown result]: landed mass of flown landers (0.3 to 1 t) against human-class landers (20 t) in the debrief comparison. https://www.nasa.gov/wp-content/uploads/2025/02/iparch12-wp-mars-edl.pdf
+19. NASA Office of the Chief Health and Medical Officer, Radiation Protection technical brief: career radiation limit, shown next to the crew dose for comparison only. https://www.nasa.gov/wp-content/uploads/2023/03/radiation-protection-technical-brief-ochmo.pdf
+20. Rucker et al., NASA's Strategic Analysis Cycle 2021 (SAC21) Human Mars Architecture, 2022 IEEE Aerospace Conference [NASA study or target, not a flown result]: card PowerHookup (labelled NASA plan): power hookup contingency on sols 1 to 3; also the cargo-before-crew scenario. https://ntrs.nasa.gov/api/citations/20210026448/downloads/IEEE%202022%20SAC21%20for%20STRIVES%202022-01-06.pdf
+21. NASA/JPL, Large Solar Storm Sparks Global Aurora and Doubles Radiation Levels on the Martian Surface (29 Sep 2017) [measured]: card Storm2017: September 2017 radiation at Mars (Curiosity RAD). https://www.jpl.nasa.gov/news/large-solar-storm-sparks-global-aurora-and-doubles-radiation-levels-on-the-martian-surface/
+22. NASA/JPL, Opportunity Hunkers Down During Dust Storm (June 2018, updated 26 Jul 2018) [measured]: card DustStorm2018: optical depth 10.8, low-power fault, last signal. https://www.jpl.nasa.gov/news/opportunity-hunkers-down-during-dust-storm/
+23. NASA/JPL, NASA's InSight Waits Out Dust Storm (7 Oct 2022) [measured]: card InSight2022: energy drop and seismometer switch-off. https://www.jpl.nasa.gov/news/nasas-insight-waits-out-dust-storm/
+24. NASA, NASA's Oxygen-Generating Experiment MOXIE Completes Mars Mission (6 Sep 2023) [measured]: card MOXIE: 122 g of oxygen in 16 runs. https://www.nasa.gov/missions/mars-2020-perseverance/perseverance-rover/nasas-oxygen-generating-experiment-moxie-completes-mars-mission/
+25. NASA 3D Resources, nine models with every texture removed (no insignia): Habitat Demonstration Unit, Z2 Spacesuit, Space Exploration Vehicle, RASSOR, Tall Dish, Radome, Hammer, Wrench and Pistol Grip Tool; habitat, crew suits, rover, digging robot, dish, relay antenna cover and hand tools in the outpost. https://github.com/nasa/NASA-3D-Resources
+
+## Space Agency Partner & Other Data
+
+No dataset from a partner space agency is used. List field: one entry per line; if the form has a separate URL box, put the link there.
+
+1. SpaceX, Falcon 9 vehicle page [manufacturer value]: Falcon 9 payload to Mars, the launch capacity of each Falcon 9 package. https://www.spacex.com/vehicles/falcon-9/
+2. SpaceX, Falcon Heavy vehicle page [manufacturer value]: Falcon Heavy payload to Mars, the launch capacity of each Falcon Heavy package. https://www.spacex.com/vehicles/falcon-heavy/
+3. George et al. 2024, Space radiation measurements during the Artemis I lunar mission, Nature [measured]: average Mars-surface dose equivalent that scales the crew mSv estimate, and the Artemis I storm shelter card. https://pmc.ncbi.nlm.nih.gov/articles/PMC11446838/
+4. Kawamura et al. 2023, S1222a - The Largest Marsquake Detected by InSight, GRL 50(5), doi:10.1029/2022GL101543 [measured]: card Marsquake2022: magnitude of S1222a. https://doi.org/10.1029/2022GL101543
+5. Russell and Klaus, Maintenance, reliability and policies for orbital space station life support systems, Reliability Engineering and System Safety 92(6) 808-820: 3.0 crew-hours per day of life-support maintenance, which sets the maintenance task length. https://ideas.repec.org/a/eee/reensy/v92y2007i6p808-820.html
+6. Quixel Megascans via Fab, ten free listings (Fab Standard License, Personal tier; in the Windows build, not in the public repository): Icelandic Porous Rock, Icelandic Boulder, Desert Western Cluster Rock Medium 05, Icelandic Sand Rock, Desert Western Pile Rock Small 01, Stones and Pebbles Pack, Gravel on Soil, Dry Soil Ground, Dry Rippled Sand, Painted Metal; rocks, ground surfaces and module wear. Each listing is linked in References. https://www.fab.com/
+7. Tripo AI, 33 AI-generated 3D models made by the team in Tripo Studio (see Use of Artificial Intelligence). https://www.tripo3d.ai/
+8. Google Gemini, 25 AI-generated design-room illustrations, each tagged "AI illustration (Gemini)". https://gemini.google.com/
+9. Google Gemini (Veo), 4 AI-generated cutscene videos: launch from Earth, landing at Jezero, lift-off from Mars, return to Earth; each skippable. https://gemini.google.com/
+10. ElevenLabs Sound Effects, 35 AI-generated sound effects made by the team. https://elevenlabs.io/sound-effects
+11. ElevenLabs Music, 6 AI-generated instrumental music cues made by the team. https://elevenlabs.io/music
+12. Barlow Semi Condensed (Jeremy Tribby), Google Fonts (SIL Open Font License 1.1): design room text. https://github.com/google/fonts/tree/main/ofl/barlowsemicondensed
+13. IBM Plex Mono, Google Fonts (SIL Open Font License 1.1): numbers on the dashboard. https://github.com/google/fonts/tree/main/ofl/ibmplexmono
+14. Unreal Engine 5.8, Epic Games (Unreal Engine EULA): game engine and default UI font (Roboto, Apache 2.0). https://www.unrealengine.com/
+15. Claude Code, Anthropic (AI coding assistant): code, scripts and text drafts (see Use of Artificial Intelligence); not shipped. https://claude.com/claude-code
+16. VibeUE (MIT): Unreal editor tooling, not shipped. https://github.com/kevinpbuckley/VibeUE
+17. Bell et al. 2022, Geological, multispectral, and meteorological imaging results from the Mars 2020 Perseverance rover in Jezero crater, Science Advances 8, eabo4856 (look and sound only, no number shown): dust optical depth of about 0.45 at Jezero for the sky colour; most raised rocks under 30 cm for the small-rock scatter. https://doi.org/10.1126/sciadv.abo4856
+18. Newman et al. 2022, The dynamic atmospheric and aeolian environment of Jezero crater, Mars, Science Advances 8, eabn3783 (look and sound only, no number shown): daytime wind direction and dust devil hours. https://doi.org/10.1126/sciadv.abn3783
+19. Maurice et al. 2022, In situ recording of Mars soundscape, Nature 605 (look and sound only, no number shown): Mars sound is quiet and loses its high frequencies within metres; the basis of the four-layer sound mix. https://doi.org/10.1038/s41586-022-04679-0
+20. Tomasko et al. 1999, Properties of dust in the Martian atmosphere from the Imager on Mars Pathfinder, JGR Planets 104(E4) (look and sound only, no number shown): forward-scattering dust in the air and the ground haze. https://doi.org/10.1029/1998JE900016
+21. Lemmon et al. 2004, Atmospheric Imaging Results from the Mars Exploration Rovers: Spirit and Opportunity, Science 306 (look and sound only, no number shown): dust scale height of about 11 km for the sky. https://doi.org/10.1126/science.1104474
+22. Lemmon et al. 2022, Dust, Sand, and Winds Within an Active Martian Storm in Jezero Crater, GRL 49(17), doi:10.1029/2022GL100126 (look only, no number shown): optical depth from about 0.45 to about 2 sets the dust-storm sky multiplier. https://doi.org/10.1029/2022GL100126
+
+## References
+
+Full ledger with retrieval dates and licences: https://github.com/TouchdownMars/TouchdownMars/blob/main/Data/Source/sources.csv
+
+**A. Data that sets a design limit or a surface rule**
+- NASA Life Support Baseline Values and Assumptions Document (BVAD), Rev 2 [NASA study or target, not a flown result]: oxygen, potable water and packaged food per crew member per day, added to the cargo mass that must fit the rockets. https://ntrs.nasa.gov/api/citations/20210024855/downloads/BVAD_2.15.22-final.pdf
+- SpaceX, Falcon Heavy vehicle page [manufacturer value]: Falcon Heavy payload to Mars, the launch capacity of each Falcon Heavy package. https://www.spacex.com/vehicles/falcon-heavy/
+- SpaceX, Falcon 9 vehicle page [manufacturer value]: Falcon 9 payload to Mars, the launch capacity of each Falcon 9 package. https://www.spacex.com/vehicles/falcon-9/
+- NASA release 21-098, NASA Awards Launch Services Contract for Europa Clipper Mission: contract value used as the Falcon Heavy launch price in the budget (the Falcon 9 price is a game value). https://www.nasa.gov/news-release/nasa-awards-launch-services-contract-for-europa-clipper-mission/
+- NASA Science, Perseverance Science Instruments [measured]: mass and power of Mastcam-Z, SuperCam, PIXL, SHERLOC, MEDA and MOXIE on the option cards and in the mass and power budget. https://science.nasa.gov/mission/mars-2020-perseverance/science-instruments/
+- NASA/JPL, Mars Science Laboratory Landing press kit (July 2012) [measured]: RAD mass on its option card; Curiosity masses in the debrief comparison and as the scale of the game's cruise and landing hardware assumption. https://www.jpl.nasa.gov/news/press_kits/MSLLanding.pdf
+- NASA Science, InSight science instruments (SEIS tech specs) [measured]: seismometer power draw (up to 8.5 W); its mass is not counted. https://science.nasa.gov/mission/insight/science-instruments/
+- NASA release 18-031, Demonstration Proves Nuclear Fission System Can Provide Space Exploration Power [NASA study or target, not a flown result]: 10 kWe per fission unit, turned into power cells (unit mass and price are game values). https://www.nasa.gov/news-release/demonstration-proves-nuclear-fission-system-can-provide-space-exploration-power/
+- NASA Photojournal PIA25284, InSight's Power Generation After Landing and Spring 2022 [measured]: InSight fell from about 5,000 to about 500 Wh per sol; the dust-storm solar share (game value 0.1) is scaled after it; also in the debrief comparison. https://science.nasa.gov/photojournal/insights-power-generation-after-landing-and-spring-2022
+- NASA Science, Mars Relay Network [measured]: MRO relay data volume per day, the data per sol of the relay option (the direct-link volume is a game value). https://science.nasa.gov/mars/mars-relay-network/
+- NASA HEOMD-415: Mars Surface Activities for Crewed Mission Systems and Utilization Reference Mission (Jan 2022) [NASA study or target, not a flown result]: crew work hours per sol, the first spacewalk sol, spacewalk hours and task durations that limit the crew plan. https://ntrs.nasa.gov/api/citations/20220000589/downloads/MarsSAC21SurfaceOps_2022-Jan_Version%201%20FINAL_update.pdf
+- Russell and Klaus, Maintenance, reliability and policies for orbital space station life support systems, Reliability Engineering and System Safety 92(6) 808-820: 3.0 crew-hours per day of life-support maintenance, which sets the maintenance task length. https://ideas.repec.org/a/eee/reensy/v92y2007i6p808-820.html
+- Mars 2020 MEDA Bundle (Rodriguez-Manfredi & de la Torre Juarez 2021), NASA PDS, doi:10.17189/1522849 [measured]: Jezero daily air temperature for mission sols 1 to 31 (Perseverance sols 305 to 335): the habitat heating load in the power cells a design must carry, and the weather on the helmet display. https://atmos.nmsu.edu/PDS/data/PDS4/Mars2020/mars2020_meda/
+- NASA NSSDC, Mars Fact Sheet [measured]: surface gravity ratio 0.38 for first-person walking. https://nssdc.gsfc.nasa.gov/planetary/factsheet/marsfact.html
+- InSight Marsquake Service (2023) Mars Seismic Catalogue, InSight Mission; V14 2023-04-01. ETHZ, IPGP, JPL, ICL, Univ. Bristol. doi:10.12686/a21 (copy in PDS InSight SEIS bundle doi:10.17189/1517570) [measured]: the ten largest marsquakes, studied one by one in the seismometer task (one science walk each); also the S1222a event card. https://pds-geosciences.wustl.edu/insight/urn-nasa-pds-insight_seis/data_derived/mqs_catalog_v14/
+
+**B. Data that builds the world or is shown in the game, without changing the outcome**
+- NASA Mars Trek, MRO HiRISE Jezero DEM, Controlled (JEZ_hirise_soc_006_DTM_MOLAtopography_DeltaGeoid_1m_Eqc_latTs0_lon0_blend40, 1 m/px) [measured]: the outpost terrain: a 1 km window of the 1 m/px elevation model centred at 18.4447 N, 77.4508 E; only the base pad is levelled. https://trek.nasa.gov/mars/TrekWS/rest/cat/data/stream?label=JEZ_hirise_soc_006_DTM_MOLAtopography_DeltaGeoid_1m_Eqc_latTs0_lon0_blend40
+- NASA GISS Mars24 Sunclock: algorithm and worked examples (Allison and McEwen 2000, Planet. Space Sci. 48, 215-235): algorithm for the sun position over the base on the phase date. https://www.giss.nasa.gov/tools/mars24/help/algorithm.html
+- Hassler D. M. (2026) MSL RAD Level 2 Observation Dosimetry, LET, and Neutral-Particle Data, SPDF, doi:10.48322/20qb-4e17 [measured]: each sol adds one real day of RAD dose (20 Aug to 9 Oct 2017) to every crew member; shown on the helmet, the console and in the run record; habitat and shelter factors are game assumptions and the dose does not change the score. https://cdaweb.gsfc.nasa.gov/cgi-bin/eval2.cgi?dataset=MSL_RAD_OBS-L2&index=sp_phys
+- George et al. 2024, Space radiation measurements during the Artemis I lunar mission, Nature [measured]: average Mars-surface dose equivalent that scales the crew mSv estimate (display only). https://pmc.ncbi.nlm.nih.gov/articles/PMC11446838/
+- NASA Office of the Chief Health and Medical Officer, Radiation Protection technical brief: career radiation limit, shown next to the crew dose for comparison only. https://www.nasa.gov/wp-content/uploads/2023/03/radiation-protection-technical-brief-ochmo.pdf
+- NASA CCMC DONKI (Space Weather Database Of Notifications, Knowledge, Information) [measured]: the Today's Sun panel, live, labelled LIVE with the fetch time; it never changes gameplay. https://ccmc.gsfc.nasa.gov/tools/DONKI/
+- NASA CCMC DONKI API, flares, CMEs and storms 4-15 Sep 2017 [measured]: the stored 4 to 15 September 2017 archive used by the Today's Sun panel when offline, labelled ARCHIVE. https://ccmc.gsfc.nasa.gov/DONKI/WS/get/FLR?startDate=2017-09-04&endDate=2017-09-15
+- NASA/JPL Horizons API, Mars (499) observed from Earth, 14-16 Nov 2026 [measured]: today's Earth-Mars light time on the Mission Control console (the in-game delay is counted in phases). https://ssd.jpl.nasa.gov/api/horizons.api?format=json&COMMAND='499'&OBJ_DATA='NO'&MAKE_EPHEM='YES'&EPHEM_TYPE='OBSERVER'&CENTER='500@399'&START_TIME='2026-11-14'&STOP_TIME='2026-11-16'&STEP_SIZE='1%20d'&QUANTITIES='20,21,23'
+- NASA Science, Mars Mission Timeline: cruise of about 200 days on the transit card. https://science.nasa.gov/planetary-science/programs/mars-exploration/mission-timeline/
+- NASA/JPL Mars 2020 Perseverance launch press kit, Mission [measured]: Perseverance cruise of 213 days on the transit card. http://www.jpl.nasa.gov/news/press_kits/mars_2020/launch/mission/
+- NASA/JPL Mars 2020 Perseverance landing press kit, Quick Facts [measured]: Perseverance rover mass and mission cost in the debrief comparison. https://www.jpl.nasa.gov/news/press_kits/mars_2020/landing/quick_facts/
+- NASA Facts NF-2020-05-619-HQ, Multi-Mission Radioisotope Thermoelectric Generator (MMRTG) [measured]: MMRTG power (110 W) in the debrief comparison. https://science.nasa.gov/wp-content/uploads/2024/02/mmrtg-factsheet-updated-5-18-20-1.pdf
+- NASA/JPL InSight landing press kit, Facts [measured]: InSight cost in the debrief comparison. http://www.jpl.nasa.gov/news/press_kits/insight/landing/facts/
+- NASA Moon to Mars Architecture Workshops, Mars Entry, Descent, and Landing (EDL), February 2025 [NASA study or target, not a flown result]: landed mass of flown landers (0.3 to 1 t) against human-class landers (20 t) in the debrief comparison. https://www.nasa.gov/wp-content/uploads/2025/02/iparch12-wp-mars-edl.pdf
+- Kleinhenz and Paz, An ISRU Propellant Production System to Fully Fuel a Mars Ascent Vehicle (NTRS 20170005179) [NASA study or target, not a flown result]: water content of generic Mars clay; gives the kilograms of water shown after the water task (derived game value). https://ntrs.nasa.gov/api/citations/20170005179/downloads/20170005179.pdf
+- Mueller et al., Design of an Excavation Robot: RASSOR 2.0, ASCE Earth & Space 2016 (NTRS 20210011366) [NASA study or target, not a flown result]: regolith digging rate; gives the kilograms of regolith shown after the berm and water tasks (derived game value). https://ntrs.nasa.gov/citations/20210011366
+
+**C. Event card sources** (each card shows the date, instrument, measurement and source; the cost of each choice is a game value)
+- NASA/JPL, Large Solar Storm Sparks Global Aurora and Doubles Radiation Levels on the Martian Surface (29 Sep 2017) [measured]: card Storm2017: September 2017 radiation at Mars (Curiosity RAD). https://www.jpl.nasa.gov/news/large-solar-storm-sparks-global-aurora-and-doubles-radiation-levels-on-the-martian-surface/
+- NASA, NASA Watches Mars Light Up During Epic Solar Storm (10 Jun 2024) [measured]: card DoseSpike2024: May 2024 radiation dose at Mars. https://www.nasa.gov/missions/nasa-watches-mars-light-up-during-epic-solar-storm/
+- George et al. 2024, Space radiation measurements during the Artemis I lunar mission, Nature (Europe PMC full text of PMC11446838) [measured]: card ArtemisIShelter: storm shelter against crew cabin dose rate (Europe PMC full text of the same paper). https://www.ebi.ac.uk/europepmc/webservices/rest/PMC11446838/fullTextXML
+- NASA, NASA's Artemis II Moon Mission Daily Agenda [NASA study or target, not a flown result]: card ArtemisIIShelter: the planned Flight Day 8 shelter demonstration. https://www.nasa.gov/missions/artemis/nasas-artemis-ii-moon-mission-daily-agenda/
+- NASA, Artemis II Flight Day 8: Crew Conducts Key Tests on Return to Earth (8 Apr 2026) [measured]: card ArtemisIIShelter: the demonstration was skipped to prepare for entry. https://www.nasa.gov/blogs/missions/2026/04/08/artemis-ii-flight-day-8-crew-conducts-key-tests-on-return-to-earth/
+- NASA/JPL, NASA's InSight Waits Out Dust Storm (7 Oct 2022) [measured]: card InSight2022: energy drop and seismometer switch-off. https://www.jpl.nasa.gov/news/nasas-insight-waits-out-dust-storm/
+- NASA/JPL, Opportunity Hunkers Down During Dust Storm (June 2018, updated 26 Jul 2018) [measured]: card DustStorm2018: optical depth 10.8, low-power fault, last signal. https://www.jpl.nasa.gov/news/opportunity-hunkers-down-during-dust-storm/
+- Rucker et al., NASA's Strategic Analysis Cycle 2021 (SAC21) Human Mars Architecture, 2022 IEEE Aerospace Conference [NASA study or target, not a flown result]: card PowerHookup (labelled NASA plan): power hookup contingency on sols 1 to 3; also the cargo-before-crew scenario. https://ntrs.nasa.gov/api/citations/20210026448/downloads/IEEE%202022%20SAC21%20for%20STRIVES%202022-01-06.pdf
+- NASA NTRS citation record 20210026448 (SAC21 paper metadata) [NASA study or target, not a flown result]: card PowerHookup: publication date of the SAC21 paper. https://ntrs.nasa.gov/api/citations/20210026448
+- NASA OCHMO, Carbon Dioxide (CO2) Technical Brief OCHMO-TB-004 Rev D: card Apollo13Air: carbon dioxide limits. https://www.nasa.gov/wp-content/uploads/2023/12/ochmo-tb-004-carbon-dioxide.pdf
+- NASA Apollo 13 Flight Journal, Day 5 part 5: Starting the Battery Charge [measured]: card Apollo13Air: date of the carbon dioxide filter fix (14 April 1970). https://www.nasa.gov/history/afj/ap13fj/21day5-batterycharge.html
+- NASA, NASA's Oxygen-Generating Experiment MOXIE Completes Mars Mission (6 Sep 2023) [measured]: card MOXIE: 122 g of oxygen in 16 runs. https://www.nasa.gov/missions/mars-2020-perseverance/perseverance-rover/nasas-oxygen-generating-experiment-moxie-completes-mars-mission/
+- NASA, What's Mars Solar Conjunction, and Why Does It Matter? (23 Aug 2019): card Conjunction: the 2019 command moratorium. https://www.nasa.gov/solar-system/whats-mars-solar-conjunction-and-why-does-it-matter/
+- NASA, Crew Health and Performance Exploration Analog (CHAPEA): card CHAPEA2 (labelled Analog mission on Earth). https://www.nasa.gov/humans-in-space/chapea
+- NASA Veggie fact sheet [measured]: card Lettuce; also the 'based on' line of the greenhouse options. https://www.nasa.gov/wp-content/uploads/2019/04/veggie_fact_sheet_508.pdf
+- NASA, NASA's Second Pepper Harvest Sets Record on Space Station [measured]: card Pepper. https://www.nasa.gov/missions/station/nasas-second-pepper-harvest-sets-record-on-space-station
+- NASA, NASA: Let's Ketchup on International Space Station Tomato Research (14 Dec 2023) [measured]: card LostTomatoes. https://www.nasa.gov/missions/station/iss-research/nasa-lets-ketchup-on-international-space-station-tomato-research/
+- Kawamura et al. 2023, S1222a - The Largest Marsquake Detected by InSight, GRL 50(5), doi:10.1029/2022GL101543 [measured]: card Marsquake2022: magnitude of S1222a. https://doi.org/10.1029/2022GL101543
+
+**D. Reference values in the Source Panel only**
+- NASA/JPL Horizons API, Mars (499) observed from Earth, daily 2017-2032 [measured]: shortest and longest Earth-Mars light time. https://ssd.jpl.nasa.gov/api/horizons.api?format=json&COMMAND='499'&OBJ_DATA='NO'&MAKE_EPHEM='YES'&EPHEM_TYPE='OBSERVER'&CENTER='500@399'&START_TIME='2017-01-01'&STOP_TIME='2032-01-01'&STEP_SIZE='1%20d'&QUANTITIES='20,21,23'&CSV_FORMAT='YES'
+- NASA Goddard, Space Communications: 7 Things You Need to Know: Earth-Mars signal delay range. https://www.nasa.gov/centers-and-facilities/goddard/space-communications-7-things-you-need-to-know/
+- NASA, Deep Space Network: Deep Space Network dish sizes. https://www.nasa.gov/communicating-with-missions/dsn/
+- NASA/JPL, NASA Mars Orbiter Speeds Past Data Milestone (3 Mar 2010) [measured]: MRO data rate. https://www.jpl.nasa.gov/news/nasa-mars-orbiter-speeds-past-data-milestone/
+- NASA/JPL Mars 2020 landing press kit, Telecommunications [measured]: share of Perseverance data sent through relay. http://www.jpl.nasa.gov/news/press_kits/mars_2020/landing/mission/spacecraft/telecommunications/
+- Gibson et al. 2018, The Kilopower Reactor Using Stirling TechnologY (KRUSTY) Nuclear Ground Test Results and Lessons Learned (NTRS 20180005435) [NASA study or target, not a flown result]: Kilopower 1 to 10 kWe range. https://ntrs.nasa.gov/api/citations/20180005435/downloads/20180005435.pdf
+- NASA, Fission Surface Power project page [NASA study or target, not a flown result]: Fission Surface Power 40 kWe target. https://www.nasa.gov/exploration-systems-development-mission-directorate/fission-surface-power/
+- NASA/JPL, Six Things About Opportunity's Recovery Efforts (16 Aug 2018) [measured]: 2018 dust storm optical depth. https://www.jpl.nasa.gov/news/six-things-about-opportunitys-recovery-efforts/
+- Cianciolo and Polsgrove, Human Mars Entry, Descent, and Landing Architecture Study Overview, AIAA SPACE 2016 (NTRS 20160011571) [NASA study or target, not a flown result]: payload of a crewed Mars lander. https://ntrs.nasa.gov/api/citations/20160011571/downloads/20160011571.pdf
+
+**E. Look and sound references (no number shown in the game)**
+- Lemmon et al. 2022, Dust, Sand, and Winds Within an Active Martian Storm in Jezero Crater, GRL 49(17), doi:10.1029/2022GL100126 [measured]: optical depth from about 0.45 to about 2 sets the dust-storm sky multiplier. https://doi.org/10.1029/2022GL100126
+- Bell et al. 2022, Geological, multispectral, and meteorological imaging results from the Mars 2020 Perseverance rover in Jezero crater, Science Advances 8, eabo4856: dust optical depth of about 0.45 at Jezero for the sky colour; most raised rocks under 30 cm for the small-rock scatter. https://doi.org/10.1126/sciadv.abo4856
+- Lemmon et al. 2004, Atmospheric Imaging Results from the Mars Exploration Rovers: Spirit and Opportunity, Science 306: dust scale height of about 11 km for the sky. https://doi.org/10.1126/science.1104474
+- Tomasko et al. 1999, Properties of dust in the Martian atmosphere from the Imager on Mars Pathfinder, JGR Planets 104(E4): forward-scattering dust in the air and the ground haze. https://doi.org/10.1029/1998JE900016
+- Newman et al. 2022, The dynamic atmospheric and aeolian environment of Jezero crater, Mars, Science Advances 8, eabn3783: daytime wind direction and dust devil hours. https://doi.org/10.1126/sciadv.abn3783
+- NASA Photojournal PIA26074, Martian Whirlwind Takes the Thorofare: dust devil drift speed. https://science.nasa.gov/photojournal/martian-whirlwind-takes-the-thorofare
+- NASA Photojournal PIA19400, Sunset in Mars' Gale Crater: colour of the blue glow around a low sun. https://science.nasa.gov/photojournal/sunset-in-mars-gale-crater
+- Maurice et al. 2022, In situ recording of Mars soundscape, Nature 605: Mars sound is quiet and loses its high frequencies within metres; the basis of the four-layer sound mix. https://doi.org/10.1038/s41586-022-04679-0
+- Polsgrove et al. 2017, Human Mars Ascent Vehicle Configuration and Performance Sensitivities (NASA NTRS 20170003391): shape of the crew ascent vehicle model on its lander (sizes are look values). https://ntrs.nasa.gov/citations/20170003391
+- Polsgrove et al. 2019, Update to Mars Ascent Vehicle Design for Human Exploration (NASA NTRS 20190001229): shape of the crew ascent vehicle model on its lander (sizes are look values). https://ntrs.nasa.gov/citations/20190001229
+- Golombek et al. 2021, rock size-frequency model (cited by author and year in the team's scene script; full reference not recorded in the repository): shape of the pebble density falloff (counts are designer values).
+
+**F. Read by the team, not used by the game**
+- MSL REMS Bundle, MODRDR MSL-M-REMS-5-MODRDR-V1.0 (Gomez-Elvira et al. 2012 instrument, doi:10.1007/s11214-012-9921-1) [measured]: Curiosity weather data. https://atmos.nmsu.edu/PDS/data/PDS4/msl_rems_bundle/
+- Curiosity REMS daily weather feed (Centro de Astrobiologia, outreach use), served by NASA [measured]: Curiosity daily weather; table kept in Data/Reference, read by no code. https://mars.nasa.gov/rss/api/?feed=weather&category=msl&feedtype=json
+- InSight weather service feed (TWINS/PS daily summaries), NASA - final snapshot sols 675-681 [measured]: InSight daily weather; table kept in Data/Reference, read by no code. https://mars.nasa.gov/rss/api/?feed=weather&category=insight_temperature&feedtype=json&ver=1.0
+- Rodriguez-Manfredi et al. (2019) InSight APSS TWINS Data Product Bundle, NASA PDS, doi:10.17189/1518950 [measured]: InSight wind and temperature data. https://atmos.nmsu.edu/PDS/data/PDS4/InSight/twins_bundle/
+- Banfield et al. (2019) InSight APSS PS Data Product Bundle, NASA PDS, doi:10.17189/1518939 [measured]: InSight pressure data. https://atmos.nmsu.edu/PDS/data/PDS4/InSight/ps_bundle/
+- Zeitlin et al. 2018, Analysis of the Radiation Hazard Observed by RAD on the Surface of Mars During the September 2017 Solar Particle Event, GRL 45(12) 5845-5851, doi:10.1029/2018GL077760 [measured]: September 2017 solar particle event at Mars. https://doi.org/10.1029/2018GL077760
+- Hassler et al. 2014, Mars' Surface Radiation Environment Measured with the MSL Curiosity Rover, Science 343(6169), doi:10.1126/science.1244797 [measured]: Mars surface radiation environment. https://doi.org/10.1126/science.1244797
+
+**G. Challenge and design references**
+- NASA Space Apps Challenge 2026, Space Mission Design Game (the challenge): the challenge statement the game answers. https://www.spaceappschallenge.org/2026/challenges/space-mission-design-game/
+- Wessen et al., Concept Maturity Levels (JPL, AIAA 2013): the four levels of the concept maturity meter in the design room. https://dataverse.jpl.nasa.gov/dataset.xhtml?persistentId=hdl:2014/44299
+- NASA, Design and Develop Science Missions (2025): the design, simulate, evaluate, redesign loop; no number comes from it. https://www.nasa.gov/wp-content/uploads/2025/04/250323-design-and-develop-science-mission.pdf
+- NASA GSFC Mission Design Lab: the disciplines behind the four roles; no number comes from it. https://etd.gsfc.nasa.gov/capabilities/integrated-design-center/mission-design-lab/
+
+**H. Assets in the game**
+- NASA 3D Resources, Habitat Demonstration Unit (part 1): Habitat (AIR) shape; plain team material; every texture removed, no insignia. https://github.com/nasa/NASA-3D-Resources/tree/master/3D%20Models/Habitat%20Demonstration%20Unit
+- NASA 3D Resources, Z2 Spacesuit: Crew suits (closed visor); plain team material; every texture removed, no insignia. https://github.com/nasa/NASA-3D-Resources/tree/master/3D%20Models/Z2%20Spacesuit
+- NASA 3D Resources, Space Exploration Vehicle: Pressurized rover beside the habitat; plain team material; every texture removed, no insignia. https://github.com/nasa/NASA-3D-Resources/tree/master/3D%20Models/Space%20Exploration%20Vehicle
+- NASA 3D Resources, Regolith Advanced Surface Systems Operations Robot (RASSOR): Excavation robot at the cargo lander (S02 shot); plain team material; every texture removed, no insignia. https://github.com/nasa/NASA-3D-Resources/tree/master/3D%20Models/Regolith%20Advanced%20Surface%20Systems%20Operations%20Robot%20(RASSOR)
+- NASA 3D Resources, Tall Dish: Base communication dish scaled to 4.5 m (S05 shot); plain team material; every texture removed, no insignia. https://github.com/nasa/NASA-3D-Resources/tree/master/3D%20Models/Tall%20Dish
+- NASA 3D Resources, Hammer: First-person and crew hammer; plain steel material; every texture removed, no insignia. https://github.com/nasa/NASA-3D-Resources/tree/master/3D%20Models/Hammer
+- NASA 3D Resources, Wrench: First-person and crew wrench; plain steel material; every texture removed, no insignia. https://github.com/nasa/NASA-3D-Resources/tree/master/3D%20Models/Wrench
+- NASA 3D Resources, Pistol Grip Tool: First-person and crew drill (the EVA power tool); plain material; every texture removed, no insignia. https://github.com/nasa/NASA-3D-Resources/tree/master/3D%20Models/Pistol%20Grip%20Tool
+- NASA 3D Resources, Radome: Relay antenna cover on the relay mast; plain material; every texture removed, no insignia. https://github.com/nasa/NASA-3D-Resources/tree/master/3D%20Models/Radome
+- Quixel Megascans via Fab: Icelandic Porous Rock (Fab Standard License, Personal tier (free); not redistributed in the public repo; cooked into the Windows build): Outpost rocks. https://www.fab.com/listings/5fc66c1c-7dfd-4e4c-ae11-882c25c1d9e4
+- Quixel Megascans via Fab: Icelandic Boulder (Fab Standard License, Personal tier (free); not redistributed in the public repo; cooked into the Windows build): Outpost rocks. https://www.fab.com/listings/c6eac3c1-196d-4218-b5f2-c40e9e875cfb
+- Quixel Megascans via Fab: Desert Western Cluster Rock Medium 05 (Fab Standard License, Personal tier (free); not redistributed in the public repo; cooked into the Windows build): Outpost rocks. https://www.fab.com/listings/a5d13b13-f192-4d38-b2ab-78557c9f6e52
+- Quixel Megascans via Fab: Icelandic Sand Rock (Fab Standard License, Personal tier (free); not redistributed in the public repo; cooked into the Windows build): Outpost rocks. https://www.fab.com/listings/c95cea58-1e77-4bf1-976e-58f0ab040abd
+- Quixel Megascans via Fab: Gravel on Soil (Fab Standard License, Personal tier (free); not redistributed in the public repo; cooked into the Windows build): Crater floor ground surface. https://www.fab.com/listings/d1f24f95-7093-4bb0-8aea-afeb7eec805d
+- Quixel Megascans via Fab: Dry Soil Ground (Fab Standard License, Personal tier (free); not redistributed in the public repo; cooked into the Windows build): Crater floor ground surface (slopes, patches). https://www.fab.com/listings/229dfc91-750d-416a-a833-3cc3519bfac6
+- Quixel Megascans via Fab: Dry Rippled Sand (Fab Standard License, Personal tier (free); not redistributed in the public repo; cooked into the Windows build): Wind ripples in sand patches. https://www.fab.com/listings/63299bd1-1c15-41fe-af9c-afb15ed0c402
+- Quixel Megascans via Fab: Stones and Pebbles Pack (Fab Standard License, Personal tier (free); not redistributed in the public repo; cooked into the Windows build): Pebbles on the crater floor. https://www.fab.com/listings/9be30f80-f513-4fac-8d67-99e338c585ba
+- Quixel Megascans via Fab: Desert Western Pile Rock Small 01 (Fab Standard License, Personal tier (free); not redistributed in the public repo; cooked into the Windows build): Outpost rocks. https://www.fab.com/listings/fd3e0024-57f5-485f-aab3-ec5fb96a34f6
+- Quixel Megascans via Fab: Painted Metal (Fab Standard License, Personal tier (free); not redistributed in the public repo; cooked into the Windows build): Seams and wear on the code-built modules (colour dropped). https://www.fab.com/listings/af71bbad-32f6-4562-9a35-1af71b378f82
+- Tripo AI, 33 AI-generated 3D models made in the team's Tripo Studio account (licence per the team account plan; free plan = CC BY 4.0, credit Tripo AI); see Use of Artificial Intelligence. https://www.tripo3d.ai/
+- Design-room card, objective and cold-open illustrations generated with Google Gemini (one locked style); each checked by the team for logos, insignia, flags, text and faces (AI-generated by the team (Google Gemini terms of service)): 25 illustrations: 20 option cards, 4 objective cards, the Ares-0 cold open. https://gemini.google.com/
+- Google Gemini video generation (Veo), generated by the team on its Google account (Gemini output, generated by the team (Google terms for generated content)): 4 AI-generated cutscene videos, each skippable: Four cutscene videos: launch from Earth, landing at Jezero, lift-off from Mars, return to Earth (Content/Movies); the Mars shots use the game's own frames as reference.
+- ElevenLabs Sound Effects (text to sound), generated by the team on its ElevenLabs account (ElevenLabs output, generated by the team (commercial use per the team account plan)): 35 AI-generated sound effects: Mars wind, dust storm, habitat hum, suit breathing, regolith footsteps, lift-off, work sounds, in-helmet suit and storm sounds, radio squelch, caution tone and machine sounds (Data/Audio). https://elevenlabs.io/sound-effects
+- ElevenLabs Music (text to music, instrumental), generated by the team on its ElevenLabs account (ElevenLabs output, generated by the team (commercial use per the team account plan)): 6 AI-generated instrumental cues: Adaptive music cues: exploring, dust storm, design screen, lift-off (Data/Audio/MUS_TD_*). https://elevenlabs.io/music
+- Touchdown Mars sound effects, synthesized by Scripts/make_sfx.py (Apache 2.0 (team-made)): 15 synthesized sounds: UI, alarm, radio and the remaining work sounds (SFX_TD_*); not AI-generated. https://github.com/TouchdownMars/TouchdownMars/blob/main/Scripts/make_sfx.py
+- Barlow Semi Condensed (Jeremy Tribby), Google Fonts (SIL Open Font License 1.1): Mission Design Room text. https://github.com/google/fonts/tree/main/ofl/barlowsemicondensed
+- IBM Plex Mono, Google Fonts (SIL Open Font License 1.1): Numbers on the dashboard and value chips. https://github.com/google/fonts/tree/main/ofl/ibmplexmono
+- Unreal Engine 5.8 (Epic Games) (Unreal Engine EULA): Game engine and default UI font (Roboto, Apache 2.0). https://www.unrealengine.com/
+
+**I. Tools (not shipped)**
+- Claude Code, Anthropic (AI coding assistant): wrote the code and scripts and drafted the text (see Use of Artificial Intelligence); not shipped. https://claude.com/claude-code
+- VibeUE (MIT), Unreal Editor plugin: editor tooling for the terrain, rock and camera scripts; not shipped. https://github.com/kevinpbuckley/VibeUE
+- Epic's Unreal MCP and a private team fork of the StraySpark Unreal MCP Server (Fab marketplace product): editor tooling only; not shipped and not redistributed.
+
+## Use of Artificial Intelligence
+
+In the form's AI type selector, select every type: code, text, images, video, 3D models and audio.
+
+AI was a tool. The game concept, the mission architecture, the design decisions and the choice of NASA sources belong to Team Touchdown.
+
+**Where AI was used**
+
+- **Planning:** ChatGPT and Claude were used to draft and revise the team's work plan, to analyse the challenge documents and to set up the repository. Claude was used for competitor analysis and source checking.
+- **Code:** Anthropic Claude Code (an AI coding assistant) wrote the C++ game module (design rules, mission rules, base operations, the 30 automation tests, the design room, Mission Control and debrief screens, the DONKI client, scene actors and widgets), the Python editor scripts and the packaging script. It also built the levels, widget layouts and DataTables in the Unreal Editor through MCP editor tooling.
+- **Text and research:** Claude Code drafted the design documents, the README, this project text, the event card research and the English and Turkish game text from the team's research and decisions. Every event card fact was checked against its source page (Evidence/cards_check.md in the repository). Every sourced number keeps its source and the place in the source in the in-game Source Panel.
+- **3D models:** Tripo AI generated 33 3D models from text prompts in the team's Tripo Studio account: ascent vehicle, fission power unit, greenhouse dome, plant rack, cargo crates, shelter hatch, the rigged crew astronaut (its textures also dress the crew suits), corridor tubes, habitat modules, airlock, light masts, regolith mounds, weather mast, water wall frames, ISRU plant, storage tanks, the Mission Control console body, payload cases, junction boxes, a field tablet, a sample scoop, solar array tables, an insulated pipe run, an oxygen production unit, a corridor end bulkhead (used as docking collars), the crew ascent vehicle on its lander, the cargo lander, and six small kit models that mark the hands-on work spots (service panel, core drill rig, survey stake, anchor plate, regolith hopper, test solar panel). The first ascent vehicle model is kept in the project, but its actor now shows the newer crew ascent vehicle mesh. All 33 are marked bIsAIGenerated=True in sources.csv.
+- **Images:** Google Gemini generated the 25 design-room illustrations (20 option cards, 4 objective cards and the cold open of a fictional crew) from prompts written by Claude Code, in one locked style. The team checked every image at full size for logos, insignia, flags, mission patches, text and faces and rejected any that had them. Every card shows a visible "AI illustration (Gemini)" tag.
+- **Video:** Google Gemini (Veo) generated the four cutscene videos (launch from Earth, landing at Jezero, lift-off from Mars, return to Earth) from prompts written by Claude Code, using the game's own frames, models and design-room art as references so they match the game. Every cutscene can be skipped. Marked bIsAIGenerated=True in sources.csv.
+- **Sound effects:** ElevenLabs Sound Effects generated 35 of the game's 50 sound effects from text prompts written by Claude Code in the team's ElevenLabs account: Mars wind, dust storm, habitat hum, suit breathing, regolith footsteps, lift-off, the drill, hammer, ratchet, scoop and brush work sounds, the in-helmet set (suit fan, heavy breathing, suit fabric, boot contact thumps, storm buffeting, sand on the visor, caution tone, radio squelch) and the rover, excavator and power-unit machine sounds. Marked bIsAIGenerated=True in sources.csv.
+- **Music:** ElevenLabs Music generated all 6 instrumental music cues (exploring, dust storm, design screen, lift-off) from text prompts written by Claude Code in the team's ElevenLabs account. Marked bIsAIGenerated=True in sources.csv.
+
+**Where AI was not used**
+
+- **Sound:** the other 15 sound effects (UI sounds, alarm, card flip, stamp, radio call, system up and down, and the latch, plug, scan, switch and done work sounds) are synthesized by the team script Scripts/make_sfx.py. No AI voice is used.
+- **NASA data and NASA 3D meshes** are used as published (all textures removed from the meshes). The Megascans rocks and ground surfaces are not AI-generated.
+
+No NASA logo, flag, insignia or mission patch is used in the game or in any generated content.
+
