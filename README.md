@@ -181,6 +181,7 @@ Also from the challenge text:
 | `Data/Source/` | CSV source of truth for every DataTable (mission options, objectives, phases, events, tasks, sites, constants, sources, text EN/TR, Jezero weather, DONKI archive, outcome shots) |
 | `Content/TouchdownMars/` | Unreal assets: DataTables, widgets, maps (`L_TD_Outpost`, `L_TD_Test`), materials, sounds, NASA 3D meshes |
 | `Scripts/` | Python editor scripts (data import, UI and level setup, terrain, art, cameras, base operations scene, balance check, sound synthesis) and `package.ps1` |
+| `Media/` | The 30 s submission trailer, `TouchdownMars_Trailer_30s.mp4` (narration and music: ElevenLabs, see AI use) |
 
 ### Build and run
 
