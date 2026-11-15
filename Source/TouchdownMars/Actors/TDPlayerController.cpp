@@ -38,6 +38,26 @@
 #include "TouchdownMars.h"
 #include "UI/TDWidgets.h"
 #include "UnrealClient.h"
+
+#if !UE_BUILD_SHIPPING
+// td.Go Station | td.Go <TaskId>: dev, stand at Mission Control or at the next work spot of a task (gameplay video recording).
+static FAutoConsoleCommandWithWorldAndArgs GTDGoCommand(TEXT("td.Go"), TEXT("td.Go Station | td.Go <TaskId>: stand at Mission Control or at the next work spot (development builds)"),
+	FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
+	{
+		APlayerController* Controller = World ? World->GetFirstPlayerController() : nullptr;
+		ATDAstronautCharacter* Astronaut = Controller ? Cast<ATDAstronautCharacter>(Controller->GetPawn()) : nullptr;
+		if (!Astronaut)
+		{
+			return;
+		}
+		if (Args.Num() == 0 || Args[0].Equals(TEXT("Station"), ESearchCase::IgnoreCase))
+		{
+			Astronaut->DevGoToStation();
+			return;
+		}
+		Astronaut->DevGoToNextSpot(FName(*Args[0]));
+	}));
+#endif
 #include "UI/TDDesignRoom.h"
 #include "UI/TDBaseComputer.h"
 
