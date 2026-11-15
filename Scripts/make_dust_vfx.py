@@ -189,8 +189,14 @@ def make_system(name, spec, material, far_material):
     em = L.get_lightweight_emitter(system, 0)
     b = spec["bounds"]
     setp(em, "FixedBounds", f"(Min={v3(-b[0], -b[1], -b[2])},Max={v3(b[0], b[1], b[3])},IsValid=True)")
-    setp(em, "EmitterState", "(LoopBehavior=Infinite,LoopDuration=" + fconst(5.0) + ",bEnableDistanceCulling=False,bEnableVisibilityCulling=False)")
-    setp(em, "SpawnInfos", f"((Type=Rate,Rate={fconst(spec['rate'])}))")
+    if "burst" in spec:
+        # One puff: a single burst, the emitter runs once and the component frees itself.
+        n = spec["burst"]
+        setp(em, "EmitterState", "(LoopBehavior=Once,LoopDuration=" + fconst(2.5) + ",bEnableDistanceCulling=False,bEnableVisibilityCulling=False)")
+        setp(em, "SpawnInfos", f"((Type=Burst,SpawnTime=0.000000,Amount=(Min={n},Max={n},Mode=UniformConstant)))")
+    else:
+        setp(em, "EmitterState", "(LoopBehavior=Infinite,LoopDuration=" + fconst(5.0) + ",bEnableDistanceCulling=False,bEnableVisibilityCulling=False)")
+        setp(em, "SpawnInfos", f"((Type=Rate,Rate={fconst(spec['rate'])}))")
 
     init = module(em, "NiagaraStatelessModule_InitializeParticle")
     setp(init, "LifetimeDistribution", frange(*spec["life"]))
@@ -253,7 +259,7 @@ def make_system(name, spec, material, far_material):
 
     L.refresh_system(system)
     EAL.save_asset(path, only_if_is_dirty=False)
-    log.append(f"system {path}: rate {spec['rate']}/s, life {spec['life']}")
+    log.append(f"system {path}: rate {spec.get('rate', spec.get('burst'))}, life {spec['life']}")
     return system
 
 
@@ -286,6 +292,13 @@ SPECS = {
         velocity=((1900, -150, 30), (2800, 150, 140)), curl=(60, 30), drag=0.0, gravity=-373.0,
         color=((0.30, 0.18, 0.11, 0.35), (0.45, 0.29, 0.18, 0.65)), fade=[(0.0, 0.0), (0.1, 1.0), (0.8, 1.0), (1.0, 0.0)],
         grow=[(0.0, 1.0), (1.0, 1.0)], stretch=(800, 9.0), bounds=(6000, 6000, 300, 600)),
+    # Boot and tool puff: grains fly out low and fall back under Mars gravity (3.73 m/s2, NSSDC), the fine dust
+    # lingers as a small cloud that spreads (Lemmon 2022 JGR: lifted dust recirculates in thin air).
+    "NS_TD_StepPuff": dict(
+        burst=10, rate=0, life=(1.2, 2.2), size=(14, 40), shape=("box", 30, 30, 4),
+        velocity=((-70, -70, 15), (70, 70, 80)), curl=(20, 40), drag=0.6, gravity=-373.0,
+        color=((*DARK, 0.25), (*DUST, 0.45)), fade=[(0.0, 0.0), (0.08, 1.0), (0.5, 0.7), (1.0, 0.0)],
+        grow=[(0.0, 0.7), (1.0, 2.6)], bounds=(400, 400, 50, 300)),
     # Dust devil column: tens of metres wide at the base, rising and widening (Hueso 2023, Toledo 2023 sizes).
     "NS_TD_DustDevil": dict(
         rate=180, life=(9.0, 13.0), size=(1600, 3600), shape=("cyl", 2600, 200),

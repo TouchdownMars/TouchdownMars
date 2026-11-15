@@ -31,6 +31,7 @@
 #include "Model/TDTypes.h"
 #include "Systems/TDMissionSubsystem.h"
 #include "Systems/TDSkySubsystem.h"
+#include "Systems/TDDustFXSubsystem.h"
 #include "TouchdownMars.h"
 
 ATDAstronautCharacter::ATDAstronautCharacter()
@@ -386,6 +387,7 @@ void ATDAstronautCharacter::TickAmbience()
 		{
 			StepTravel = 0.f;
 			UGameplayStatics::PlaySound2D(this, StepSounds[FMath::RandRange(0, StepSounds.Num() - 1)], 0.45f, FMath::FRandRange(0.92f, 1.08f));
+			UTDDustFXSubsystem::Puff(this, Here - FVector(0.f, 0.f, GetCapsuleComponent()->GetScaledCapsuleHalfHeight()) + GetActorForwardVector() * 30.f, 0.7f);
 		}
 	}
 	else
@@ -791,6 +793,13 @@ void ATDAstronautCharacter::LandBeat(ATDWorkSpot* Spot)
 {
 	UTDMissionSubsystem* Mission = GetWorld()->GetSubsystem<UTDMissionSubsystem>();
 	const bool bSpotDone = Spot->Beat();
+	// Ground work throws up a little dust where the tool meets the regolith.
+	if (Spot->GetVerb() == ETDWorkVerb::Hammer || Spot->GetVerb() == ETDWorkVerb::Scoop || Spot->GetVerb() == ETDWorkVerb::Drill)
+	{
+		FVector At = Spot->GetActorLocation();
+		At.Z = GetActorLocation().Z - GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
+		UTDDustFXSubsystem::Puff(this, At, Spot->GetVerb() == ETDWorkVerb::Scoop ? 1.3f : 1.f);
+	}
 	Kick = 1.f;
 	BeatPulse = 1.f;
 	if (Mission)

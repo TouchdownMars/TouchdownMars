@@ -29,6 +29,9 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	virtual TStatId GetStatId() const override;
 
+	/** A small dust puff on the ground (boot step, hammer, scoop, drill); skipped far from the camera. */
+	static void Puff(const UObject* WorldContext, const FVector& At, float Scale = 1.f);
+
 private:
 	UPROPERTY(Transient) TObjectPtr<UNiagaraComponent> Drift;
 	UPROPERTY(Transient) TObjectPtr<UNiagaraComponent> Storm;

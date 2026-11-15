@@ -29,6 +29,7 @@
 #include "NavigationSystem.h"
 #include "Systems/TDMissionSubsystem.h"
 #include "Systems/TDShotDirector.h"
+#include "Systems/TDDustFXSubsystem.h"
 #include "TimerManager.h"
 #include "UI/TDDesignTokens.h"
 #include "UObject/ConstructorHelpers.h"
@@ -748,6 +749,7 @@ void ATDCrewMember::StepSound()
 	{
 		UGameplayStatics::PlaySoundAtLocation(this, Wave, BaseLocation, 0.5f, FMath::FRandRange(0.9f, 1.06f), 0.f, Falloff.Get());
 	}
+	UTDDustFXSubsystem::Puff(this, FVector(BaseLocation.X, BaseLocation.Y, GroundZ(BaseLocation)), 0.8f);
 }
 
 FVector ATDCrewMember::AvoidPush(const FVector& Dir) const

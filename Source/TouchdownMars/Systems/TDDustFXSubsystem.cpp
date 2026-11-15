@@ -52,6 +52,34 @@ UNiagaraComponent* UTDDustFXSubsystem::Spawn(const TCHAR* Path, const FVector& A
 		FVector(1.f), false, false, ENCPoolMethod::None, false);
 }
 
+void UTDDustFXSubsystem::Puff(const UObject* WorldContext, const FVector& At, float Scale)
+{
+	UWorld* World = WorldContext ? WorldContext->GetWorld() : nullptr;
+	if (!World)
+	{
+		return;
+	}
+	if (const UTDMissionSubsystem* Mission = World->GetSubsystem<UTDMissionSubsystem>(); Mission && Mission->IsReduceMotion())
+	{
+		return;
+	}
+	if (const APlayerController* PC = UGameplayStatics::GetPlayerController(WorldContext, 0); PC && PC->PlayerCameraManager
+		&& FVector::DistSquared(PC->PlayerCameraManager->GetCameraLocation(), At) > FMath::Square(4000.f))
+	{
+		return; // too far to read
+	}
+	static TWeakObjectPtr<UNiagaraSystem> System;
+	if (!System.IsValid())
+	{
+		System = LoadObject<UNiagaraSystem>(nullptr, TEXT("/Game/TouchdownMars/VFX/NS_TD_StepPuff.NS_TD_StepPuff"));
+	}
+	if (System.IsValid())
+	{
+		UNiagaraFunctionLibrary::SpawnSystemAtLocation(World, System.Get(), At, FRotator(0.f, FMath::FRandRange(0.f, 360.f), 0.f),
+			FVector(Scale), true, true, ENCPoolMethod::AutoRelease, true);
+	}
+}
+
 void UTDDustFXSubsystem::SetActive(UNiagaraComponent* Component, bool bActive)
 {
 	if (!Component || Component->IsActive() == bActive)
