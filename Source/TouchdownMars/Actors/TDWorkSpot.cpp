@@ -13,6 +13,8 @@
 #include "Model/TDMissionRules.h"
 #include "Systems/TDMissionSubsystem.h"
 #include "UI/TDDesignTokens.h"
+#include "UI/TDScreenWidget.h"
+#include "Components/WidgetComponent.h"
 
 namespace
 {
@@ -136,10 +138,28 @@ void ATDWorkSpot::Setup(ETDWorkVerb InVerb, int32 InBeats, float InFaceYaw)
 	};
 	UStaticMesh* Case = Tripo(TEXT("PayloadCase"));
 	UStaticMesh* Mound = Tripo(TEXT("ShelterMound"));
+	// Tripo round 5 kit meshes (AI-generated, sources.csv). Each arrives about 100 cm on its longest side with the
+	// pivot at the bottom centre; Scale sets the kit size [DESIGNER VALUE]; Yaw turns the modelled front to +X,
+	// where the player works. Fits were measured from the GLB vertices (research note placeholder_inventory.md).
+	auto Kit = [this](UStaticMesh* Mesh, const FVector& Loc, float Scale, float Yaw)
+	{
+		UStaticMeshComponent* C = AddPart(Mesh, Loc, FVector(Scale), FRotator(0.f, Yaw, 0.f), nullptr);
+		C->EmptyOverrideMaterials();
+		return C;
+	};
 
 	switch (Verb)
 	{
 	case ETDWorkVerb::Hammer:
+		if (UStaticMesh* StakeMesh = Tripo(TEXT("KitStake")))
+		{
+			// Survey stake with its own pennant, 90 cm long, foot 20 cm below ground at the start.
+			Moving = Kit(StakeMesh, FVector(0.f, 0.f, -20.f), 0.9f, 0.f);
+			StakeLampZ = 94.f;
+			WorkPointOffset = FVector(0.f, 0.f, 45.f);
+			LampAt = FVector(0.f, 0.f, 74.f);
+			break;
+		}
 		// Stake 90 cm long, starts with 70 cm out of the ground; the flag unfurls when it is home.
 		Moving = AddPart(Cyl, FVector(0.f, 0.f, 25.f), FVector(0.06f, 0.06f, 0.9f), FRotator::ZeroRotator, Rib);
 		Extra = AddPart(Cube, FVector(0.f, 14.f, 60.f), FVector(0.01f, 0.28f, 0.18f), FRotator::ZeroRotator, Accent);
@@ -148,6 +168,15 @@ void ATDWorkSpot::Setup(ETDWorkVerb InVerb, int32 InBeats, float InFaceYaw)
 		LampAt = FVector(0.f, 0.f, 74.f);
 		break;
 	case ETDWorkVerb::Plug:
+		if (UStaticMesh* BoxMesh = Tripo(TEXT("PowerJunctionBox")))
+		{
+			// Junction box on its stand, 120 cm tall; its +X face is 33 cm out, the plug seats there.
+			Kit(BoxMesh, FVector::ZeroVector, 1.2f, 0.f);
+			Moving = AddPart(Cyl, FVector(68.f, 0.f, 90.f), FVector(0.11f, 0.11f, 0.22f), FRotator(90.f, 0.f, 0.f), Accent);
+			Extra = AddPart(Cyl, FVector(120.f, 0.f, 50.f), FVector(0.035f, 0.035f, 1.3f), FRotator(-45.f, 0.f, 0.f), Dark);
+			LampAt = FVector(0.f, 0.f, 128.f);
+			break;
+		}
 		AddPart(Cube, FVector(0.f, 0.f, 45.f), FVector(0.1f, 0.1f, 0.9f), FRotator::ZeroRotator, Dark);
 		AddPart(Cube, FVector(0.f, 0.f, 95.f), FVector(0.25f, 0.3f, 0.3f), FRotator::ZeroRotator, Hull);
 		Moving = AddPart(Cyl, FVector(48.f, 0.f, 95.f), FVector(0.11f, 0.11f, 0.22f), FRotator(90.f, 0.f, 0.f), Accent);
@@ -156,6 +185,14 @@ void ATDWorkSpot::Setup(ETDWorkVerb InVerb, int32 InBeats, float InFaceYaw)
 		LampAt = FVector(0.f, 0.f, 116.f);
 		break;
 	case ETDWorkVerb::Wrench:
+		if (UStaticMesh* PlateMesh = Tripo(TEXT("KitAnchorPlate")))
+		{
+			// 50 cm anchor plate with its bolt column; the turning nut sits on top of the column.
+			Kit(PlateMesh, FVector::ZeroVector, 0.5f, 0.f);
+			Moving = AddPart(Cyl, FVector(0.f, 0.f, 30.f), FVector(0.12f, 0.12f, 0.06f), FRotator::ZeroRotator, Dark);
+			LampAt = FVector(-18.f, 18.f, 12.f);
+			break;
+		}
 		AddPart(Cube, FVector(0.f, 0.f, 4.f), FVector(0.5f, 0.5f, 0.08f), FRotator::ZeroRotator, Rib);
 		Moving = AddPart(Cyl, FVector(0.f, 0.f, 16.f), FVector(0.14f, 0.14f, 0.16f), FRotator::ZeroRotator, Dark);
 		LampAt = FVector(-18.f, 18.f, 12.f);
@@ -178,19 +215,37 @@ void ATDWorkSpot::Setup(ETDWorkVerb InVerb, int32 InBeats, float InFaceYaw)
 		LampAt = FVector(31.f, 30.f, 50.f);
 		break;
 	case ETDWorkVerb::Brush:
+		if (UStaticMesh* PanelMesh = Tripo(TEXT("KitSolarPanel")))
+		{
+			// Test panel on a post, 110 cm tall; the panel tilts 39 degrees toward +X (measured). The dust layer
+			// lies 3 cm over the panel face and is swept off sideways.
+			Kit(PanelMesh, FVector::ZeroVector, 1.1f, 90.f);
+			BrushDust = FVector(0.84f, 0.8f, 0.012f);
+			Moving = AddPart(Cube, FVector(3.6f, 0.f, 84.8f), BrushDust, FRotator(-39.f, 0.f, 0.f), Regolith);
+			LampAt = FVector(-25.f, 45.f, 60.f);
+			break;
+		}
 		AddPart(Cube, FVector(0.f, 0.f, 30.f), FVector(0.08f, 0.08f, 0.6f), FRotator::ZeroRotator, Rib);
 		AddPart(Cube, FVector(0.f, 0.f, 62.f), FVector(0.8f, 1.2f, 0.04f), FRotator(-25.f, 0.f, 0.f), Solar);
 		Moving = AddPart(Cube, FVector(0.f, 0.f, 64.5f), FVector(0.81f, 1.21f, 0.012f), FRotator(-25.f, 0.f, 0.f), Regolith);
 		LampAt = FVector(-30.f, 62.f, 80.f);
 		break;
 	case ETDWorkVerb::Drill:
-		AddPart(Cube, FVector(-22.f, 0.f, 75.f), FVector(0.08f, 0.08f, 1.5f), FRotator::ZeroRotator, Rib);
-		AddPart(Cube, FVector(-10.f, 0.f, 140.f), FVector(0.35f, 0.12f, 0.12f), FRotator::ZeroRotator, Dark);
+		if (UStaticMesh* RigMesh = Tripo(TEXT("KitDrillRig")))
+		{
+			// Tripod core-drill rig, 160 cm tall; the spinning bit runs down its centre.
+			Kit(RigMesh, FVector::ZeroVector, 1.6f, 0.f);
+		}
+		else
+		{
+			AddPart(Cube, FVector(-22.f, 0.f, 75.f), FVector(0.08f, 0.08f, 1.5f), FRotator::ZeroRotator, Rib);
+			AddPart(Cube, FVector(-10.f, 0.f, 140.f), FVector(0.35f, 0.12f, 0.12f), FRotator::ZeroRotator, Dark);
+		}
 		Moving = AddPart(Cyl, FVector(0.f, 0.f, 95.f), FVector(0.07f, 0.07f, 0.7f), FRotator::ZeroRotator, Dark);
 		Extra = AddPart(Cyl, FVector(25.f, 0.f, 5.f), FVector(0.06f, 0.06f, 0.35f), FRotator(0.f, 0.f, 90.f), Regolith);
 		ExtraScale = Extra->GetRelativeScale3D();
 		Extra->SetVisibility(false);
-		LampAt = FVector(-10.f, 0.f, 152.f);
+		LampAt = Tripo(TEXT("KitDrillRig")) ? FVector(0.f, 24.f, 140.f) : FVector(-10.f, 0.f, 152.f);
 		break;
 	case ETDWorkVerb::Scan:
 		if (Case)
@@ -219,6 +274,17 @@ void ATDWorkSpot::Setup(ETDWorkVerb InVerb, int32 InBeats, float InFaceYaw)
 		{
 			Moving = AddPart(Sphere, FVector(30.f, 0.f, 0.f), FVector(1.f, 1.f, 0.5f), FRotator::ZeroRotator, Regolith);
 		}
+		if (UStaticMesh* HopperMesh = Tripo(TEXT("KitHopper")))
+		{
+			// Hopper on legs, 80 cm tall; its bin runs from 40 to 74 cm, 32 x 38 cm inside (measured).
+			Kit(HopperMesh, FVector(-55.f, 0.f, 0.f), 0.8f, 0.f);
+			HopperFillZ = 40.f;
+			HopperFillMaxH = 0.34f;
+			Extra = AddPart(Cube, FVector(-55.f, 0.f, HopperFillZ + 2.f), FVector(0.3f, 0.36f, 0.04f), FRotator::ZeroRotator, Regolith);
+			ExtraScale = Extra->GetRelativeScale3D();
+			LampAt = FVector(-55.f, 34.f, 84.f);
+			break;
+		}
 		AddPart(Cube, FVector(-55.f, 0.f, 30.f), FVector(0.5f, 0.6f, 0.6f), FRotator::ZeroRotator, Dark);
 		Extra = AddPart(Cube, FVector(-55.f, 0.f, 4.f), FVector(0.44f, 0.54f, 0.04f), FRotator::ZeroRotator, Regolith);
 		ExtraScale = Extra->GetRelativeScale3D();
@@ -226,6 +292,14 @@ void ATDWorkSpot::Setup(ETDWorkVerb InVerb, int32 InBeats, float InFaceYaw)
 		break;
 	case ETDWorkVerb::Switch:
 	default:
+		if (UStaticMesh* PanelMesh = Tripo(TEXT("KitServicePanel")))
+		{
+			// Service panel on a post, 140 cm tall; the box face is 25 cm out at +X, the lever sits on it.
+			Kit(PanelMesh, FVector::ZeroVector, 1.4f, 90.f);
+			Moving = AddPart(Cube, FVector(29.f, 0.f, 104.f), FVector(0.05f, 0.05f, 0.14f), FRotator(-40.f, 0.f, 0.f), Accent);
+			LampAt = FVector(29.f, 15.f, 124.f);
+			break;
+		}
 		AddPart(Cube, FVector(-6.f, 0.f, 50.f), FVector(0.1f, 0.1f, 1.f), FRotator::ZeroRotator, Dark);
 		AddPart(Cube, FVector(0.f, 0.f, 105.f), FVector(0.12f, 0.5f, 0.4f), FRotator::ZeroRotator, Hull);
 		Moving = AddPart(Cube, FVector(8.f, 0.f, 105.f), FVector(0.05f, 0.05f, 0.14f), FRotator(-40.f, 0.f, 0.f), Accent);
@@ -274,7 +348,7 @@ FVector ATDWorkSpot::GetWorkPoint() const
 {
 	if (Moving)
 	{
-		return Moving->GetComponentLocation();
+		return Moving->GetComponentTransform().TransformPosition(FVector::ZeroVector) + GetActorRotation().RotateVector(WorkPointOffset);
 	}
 	return GetActorLocation() + FVector(0.f, 0.f, 60.f);
 }
@@ -320,7 +394,7 @@ void ATDWorkSpot::ApplyVisual()
 	{
 	case ETDWorkVerb::Hammer:
 		Moving->SetRelativeLocation(MovingStart - FVector(0.f, 0.f, 55.f * P));
-		if (LampMesh) { LampMesh->SetRelativeLocation(MovingStart + FVector(0.f, 0.f, 49.f - 55.f * P)); }
+		if (LampMesh) { LampMesh->SetRelativeLocation(MovingStart + FVector(0.f, 0.f, StakeLampZ - 55.f * P)); }
 		if (Extra)
 		{
 			Extra->SetRelativeLocation(MovingStart + FVector(0.f, 14.f, 35.f - 55.f * P));
@@ -331,9 +405,9 @@ void ATDWorkSpot::ApplyVisual()
 	{
 		// Seat, push, twist-lock.
 		const float Push = FMath::Min(P * 1.5f, 1.f);
-		Moving->SetRelativeLocation(MovingStart - FVector(34.f * Push, 0.f, 0.f));
+		Moving->SetRelativeLocation(MovingStart - FVector(PlugTravel * Push, 0.f, 0.f));
 		Moving->SetRelativeRotation(FRotator(90.f, 0.f, P >= 1.f ? 90.f : 0.f));
-		if (Extra) { Extra->SetRelativeLocation(FVector(100.f - 34.f * Push, 0.f, 50.f)); }
+		if (Extra) { Extra->SetRelativeLocation(FVector(MovingStart.X + 52.f - PlugTravel * Push, 0.f, 50.f)); }
 		break;
 	}
 	case ETDWorkVerb::Wrench:
@@ -353,8 +427,8 @@ void ATDWorkSpot::ApplyVisual()
 	{
 		// Dust is swept off from one side: the dust layer shrinks and slides.
 		const float Left = FMath::Max(0.001f, 1.f - P);
-		Moving->SetRelativeScale3D(FVector(0.81f, 1.21f * Left, 0.012f));
-		Moving->SetRelativeLocation(MovingStart + FVector(0.f, -60.f * (1.f - Left), 0.f));
+		Moving->SetRelativeScale3D(FVector(BrushDust.X, BrushDust.Y * Left, BrushDust.Z));
+		Moving->SetRelativeLocation(MovingStart + FVector(0.f, -BrushDust.Y * 50.f * (1.f - Left), 0.f));
 		// Dust eases down to a sliver (see Tick) instead of vanishing on the last beat.
 		break;
 	}
@@ -368,9 +442,9 @@ void ATDWorkSpot::ApplyVisual()
 		Moving->SetRelativeScale3D(FVector(FMath::Lerp(1.f, 0.35f, P), FMath::Lerp(1.f, 0.35f, P), FMath::Lerp(ScoopPileZ, ScoopPileZ * 0.24f, P)));
 		if (Extra)
 		{
-			const float H = FMath::Lerp(0.04f, 0.5f, P);
+			const float H = FMath::Lerp(0.04f, HopperFillMaxH, P);
 			Extra->SetRelativeScale3D(FVector(ExtraScale.X, ExtraScale.Y, H));
-			Extra->SetRelativeLocation(FVector(-55.f, 0.f, H * 50.f + 2.f));
+			Extra->SetRelativeLocation(FVector(-55.f, 0.f, H * 50.f + HopperFillZ));
 		}
 		break;
 	case ETDWorkVerb::Switch:
@@ -441,7 +515,7 @@ void ATDWorkSpot::Tick(float DeltaSeconds)
 		// The stake's lamp rides on top of the stake as it sinks.
 		if (Verb == ETDWorkVerb::Hammer && LampMesh)
 		{
-			LampMesh->SetRelativeLocation(Moving->GetRelativeLocation() + FVector(0.f, 0.f, 49.f));
+			LampMesh->SetRelativeLocation(Moving->GetRelativeLocation() + FVector(0.f, 0.f, StakeLampZ));
 		}
 	}
 	// Scan: a light bar sweeps up the label once per beat.
@@ -656,6 +730,40 @@ ATDMissionControlStation* ATDMissionControlStation::Ensure(UWorld* World)
 		Station->Screen->SetVisibility(false);
 		Beacon->SetVisibility(false);
 	}
+	// Lit console face: 150 x 60 cm [DESIGNER VALUE]. On the Tripo console it sits on the screen bank, which leans
+	// back about 16 degrees (measured from the GLB: screen face 16 cm out at 134 cm high, 2 cm in at 196 cm);
+	// on the procedural body it covers the screen slab.
+	Station->ScreenWidget = NewObject<UWidgetComponent>(Station);
+	Station->ScreenWidget->SetupAttachment(Station->Root);
+	Station->ScreenWidget->SetWidgetSpace(EWidgetSpace::World);
+	Station->ScreenWidget->SetWidgetClass(UTDScreenWidget::StaticClass());
+	Station->ScreenWidget->SetDrawSize(FVector2D(1200.f, 480.f));
+	Station->ScreenWidget->SetBlendMode(EWidgetBlendMode::Opaque);
+	Station->ScreenWidget->SetTwoSided(false);
+	Station->ScreenWidget->SetTintColorAndOpacity(FLinearColor(2.2f, 2.2f, 2.2f, 1.f));   // reads as a lit display in daylight
+	Station->ScreenWidget->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	Station->ScreenWidget->SetCastShadow(false);
+	if (bShell)
+	{
+		Station->ScreenWidget->SetRelativeLocation(FVector(9.f, 0.f, 162.f));
+		Station->ScreenWidget->SetRelativeRotation(FRotator(16.f, 0.f, 0.f));
+		Station->ScreenWidget->SetRelativeScale3D(FVector(0.125f));
+	}
+	else
+	{
+		Station->ScreenWidget->SetRelativeLocation(FVector(-11.f, 0.f, 150.f));
+		Station->ScreenWidget->SetRelativeRotation(FRotator(-15.f, 0.f, 0.f));
+		Station->ScreenWidget->SetRelativeScale3D(FVector(0.13f));
+		Station->Screen->SetVisibility(false);
+		for (UStaticMeshComponent* C : Station->Bars) { C->SetVisibility(false); }
+		for (UStaticMeshComponent* C : Station->CellLamps) { C->SetVisibility(false); }
+	}
+	Station->ScreenWidget->RegisterComponent();
+	Station->ScreenWidget->InitWidget();
+	if (UTDScreenWidget* Face = Cast<UTDScreenWidget>(Station->ScreenWidget->GetUserWidgetObject()))
+	{
+		Face->Mode = ETDScreenMode::Console;
+	}
 	Station->ScreenLight = NewObject<UPointLightComponent>(Station);
 	Station->ScreenLight->SetupAttachment(Station->Root);
 	Station->ScreenLight->SetRelativeLocation(FVector(70.f, 0.f, 150.f));
@@ -673,6 +781,15 @@ ATDMissionControlStation* ATDMissionControlStation::Ensure(UWorld* World)
 	Station->BeaconLight->SetMobility(EComponentMobility::Movable);
 	Station->BeaconLight->RegisterComponent();
 	return Station;
+}
+
+void ATDMissionControlStation::SetNeedsYou(bool bNeeds)
+{
+	bNeedsYou = bNeeds;
+	if (UTDScreenWidget* Face = ScreenWidget ? Cast<UTDScreenWidget>(ScreenWidget->GetUserWidgetObject()) : nullptr)
+	{
+		Face->SetNeedsYou(bNeeds);
+	}
 }
 
 FVector ATDMissionControlStation::GetUsePoint() const

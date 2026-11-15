@@ -6,6 +6,8 @@
 #include "Actors/TDPlayerController.h"
 #include "Actors/TDSceneActors.h"
 #include "UI/TDWidgets.h"
+#include "UI/TDScreenWidget.h"
+#include "Components/WidgetComponent.h"
 #include "Actors/TDSystemModule.h"
 #include "Actors/TDWorkSpot.h"
 #include "Actors/TDToolMeshes.h"
@@ -77,6 +79,25 @@ void ATDAstronautCharacter::BeginPlay()
 		Part->SetCastShadow(false);
 		Part->SetVisibility(false);
 		Part->RegisterComponent();
+	}
+	// Tablet screen: 480 x 330 px drawn at 0.048 cm/px = 23 x 16 cm, set onto the tablet face in BuildTool.
+	ToolScreen = NewObject<UWidgetComponent>(this, TEXT("ToolScreen"));
+	ToolScreen->SetupAttachment(ToolRoot);
+	ToolScreen->SetWidgetSpace(EWidgetSpace::World);
+	ToolScreen->SetWidgetClass(UTDScreenWidget::StaticClass());
+	ToolScreen->SetDrawSize(FVector2D(480.f, 330.f));
+	ToolScreen->SetBlendMode(EWidgetBlendMode::Opaque);
+	ToolScreen->SetTwoSided(false);
+	ToolScreen->SetTintColorAndOpacity(FLinearColor(1.8f, 1.8f, 1.8f, 1.f));
+	ToolScreen->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	ToolScreen->SetCastShadow(false);
+	ToolScreen->SetRelativeScale3D(FVector(0.048f));
+	ToolScreen->SetVisibility(false);
+	ToolScreen->RegisterComponent();
+	ToolScreen->InitWidget();
+	if (UTDScreenWidget* Face = Cast<UTDScreenWidget>(ToolScreen->GetUserWidgetObject()))
+	{
+		Face->Mode = ETDScreenMode::Tablet;
 	}
 }
 
@@ -729,6 +750,7 @@ void ATDAstronautCharacter::BuildTool(int32 VerbIndex)
 		return;
 	}
 	ToolVerb = VerbIndex;
+	bToolHasScreen = false;
 	auto ShapeMesh = [](const TCHAR* Name) { return LoadObject<UStaticMesh>(nullptr, *FString::Printf(TEXT("/Engine/BasicShapes/%s.%s"), Name, Name)); };
 	auto Mat = [](const TCHAR* Name) { return LoadObject<UMaterialInterface>(nullptr, *FString::Printf(TEXT("/Game/TouchdownMars/Materials/%s.%s"), Name, Name)); };
 	UStaticMesh* Cube = ShapeMesh(TEXT("Cube"));
@@ -755,6 +777,15 @@ void ATDAstronautCharacter::BuildTool(int32 VerbIndex)
 		ToolA->SetRelativeLocation(Nasa.Location);
 		ToolA->SetRelativeRotation(Nasa.Rotation);
 		ToolA->SetRelativeScale3D(FVector(Nasa.Scale));
+		const ETDWorkVerb ToolKind = static_cast<ETDWorkVerb>(VerbIndex);
+		bToolHasScreen = ToolScreen && (ToolKind == ETDWorkVerb::Latch || ToolKind == ETDWorkVerb::Scan || ToolKind == ETDWorkVerb::Switch);
+		if (bToolHasScreen)
+		{
+			// The Tripo tablet's glass is 3.4 cm in front of the grip and its bumper 2.4 cm (measured from the GLB at
+			// the 0.3 scale); the lit face sits just in front of the bumper, centred on the glass, facing the camera.
+			ToolScreen->SetRelativeLocation(FVector(2.2f, 0.f, 8.f));
+			ToolScreen->SetRelativeRotation(FRotator(0.f, 180.f, 0.f));
+		}
 		if (static_cast<ETDWorkVerb>(VerbIndex) == ETDWorkVerb::Drill)
 		{
 			// A thin bit past the tool's own chuck, so the spin reads while drilling.
@@ -926,6 +957,29 @@ void ATDAstronautCharacter::TickWork(float DeltaSeconds)
 	if (Spot)
 	{
 		BuildTool(static_cast<int32>(Spot->GetVerb()));
+		UTDScreenWidget* Face = bToolHasScreen && ToolScreen ? Cast<UTDScreenWidget>(ToolScreen->GetUserWidgetObject()) : nullptr;
+		const UTDMissionSubsystem* ScreenMission = GetWorld()->GetSubsystem<UTDMissionSubsystem>();
+		if (Face && ScreenMission)
+		{
+			int32 Done = 0;
+			int32 Count = 0;
+			for (const FTDWorkSet& Set : WorkSets)
+			{
+				if (Set.Spots.Contains(Spot))
+				{
+					Count = Set.Spots.Num();
+					for (const TWeakObjectPtr<ATDWorkSpot>& S : Set.Spots)
+					{
+						Done += S.IsValid() && S->IsDone() ? 1 : 0;
+					}
+				}
+			}
+			const float Beat = bWorking ? WorkAccum / FMath::Max(0.05f, WorkBeatSeconds) : 0.f;
+			const float SpotProgress = (Spot->GetBeatsDone() + Beat) / FMath::Max(1, Spot->GetBeats());
+			const int32 Shown = FMath::Clamp(Done + (Spot->IsDone() ? 0 : 1), 1, FMath::Max(1, Count));
+			Face->SetTablet(FText::Format(ScreenMission->GetText(TDHandsOn::VerbKey(Spot->GetVerb())), Shown, Count),
+				SpotProgress, Done, Count, bWorking);
+		}
 	}
 	PoseTool(DeltaSeconds, Spot != nullptr);
 }
@@ -936,6 +990,7 @@ void ATDAstronautCharacter::PoseTool(float DeltaSeconds, bool bNear)
 	const bool bVisible = ToolOut > 0.02f && ToolVerb >= 0;
 	if (ToolA) { ToolA->SetVisibility(bVisible); }
 	if (ToolB) { ToolB->SetVisibility(bVisible); }
+	if (ToolScreen) { ToolScreen->SetVisibility(bVisible && bToolHasScreen); }
 	Kick = FMath::Max(0.f, Kick - DeltaSeconds * 7.f);
 	BeatPulse = FMath::Max(0.f, BeatPulse - DeltaSeconds * 3.f);
 	// A3: the tool has weight (Boehm, "The First Person Animation of Overwatch", GDC 2017: additive offsets on springs).

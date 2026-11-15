@@ -151,6 +151,9 @@ private:
 	UPROPERTY(Transient) TObjectPtr<USceneComponent> ToolRoot;
 	UPROPERTY(Transient) TObjectPtr<UStaticMeshComponent> ToolA;
 	UPROPERTY(Transient) TObjectPtr<UStaticMeshComponent> ToolB;
+	/** Lit face of the field tablet (latch, scan, switch): task, beat progress, spots (UTDScreenWidget). */
+	UPROPERTY(Transient) TObjectPtr<class UWidgetComponent> ToolScreen;
+	bool bToolHasScreen = false;
 	int32 ToolVerb = -1;
 	bool bInteractHeld = false;
 	bool bWorking = false;

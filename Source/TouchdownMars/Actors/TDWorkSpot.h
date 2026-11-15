@@ -15,6 +15,7 @@ class UPointLightComponent;
 class UMaterialInstanceDynamic;
 class UStaticMesh;
 class UMaterialInterface;
+class UWidgetComponent;
 
 UENUM()
 enum class ETDWorkVerb : uint8
@@ -101,6 +102,13 @@ private:
 	float ScanSweep = 0.f;
 	float ScoopPileZ = 0.5f;   // pile height scale: basic sphere 0.5, Tripo mound 1.43
 	FVector ExtraScale = FVector::OneVector;
+	// Kit fits for the Tripo round-5 meshes (procedural values are the defaults). [DESIGNER VALUE]
+	float StakeLampZ = 49.f;          // lamp height over the stake's pivot (centre for the cylinder, foot for the mesh)
+	FVector WorkPointOffset = FVector::ZeroVector;
+	float HopperFillZ = 2.f;          // bottom of the hopper fill
+	float HopperFillMaxH = 0.5f;      // full fill height (cube scale)
+	FVector BrushDust = FVector(0.81f, 1.21f, 0.012f);
+	float PlugTravel = 34.f;
 };
 
 /** The Mission Control console next to the habitat (walk up, press E / X). */
@@ -115,7 +123,7 @@ public:
 	/** Where the player stands to use it. */
 	FVector GetUsePoint() const;
 	/** The beacon pulses when Mission Control needs the player (power not routed, decision waiting). */
-	void SetNeedsYou(bool bNeeds) { bNeedsYou = bNeeds; }
+	void SetNeedsYou(bool bNeeds);
 
 	static ATDMissionControlStation* Find(const UWorld* World);
 	/** Spawns the console once per world beside the habitat (layout [DESIGNER VALUE]). */
@@ -135,6 +143,8 @@ private:
 	UPROPERTY() TObjectPtr<UPointLightComponent> BeaconLight;
 	UPROPERTY() TObjectPtr<UMaterialInstanceDynamic> ScreenMat;
 	UPROPERTY() TObjectPtr<UMaterialInstanceDynamic> BeaconMat;
+	/** Lit console face (UTDScreenWidget): systems, power cells, trends and status, redrawn every frame. */
+	UPROPERTY() TObjectPtr<UWidgetComponent> ScreenWidget;
 	bool bNeedsYou = false;
 	float Time = 0.f;
 };
