@@ -219,9 +219,9 @@ void ATDWorkSpot::Setup(ETDWorkVerb InVerb, int32 InBeats, float InFaceYaw)
 		{
 			// Test panel on a post, 110 cm tall; the panel tilts 39 degrees toward +X (measured). The dust layer
 			// lies 3 cm over the panel face and is swept off sideways.
-			Kit(PanelMesh, FVector::ZeroVector, 1.1f, 90.f);
-			BrushDust = FVector(0.84f, 0.8f, 0.012f);
-			Moving = AddPart(Cube, FVector(3.6f, 0.f, 84.8f), BrushDust, FRotator(-39.f, 0.f, 0.f), Regolith);
+			Kit(PanelMesh, FVector::ZeroVector, 1.1f, -90.f);
+			BrushDust = FVector(0.78f, 0.8f, 0.012f);
+			Moving = AddPart(Cube, FVector(1.7f, 0.f, 86.4f), BrushDust, FRotator(-39.f, 0.f, 0.f), Regolith);
 			LampAt = FVector(-25.f, 45.f, 60.f);
 			break;
 		}
@@ -295,7 +295,7 @@ void ATDWorkSpot::Setup(ETDWorkVerb InVerb, int32 InBeats, float InFaceYaw)
 		if (UStaticMesh* PanelMesh = Tripo(TEXT("KitServicePanel")))
 		{
 			// Service panel on a post, 140 cm tall; the box face is 25 cm out at +X, the lever sits on it.
-			Kit(PanelMesh, FVector::ZeroVector, 1.4f, 90.f);
+			Kit(PanelMesh, FVector::ZeroVector, 1.4f, -90.f);
 			Moving = AddPart(Cube, FVector(29.f, 0.f, 104.f), FVector(0.05f, 0.05f, 0.14f), FRotator(-40.f, 0.f, 0.f), Accent);
 			LampAt = FVector(29.f, 15.f, 124.f);
 			break;

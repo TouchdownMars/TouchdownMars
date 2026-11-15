@@ -214,7 +214,7 @@ int32 UTDScreenWidget::PaintConsole(const FGeometry& Geometry, FSlateWindowEleme
 	const double Delay = Mission->GetConstant(TEXT("LightTimeNow"));
 	if (Delay > 0.0)
 	{
-		P.Text(L + 2, FVector2D(Size.X - 430.f, FY + 18.f), FString::Printf(TEXT("EARTH LINK %.1f MIN ONE-WAY (14 NOV)"), Delay), TDStyle::NumFont(15), ScreenText2);
+		P.Text(L + 2, FVector2D(Size.X - 460.f, FY + 18.f), FString::Printf(TEXT("EARTH LINK %.1f MIN ONE-WAY (14 NOV)"), Delay), TDStyle::NumFont(15), ScreenText2);
 	}
 	return L + 4;
 }
