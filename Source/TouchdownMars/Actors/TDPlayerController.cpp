@@ -439,25 +439,59 @@ void ATDPlayerController::HandleTransitDone()
 	}
 	if (FParse::Param(FCommandLine::Get(), TEXT("TDCrewCam")))
 	{
-		// Dev: a camera that follows a crew member who is working outside (animation checks).
+		// Dev (animation checks, trailer footage): a camera that slowly circles a crew member working outside, eases
+		// after them, pulls in when a module blocks the view, and keeps the screen free of UI.
 		static FTimerHandle CrewCamTimer;
 		GetWorldTimerManager().SetTimer(CrewCamTimer, FTimerDelegate::CreateWeakLambda(this, [this]()
 		{
-			ATDCrewMember* Pick = nullptr;
-			for (TActorIterator<ATDCrewMember> It(GetWorld()); It; ++It)
-			{
-				if (It->IsOnTask() && !It->IsInside() && !It->IsWalking()) { Pick = *It; break; }
-			}
-			if (!Pick) { return; }
+			static TWeakObjectPtr<ATDCrewMember> Pick;
 			static TWeakObjectPtr<ACameraActor> Cam;
-			if (!Cam.IsValid()) { Cam = GetWorld()->SpawnActor<ACameraActor>(); }
-			const FVector At = Pick->GetActorLocation() + FVector(0.f, 0.f, 90.f);
-			const FVector From = At + FVector(380.f, 320.f, 220.f);
+			static float Angle = 35.f, Held = 0.f, Clear = 0.f;
+			const float Dt = FMath::Min(GetWorld()->GetDeltaSeconds(), 0.05f);
+			Held += Dt;
+			Clear += Dt;
+			const bool bKeep = Pick.IsValid() && Pick->IsOnTask() && !Pick->IsInside() && (Held < 7.f || !Pick->IsWalking());
+			if (!bKeep)
+			{
+				ATDCrewMember* Walker = nullptr;
+				ATDCrewMember* Worker = nullptr;
+				for (TActorIterator<ATDCrewMember> It(GetWorld()); It; ++It)
+				{
+					if (!It->IsOnTask() || It->IsInside() || *It == Pick.Get()) { continue; }
+					if (!It->IsWalking()) { Worker = Worker ? Worker : *It; } else { Walker = Walker ? Walker : *It; }
+				}
+				ATDCrewMember* Next = Worker ? Worker : Walker;
+				if (!Next) { return; }
+				Pick = Next;
+				Held = 0.f;
+				Angle += 110.f;
+				UE_LOG(LogTouchdownMars, Display, TEXT("CrewCam: following %s (%s)"), *Next->GetName(), Next->IsWalking() ? TEXT("walking") : TEXT("working"));
+			}
+			if (!Cam.IsValid())
+			{
+				Cam = GetWorld()->SpawnActor<ACameraActor>();
+				Cam->GetCameraComponent()->SetFieldOfView(50.f);
+				Cam->GetCameraComponent()->bConstrainAspectRatio = false;
+			}
+			if (Clear > 0.25f && GEngine && GEngine->GameViewport)
+			{
+				Clear = 0.f;
+				GEngine->GameViewport->RemoveAllViewportWidgets();
+			}
+			Angle += 9.f * Dt;
+			const FVector At = Pick->GetActorLocation() + FVector(0.f, 0.f, 95.f);
+			FVector Want = At + FVector(FMath::Cos(FMath::DegreesToRadians(Angle)) * 430.f, FMath::Sin(FMath::DegreesToRadians(Angle)) * 430.f, 110.f);
+			FHitResult Hit;
+			FCollisionQueryParams Params(TEXT("CrewCam"), false, Pick.Get());
+			Params.AddIgnoredActor(GetPawn());
+			if (GetWorld()->LineTraceSingleByChannel(Hit, At, Want, ECC_Visibility, Params))
+			{
+				Want = At + (Want - At).GetSafeNormal() * FMath::Max(140.f, Hit.Distance - 40.f);
+			}
+			const FVector From = Held < 0.05f ? Want : FMath::Lerp(Cam->GetActorLocation(), Want, 1.f - FMath::Exp(-3.f * Dt));
 			Cam->SetActorLocationAndRotation(From, (At - From).Rotation());
-			UE_LOG(LogTouchdownMars, Display, TEXT("CrewCam: %s at %s, camera %s"), *Pick->GetName(), *At.ToCompactString(), *From.ToCompactString());
-			Cam->GetCameraComponent()->SetFieldOfView(60.f);
-			SetViewTarget(Cam.Get());
-		}), 0.5f, true, 4.f);
+			if (GetViewTarget() != Cam.Get()) { SetViewTarget(Cam.Get()); }
+		}), 0.001f, true, 4.f);
 	}
 		if (FParse::Param(FCommandLine::Get(), TEXT("TDEventTest")))
 	{
