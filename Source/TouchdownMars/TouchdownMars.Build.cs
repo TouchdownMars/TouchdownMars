@@ -32,7 +32,8 @@ public class TouchdownMars : ModuleRules
 			"NavigationSystem",
 			"AIModule",
 			"Landscape",
-			"ApplicationCore"
+			"ApplicationCore",
+			"Niagara"
 		});
 	}
 }

@@ -8,6 +8,68 @@ A crew of four will live 31 sols at Jezero crater. You design the cargo mission 
 
 **Scope.** The game covers cargo planning and surface operations. Crew transport and return are assumed to be provided. Transfer orbits are not computed.
 
+## Mission definition
+
+**Spacecraft.** The mission is a cargo flight, not one probe. What the player designs is a set of launch packages, each on its own rocket:
+
+| Part | In the game | Numbers |
+| :-- | :-- | :-- |
+| Launch vehicle | Falcon 9 or Falcon Heavy, with the number of launches | Payload to Mars 4,020 kg and 16,800 kg (SpaceX vehicle pages) |
+| Cruise and landing hardware | Added to every landed package in the Advanced model | 2.67 kg per kg of landed payload, a labelled game assumption scaled from Curiosity (MSL landing press kit) |
+| Landed payload: power | Fission power units and solar fields | Output from the NASA Kilopower release; solar loss in dust after InSight |
+| Landed payload: habitat systems | Radiation shelter, greenhouse, spare parts | Game masses and prices, labelled |
+| Landed payload: science | Up to eight instruments based on flown hardware | Mass and power from NASA instrument pages; data and science value are game values |
+| Landed payload: crew supplies | Oxygen, water and packaged food for four crew and 31 sols | NASA BVAD Rev 2 |
+| Communications | A direct antenna on the surface, or a relay orbiter that stays in Mars orbit and needs no landing hardware | Relay data volume from the NASA Mars Relay Network page |
+
+A module cannot be split between launches, so the design review checks every package against its rocket. The game does not model batteries, the on-board computer, attitude control or the structure as separate parts.
+
+**Orbit and trajectory.** The trajectory is fixed and is not a player choice. Every launch flies the same Earth-Mars transfer: a cruise of about 200 days in a launch window that opens about once every 26 months (NASA Mars mission timeline), with a landing at Jezero crater. The team fixed it because the game does not compute transfer orbits, and a choice of transfer without that computation would be a made-up number. The player's orbit decisions are these two:
+
+- **Rocket and launch count.** Each rocket's payload to Mars is the limit for its package. Cargo that does not fit blocks the launch.
+- **Relay orbiter or direct link.** The relay orbiter is the one spacecraft the player places in Mars orbit. It returns more data per sol than the direct antenna, costs mass and money, and cannot help during solar conjunction.
+
+**Mission lifetime.** The lifetime is fixed and is the same for every objective.
+
+| Stage | Length | Source |
+| :-- | :-- | :-- |
+| Cargo cruise | About 200 days (Perseverance took 213) | NASA Mars mission timeline; Mars 2020 launch press kit |
+| Crew surface mission | 31 sols | Game value |
+| Phases played | Arrival (sols 1-3), First walk (4-5), Exploration (7-10), Resupply and rest (11-13), Hard week (21-27), Return (28-31) | Game scenario (`Data/Source/phases.csv`) |
+| Solar conjunction | Sols 21-27, no link to Earth | Game scenario; the event is from NASA's solar conjunction page |
+
+The lifetime sets the crew supplies in the cargo mass, the heater load from 31 sols of MEDA air temperature and the crew dose summed from 31 real RAD days.
+
+## Challenge elements and where they are in the game
+
+The challenge names twelve mission elements. Each one is listed here with its place in the game.
+
+| Challenge element | In the game | Where |
+| :-- | :-- | :-- |
+| Objective | Four objectives with their own score weights | Act 1, objective cards; `Data/Source/objectives.csv` |
+| Requirements | Acceptance criteria for each objective, checked in the debrief | Act 1 and Act 3 |
+| Spacecraft design | Launch packages, landed systems and the relay orbiter (see Mission definition) | Act 1, seven design slots |
+| Scientific instruments | Eight instruments with mass, power, cost, data and science value | Act 1, Science Lead |
+| Launch vehicle | Falcon 9 or Falcon Heavy, number of launches, fit check for each package | Act 1, Mission Planner; design review |
+| Orbit | Fixed transfer; relay orbiter or direct link | Mission definition; Act 1, Comms & Budget |
+| Budget | A cap for each objective; none in Sandbox | Dashboard; design review |
+| Mass | Mass to Mars against the launch capacity | Dashboard; design review |
+| Power | Power cells in clear sky and in a dust storm, placed by hand in every phase | Dashboard; Act 2, POWER |
+| Communications | Direct antenna or relay orbiter; Mission Control replies one phase late; conjunction blackout | Act 1; Act 2 |
+| Data | Data per sol, stored until a link is open; only data that reaches Earth scores | Dashboard; Act 3, science value |
+| Mission lifetime | About 200 days of cruise and 31 sols in six phases | Transit card; Act 2 |
+
+Also from the challenge text:
+
+| Challenge ask | In the game |
+| :-- | :-- |
+| Up to four participants with roles | Four roles on one screen, each with its own systems and goal |
+| Simulation and evaluation | A seeded surface mission, then a debrief with four score axes |
+| Feedback on performance | "What broke" names the design decision behind each problem |
+| Redesign and fly again | Redesign on the same seed |
+| Different knowledge levels | Guided and Advanced model; the first flight is a tutorial |
+| Not built | Network play, competing teams and a leaderboard |
+
 ## For judges: three minutes
 
 1. **Download:** the Windows build from the project page (link added at submission). Unzip it and run `TouchdownMars.exe`.
