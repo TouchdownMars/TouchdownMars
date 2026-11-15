@@ -2,6 +2,10 @@
 
 **Pack the cargo. Live the mission. Trace every problem.**
 
+[![Touchdown Mars: The Manifest, 30-second trailer (watch on YouTube)](https://img.youtube.com/vi/Z8bS-2ZdFTc/maxresdefault.jpg)](https://www.youtube.com/watch?v=Z8bS-2ZdFTc)
+
+**[▶ Watch the 30-second trailer on YouTube](https://www.youtube.com/watch?v=Z8bS-2ZdFTc)** · [Download the MP4](https://github.com/TouchdownMars/TouchdownMars/releases/download/v1.0-submission/TouchdownMars_Trailer_30s.mp4) · *Contains AI-generated 3D models (Tripo AI), video (Google Gemini), voice, sound effects and music (ElevenLabs).*
+
 A Mars mission design game with a first-person mission simulation, made for the **NASA Space Apps Challenge 2026** (challenge: *Space Mission Design Game*) by **Team Touchdown**, İstanbul. For students who are new to space engineering and for anyone curious about how a mission is put together. One player, or a team of up to four on one screen.
 
 A crew of four will live 31 sols at Jezero crater. You design the cargo mission that lands before them: rockets and launches, surface power, radiation shelter, greenhouse, spare parts, science instruments and the link to Earth, under mass, power, budget and data limits. Then you launch it and live the mission in first person, and a debrief traces every problem back to the design decision that caused it. Then you redesign and fly the same mission again.
