@@ -246,7 +246,7 @@ The groups below follow what each source does in the game. A source counts as us
 - Polsgrove et al. 2017 (NTRS 20170003391) and 2019 (NTRS 20190001229), NASA human Mars Ascent Vehicle studies: the shape of the crew ascent vehicle model at LZ-1 (`setup_models4.py`).
 - Golombek et al. 2021: the shape of the rock size-frequency model behind the pebble density (`scatter_pebbles.py`).
 
-**6. Read but not used by the game** (marked "Reference only" in `sources.csv`): MSL REMS PDS bundle; Curiosity REMS daily weather feed and InSight weather feed (their tables are in `Data/Reference/`, which no code reads); InSight TWINS and PS PDS bundles; Zeitlin et al. 2018; Hassler et al. 2014.
+**6. Read but not used by the game** (marked "Reference only" in `sources.csv`): MSL REMS PDS bundle; Curiosity REMS daily weather feed and InSight weather feed (their tables are in `Data/Reference/`, which no code reads); InSight TWINS and PS PDS bundles; the Mars 2020 launch press kit, Mission page (its 213-day trip is for a planned 20 July 2020 launch; the game uses the 203-day flight); Zeitlin et al. 2018; Hassler et al. 2014.
 
 **7. Design references (challenge resources).** JPL Concept Maturity Levels (Wessen et al., AIAA 2013): the four levels of the maturity meter (`TDMissionDesign.cpp`). NASA Design and Develop Science Missions (2025) and the NASA GSFC Mission Design Lab: the design, simulate, evaluate, redesign loop and the disciplines behind the four roles. No number in the game comes from them. GMAT is not used: transfer orbits are not computed (see Known limits).
 
