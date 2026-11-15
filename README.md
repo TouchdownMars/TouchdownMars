@@ -15,7 +15,7 @@ A crew of four will live 31 sols at Jezero crater. You design the cargo mission 
 | Part | In the game | Numbers |
 | :-- | :-- | :-- |
 | Launch vehicle | Falcon 9 or Falcon Heavy, with the number of launches | Payload to Mars 4,020 kg and 16,800 kg (SpaceX vehicle pages) |
-| Cruise and landing hardware | Added to every landed package in the Advanced model | 2.67 kg per kg of landed payload, a labelled game assumption scaled from Curiosity (MSL landing press kit) |
+| Cruise and landing hardware | Added to every landed package in the Advanced model | 2.67 kg per kg of landed payload, a labelled game assumption scaled from Curiosity's entry, descent and landing system (MSL landing press kit; the cruise stage is not counted) |
 | Landed payload: power | Fission power units and solar fields | Output from the NASA Kilopower release; solar loss in dust after InSight |
 | Landed payload: habitat systems | Radiation shelter, greenhouse, spare parts | Game masses and prices, labelled |
 | Landed payload: science | Up to eight instruments based on flown hardware | Mass and power from NASA instrument pages; data and science value are game values |
@@ -33,7 +33,7 @@ A module cannot be split between launches, so the design review checks every pac
 
 | Stage | Length | Source |
 | :-- | :-- | :-- |
-| Cargo cruise | About 200 days (Perseverance took 213) | NASA Mars mission timeline; Mars 2020 launch press kit |
+| Cargo cruise | About 200 days (Perseverance took 203: launch 30 July 2020, landing 18 February 2021) | NASA Mars mission timeline; Mars 2020 landing press kit, Quick Facts |
 | Crew surface mission | 31 sols | Game value |
 | Phases played | Arrival (sols 1-3), First walk (4-5), Exploration (7-10), Resupply and rest (11-13), Hard week (21-27), Return (28-31) | Game scenario (`Data/Source/phases.csv`) |
 | Solar conjunction | Sols 21-27, no link to Earth | Game scenario; the event is from NASA's solar conjunction page |
@@ -118,7 +118,7 @@ Also from the challenge text:
 - **First flight:** the first flight of a session is the tutorial. A short cold open shows a fictional solar-only crew losing power in a dust storm, then guided steps teach the cause-and-effect logic of the design room.
 
 **Act 2: Fly and live**
-- **Transit card:** launches, mass, cruise of about 200 days (NASA; Perseverance took 213) and the cruise and landing hardware. The cargo lands at Jezero before the crew.
+- **Transit card:** launches, mass, cruise of about 200 days (NASA; Perseverance took 203) and the cruise and landing hardware. The cargo lands at Jezero before the crew.
 - **A connected Jezero base in first person** on Mars gravity (0.38 g, NASA NSSDC). The terrain is a 1 km window of the MRO HiRISE Jezero elevation model. The parts you designed (fission units, solar fields, shelter shielding, relay antenna) appear on the surface.
 - **Six phases, sol 1 to sol 31.** In each phase you use the Mission Control console beside the habitat. An objective tracker and a marker show the way.
   - **DECISION:** answer a dated NASA event card on which both choices cost something.
@@ -222,7 +222,7 @@ The groups below follow what each source does in the game. A source counts as us
 - Curiosity RAD Level 2 daily dose (SPDF CDAWeb, 20 Aug to 9 Oct 2017; `rad_dose.csv`): each sol adds one real day to every crew member's dose (`TDMissionSubsystem.cpp`). The habitat, shelter and berm factors are game assumptions. The dose is shown on the helmet, in the Mission Control console (including the event-day dose for a spacewalk versus the shelter) and in the run record; it does not change the score and no health effect is computed. George et al. 2024 (average Mars-surface dose equivalent) scales the mSv estimate; the NASA OCHMO career limit is shown for comparison only.
 - NASA CCMC DONKI: the Today's Sun panel, live (`TDDonkiClient.cpp`) or the stored September 2017 archive (`donki_archive.csv`). It never changes gameplay.
 - NASA/JPL Horizons: today's Earth-Mars light time on the Mission Control console. The Mission Control delay in the game is counted in phases.
-- Transit card and debrief comparison (`TDDesignRoom.cpp`): NASA Mars mission timeline (cruise of about 200 days), Mars 2020 launch press kit (213 days), Mars 2020 landing quick facts (rover mass and cost), MMRTG fact sheet (110 W), MSL landing press kit (Curiosity masses), InSight landing press kit (cost), PIA25284 (InSight energy per sol) and the NASA Mars EDL white paper 2025 (landed mass of flown and human-class landers).
+- Transit card and debrief comparison (`TDDesignRoom.cpp`): NASA Mars mission timeline (cruise of about 200 days), Mars 2020 landing quick facts (launch and landing dates, 203 days; rover mass and cost), MMRTG fact sheet (110 W), MSL landing press kit (Curiosity masses), InSight landing press kit (cost), PIA25284 (InSight energy per sol) and the NASA Mars EDL white paper 2025 (landed mass of flown and human-class landers).
 - Kleinhenz and Paz (NTRS 20170005179) and Mueller et al., RASSOR 2.0 (NTRS 20210011366): clay water content and digging rate. They give the kilograms of water and regolith shown on the console after the water and berm tasks (game values derived from them); the task effects are game values.
 
 **3. Event cards (15).** Each card shows the date, instrument, measurement and source on its "What really happened?" side; the cost of each choice is a game value. Facts checked in `Evidence/cards_check.md`.
