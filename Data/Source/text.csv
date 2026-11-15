@@ -838,3 +838,11 @@ Pause_Language,Language,Dil
 Pause_Screen,Screen,Ekran
 Pause_ScreenFull,full screen,tam ekran
 Pause_ScreenWindow,window,pencere
+Bark_Idle_Inspect_0,"Hab, checking the panel readings here.","Üs, buradaki panel değerlerini kontrol ediyorum."
+Bark_Idle_Inspect_1,Seals look good on this one.,Bunun contaları iyi görünüyor.
+Bark_Idle_Inspect_2,Logging a gauge check for the report.,Rapor için gösterge kontrolünü kaydediyorum.
+Bark_Idle_Sky_0,Watching the horizon for dust.,Ufukta toz var mı diye bakıyorum.
+Bark_Idle_Sky_1,Sky looks clear to the east.,Doğuda gökyüzü açık görünüyor.
+Bark_Idle_Sample_0,Bagging a regolith sample.,Regolit örneğini torbalıyorum.
+Bark_Idle_Chat_0,Buddy check. Your pack reads fine.,Eş kontrolü. Sırt çantan normal görünüyor.
+Bark_Idle_Chat_1,Radio check. I hear you five by five.,Telsiz kontrolü. Seni net duyuyorum.

@@ -285,6 +285,9 @@ private:
 	TWeakObjectPtr<ATDCrewMember> ChatPartner;
 	float NextChatAt = 0.f;
 	float ClipSwapAt = -1.f;
+	// Radio call-outs during idle activities (MDRS HabCOM check-ins), at most one every 20 s, only near the player.
+	float NextIdleBarkAt = 0.f;
+	void SayIdle(const TCHAR* Prefix, int32 Count, float Chance);
 	ATDCrewMember* FindChatPartner() const;
 	int32 PickIdleSpot();
 	void BeginInspect(const FVector& Look);

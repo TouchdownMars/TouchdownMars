@@ -1374,6 +1374,19 @@ void ATDCrewMember::BeginWorkPose(bool bGround, int32 VerbIndex)
 	ShowHandTool(VerbIndex);
 }
 
+void ATDCrewMember::SayIdle(const TCHAR* Prefix, int32 Count, float Chance)
+{
+	const UTDMissionSubsystem* Mission = GetWorld()->GetSubsystem<UTDMissionSubsystem>();
+	const APawn* Player = UGameplayStatics::GetPlayerPawn(this, 0);
+	if (!Mission || !Player || IdleTime < NextIdleBarkAt || IdleRand.FRand() > Chance
+		|| FVector::Dist2D(Player->GetActorLocation(), BaseLocation) > 2500.f)
+	{
+		return;
+	}
+	NextIdleBarkAt = IdleTime + 20.f;
+	Say(Mission->GetText(FName(*FString::Printf(TEXT("%s_%d"), Prefix, IdleRand.RandRange(0, Count - 1)))), 4.f);
+}
+
 void ATDCrewMember::BeginInspect(const FVector& Look)
 {
 	// Instrument or panel check at a module, tablet in hand (MDRS daily operations checks).
@@ -1381,6 +1394,7 @@ void ATDCrewMember::BeginInspect(const FVector& Look)
 	IdleFocus = Look;
 	BeginWorkPose(false, static_cast<int32>(ETDWorkVerb::Scan));
 	IdleActUntil = IdleTime + IdleRand.FRandRange(7.f, 13.f);
+	SayIdle(TEXT("Bark_Idle_Inspect"), 3, 0.6f);
 }
 
 void ATDCrewMember::BeginChat(float Seconds)
@@ -1395,6 +1409,7 @@ void ATDCrewMember::BeginChat(float Seconds)
 	IdleAct = EIdleAct::Chat;
 	IdleFocus = Partner->BaseLocation;
 	IdleActUntil = IdleTime + Seconds;
+	SayIdle(TEXT("Bark_Idle_Chat"), 2, 0.7f);
 	Partner->IdleActUntil = FMath::Max(Partner->IdleActUntil, Partner->IdleTime + Seconds);
 	if (CelebrateAnim)
 	{
@@ -1511,6 +1526,7 @@ void ATDCrewMember::StartIdleAct(EIdleAct Act)
 		// Scan the horizon and the sky for dust (weather watch).
 		PlayClip(WorriedAnim ? WorriedAnim.Get() : IdleAnim.Get(), 0.8f);
 		IdleActUntil = IdleTime + IdleRand.FRandRange(4.5f, 8.f);
+		SayIdle(TEXT("Bark_Idle_Sky"), 2, 0.35f);
 		break;
 	case EIdleAct::Inspect:
 	{
@@ -1579,6 +1595,7 @@ void ATDCrewMember::StartIdleAct(EIdleAct Act)
 					IdleFocus = BaseLocation + FRotator(0.f, BaseRotation.Yaw + SuitForwardYaw, 0.f).Vector() * 100.f;
 					BeginWorkPose(true, static_cast<int32>(ETDWorkVerb::Scoop));
 					IdleActUntil = IdleTime + IdleRand.FRandRange(6.f, 10.f);
+					SayIdle(TEXT("Bark_Idle_Sample"), 1, 0.6f);
 				}
 				else
 				{
