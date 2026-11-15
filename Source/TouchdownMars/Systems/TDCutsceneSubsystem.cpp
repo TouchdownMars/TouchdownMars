@@ -163,6 +163,15 @@ void UTDCutsceneSubsystem::BuildOverlay()
 				return Mission ? Mission->GetText(TEXT("Cutscene_Skip")) : FText::GetEmpty();
 			})
 		]
+		// AI credit tag, shown for the whole clip (sources.csv: GeminiVeoCutscenes), like the Gemini tag on the design cards.
+		+ SOverlay::Slot().VAlign(VAlign_Top).HAlign(HAlign_Left).Padding(28.f, 20.f, 0.f, 0.f)
+		[
+			SNew(SBorder).BorderImage(FCoreStyle::Get().GetBrush("WhiteBrush")).BorderBackgroundColor(FLinearColor(0.f, 0.f, 0.f, 0.55f)).Padding(FMargin(10.f, 5.f))
+			[
+				SNew(STextBlock).Font(FCoreStyle::GetDefaultFontStyle("Bold", 14)).ColorAndOpacity(FLinearColor(1.f, 1.f, 1.f, 0.9f))
+				.Text(FText::FromString(TEXT("AI video (Google Veo)")))
+			]
+		]
 	];
 	GEngine->GameViewport->AddViewportWidgetContent(Overlay.ToSharedRef(), 1000);
 	FSlateApplication::Get().SetAllUserFocus(Overlay, EFocusCause::SetDirectly);
