@@ -1,5 +1,6 @@
 // Copyright 2026 Team Touchdown. Licensed under the Apache License, Version 2.0.
 
+#include "Systems/TDSoundscapeSubsystem.h"
 #include "Systems/TDMissionSubsystem.h"
 #include "UI/TDDesignTokens.h"
 
@@ -370,6 +371,20 @@ void UTDMissionSubsystem::PlaySfx(FName Token)
 	if (!IsSoundOn() || !GetWorld() || !GetWorld()->IsGameWorld())
 	{
 		return;
+	}
+	// Radio calls get the suit radio's squelch open and close (with the music ducked) instead of a single chirp.
+	if (Token == TEXT("RadioIn"))
+	{
+		UTDSoundscapeSubsystem::RadioCall(this, 2.4f);
+		return;
+	}
+	if (Token == TEXT("LiftOff"))
+	{
+		UTDSoundscapeSubsystem::LiftOffMusic(this);
+	}
+	if (Token == TEXT("Alarm"))
+	{
+		Token = TEXT("Suit_Caution");   // the suit's own caution tone, heard inside the helmet
 	}
 	TObjectPtr<USoundBase>& Sound = SoundCache.FindOrAdd(Token);
 	if (!Sound)

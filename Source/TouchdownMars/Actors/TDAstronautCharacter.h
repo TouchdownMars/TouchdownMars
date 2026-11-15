@@ -85,6 +85,8 @@ public:
 	/** The next unfinished spot of a task you own (nearest first) and the count done; false if none. */
 	bool GetTaskWork(FName Task, int32& OutDoneSpots, int32& OutSpots, FVector& OutNext) const;
 	bool IsNearStation() const;
+	/** True while the player is doing hands-on work at a spot (drives the suit breathing). */
+	bool IsWorking() const { return bWorking; }
 	/** Seconds since the player last pressed TAB/Y away from Mission Control (HUD shows the way). */
 	double GetStationPingTime() const { return StationPingTime; }
 	/** Dev (-TDWorkTest / -TDSurface): stand in front of the next work spot of a task, or of Mission Control. */
@@ -129,12 +131,9 @@ private:
 	void Interact();
 	void InteractReleased();
 	void TickAmbience();
-	UPROPERTY(Transient) TObjectPtr<class UAudioComponent> WindSound;
-	UPROPERTY(Transient) TObjectPtr<class UAudioComponent> HumSound;
-	UPROPERTY(Transient) TObjectPtr<class UAudioComponent> StormSound;
-	UPROPERTY(Transient) TObjectPtr<class UAudioComponent> BreathSound;
-	/** Suit boots on regolith: one step sound per stride while walking. */
+	/** Suit boots: the contact thump felt through the suit, and the faint regolith crunch through the air. */
 	UPROPERTY(Transient) TArray<TObjectPtr<class USoundWave>> StepSounds;
+	UPROPERTY(Transient) TArray<TObjectPtr<class USoundWave>> AirSteps;
 	float StepTravel = 0.f;
 	FVector LastStepLocation = FVector::ZeroVector;
 	void UseStation();
