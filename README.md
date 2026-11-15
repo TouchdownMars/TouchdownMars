@@ -78,7 +78,7 @@ Also from the challenge text:
 
 ## For judges: three minutes
 
-1. **Download:** the Windows build from the project page (link added at submission). Unzip it and run `TouchdownMars.exe`.
+1. **Download:** the Windows build, `TouchdownMars_Win64_v25.zip` (815 MB), from the release [v1.0-submission](https://github.com/TouchdownMars/TouchdownMars/releases/tag/v1.0-submission), built from commit `7469f77` (later commits only add development flags for trailer footage, which are not in the shipping build). Unzip it and run `TouchdownMars\TouchdownMars.exe`.
 2. **First minute:** take the console, pick an instrument, poll the room and press LAUNCH; the pre-launch checklist says what is still missing.
 3. **On Mars:** follow the red marker to the Mission Control console beside the habitat (E or X), place the power cells, answer the event, run the sols. Hold E or X at a lit work spot to do a task by hand.
 

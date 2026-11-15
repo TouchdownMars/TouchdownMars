@@ -1,8 +1,8 @@
 # Touchdown Mars: The Manifest, NASA Space Apps project page
 
-This file holds the text of every field on the team's NASA Space Apps 2026 project page. It was checked against this repository at commit `7469f77` on 15 November 2026; the source lists are built from `Data/Source/sources.csv`. Each section replaces the whole content of the page field with the same name.
+This file holds the text of every field on the team's NASA Space Apps 2026 project page. It was checked against this repository at commit `bd8e4e5` on 15 November 2026; the source lists are built from `Data/Source/sources.csv`. Each section replaces the whole content of the page field with the same name.
 
-**Superseded text.** These older statements must not stay on the page: 113, 114, 118 or 120 source records; 847 or 849 text rows; 21, 25, 27 or 33 Tripo models; 127 or 130 source records; "No AI voice is used" (the trailer narration is an AI voice; the game has no voice); captions, text or play "in English and Turkish" (Turkish is switched off in this build); "five adult volunteers" and "Four of five said that flying the same mission again with a changed design taught them something new" (the play test had eight players, and that statement is not used); "no AI-generated video is used"; "Not in this build: VR, music and voice"; Zeitlin et al. 2018, Hassler et al. 2014 and Lemmon et al. 2022 listed as event card sources; "follows NASA's human Mars studies" for the cargo-first scenario; the NASA Webb "Build It Yourself" game and NASA CubeSat 101 as references; Starship, Vulcan Centaur, New Glenn, SLS Block 1B, NASA OIG IG-22-003 and IG-24-001, the Psyche launch contract, a Horizons Moon query, NASA "appendix-f-vol-2"; "Moon mode", "First Light", "Junior Astronaut".
+**Superseded text.** These older statements must not stay on the page: 113, 114, 118 or 120 source records; 847 or 849 text rows; 21, 25, 27 or 33 Tripo models; 127 or 130 source records; the download link "to be added" (the Windows build is published as release v1.0-submission); "No AI voice is used" (the trailer narration is an AI voice; the game has no voice); captions, text or play "in English and Turkish" (Turkish is switched off in this build); "five adult volunteers" and "Four of five said that flying the same mission again with a changed design taught them something new" (the play test had eight players, and that statement is not used); "no AI-generated video is used"; "Not in this build: VR, music and voice"; Zeitlin et al. 2018, Hassler et al. 2014 and Lemmon et al. 2022 listed as event card sources; "follows NASA's human Mars studies" for the cargo-first scenario; the NASA Webb "Build It Yourself" game and NASA CubeSat 101 as references; Starship, Vulcan Centaur, New Glenn, SLS Block 1B, NASA OIG IG-22-003 and IG-24-001, the Psyche launch contract, a Horizons Moon query, NASA "appendix-f-vol-2"; "Moon mode", "First Light", "Junior Astronaut".
 
 ## Summary
 
@@ -12,7 +12,7 @@ Touchdown Mars: The Manifest is a Mars mission design game with a first-person m
 
 https://github.com/TouchdownMars/TouchdownMars
 
-Download link for the Windows build: to be added when the team publishes it.
+Windows build: https://github.com/TouchdownMars/TouchdownMars/releases/tag/v1.0-submission (TouchdownMars_Win64_v25.zip, 815 MB, built from commit 7469f77). Unzip it and run TouchdownMars\TouchdownMars.exe.
 
 ## Project Details
 
@@ -62,7 +62,7 @@ The helmet display shows life support, power cells, the crew's radiation dose, c
 - **Mission rules (C++).** A second pure module runs the six phases: allocation, events, exposures, delayed messages and report. A seeded random stream makes the same seed and the same design give the same mission, which is what makes the redesign comparison fair.
 - **Base operations (C++).** A third module plans crew hours, checks task prerequisites and spacewalk rules, and applies task effects to the mission.
 - **Heating and crew dose (C++).** At start the mission subsystem sets the cells the base needs from the MEDA air temperatures; during the mission it sums each crew member's dose from the RAD days and their outside hours.
-- **Automated tests.** 30 automation tests cover the three modules (TD.Design: 10, TD.Model: 12, TD.Ops: 8); 30 of 30 passed on 15 November 2026 at commit cb823a7 (result lines in Evidence/tests_2026-11-15.txt).
+- **Automated tests.** 30 automation tests cover the three modules (TD.Design: 10, TD.Model: 12, TD.Ops: 8); 30 of 30 passed on 15 November 2026 at commit 00a9e95 (result lines in Evidence/tests_2026-11-15.txt).
 - **Data-driven content.** Everything lives in CSV files imported into Unreal DataTables: 21 design options, 4 objectives, 15 event cards, 17 crew tasks, 211 constants (104 with a source and its location, 107 labelled as game values), 131 source records, 853 English/Turkish text rows, 31 sols of Jezero weather, 51 days of Curiosity RAD dosimetry and the 10 largest InSight catalogue events.
 - **Interface.** The design room and the debrief are built in Slate; the surface uses a Mission Control console, a helmet display, an objective tracker and a shot director for the cinematics.
 - **Today's Sun.** One read request to NASA CCMC DONKI at start, with a timeout. It never changes gameplay.
