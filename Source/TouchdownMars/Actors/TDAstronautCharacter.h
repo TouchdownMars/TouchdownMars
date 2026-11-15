@@ -127,6 +127,12 @@ private:
 	void TickAmbience();
 	UPROPERTY(Transient) TObjectPtr<class UAudioComponent> WindSound;
 	UPROPERTY(Transient) TObjectPtr<class UAudioComponent> HumSound;
+	UPROPERTY(Transient) TObjectPtr<class UAudioComponent> StormSound;
+	UPROPERTY(Transient) TObjectPtr<class UAudioComponent> BreathSound;
+	/** Suit boots on regolith: one step sound per stride while walking. */
+	UPROPERTY(Transient) TArray<TObjectPtr<class USoundWave>> StepSounds;
+	float StepTravel = 0.f;
+	FVector LastStepLocation = FVector::ZeroVector;
 	void UseStation();
 
 	// Hands-on work

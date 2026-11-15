@@ -9,6 +9,8 @@
 #include "Kismet/GameplayStatics.h"
 #include "Materials/MaterialInterface.h"
 #include "LandscapeProxy.h"
+#include "Sound/SoundAttenuation.h"
+#include "Sound/SoundWave.h"
 
 #include "Actors/TDSystemModule.h"
 #include "Animation/AnimSequence.h"
@@ -712,8 +714,40 @@ void ATDCrewMember::StepWalk(float DeltaSeconds)
 	}
 	const float TargetZ = GroundZ(Next) + FeetOffset;
 	Next.Z = FMath::Abs(TargetZ - BaseLocation.Z) > 60.f ? TargetZ : FMath::FInterpTo(BaseLocation.Z, TargetZ, DeltaSeconds, 12.f);
+	StepTravel += FVector::Dist2D(Next, BaseLocation);
+	if (StepTravel > 75.f)
+	{
+		StepTravel = 0.f;
+		StepSound();
+	}
 	BaseLocation = Next;
 	SetActorLocationAndRotation(BaseLocation, BaseRotation);
+}
+
+void ATDCrewMember::StepSound()
+{
+	const UTDMissionSubsystem* Mission = GetWorld()->GetSubsystem<UTDMissionSubsystem>();
+	if (!SuitMesh || bInsideModule || WalkSpeed > 200.f || !Mission || !Mission->IsSoundOn())
+	{
+		return; // no steps in the time-lapse (they would rattle) or while hidden
+	}
+	static TWeakObjectPtr<USoundAttenuation> Falloff;
+	if (!Falloff.IsValid())
+	{
+		USoundAttenuation* Settings = NewObject<USoundAttenuation>(GetTransientPackage());
+		Settings->AddToRoot();
+		Settings->Attenuation.bAttenuate = true;
+		Settings->Attenuation.bSpatialize = true;
+		Settings->Attenuation.AttenuationShape = EAttenuationShape::Sphere;
+		Settings->Attenuation.AttenuationShapeExtents = FVector(200.f);
+		Settings->Attenuation.FalloffDistance = 1300.f;
+		Falloff = Settings;
+	}
+	const FString Name = FString::Printf(TEXT("SFX_TD_Step_Regolith_%02d"), FMath::RandRange(1, 4));
+	if (USoundWave* Wave = LoadObject<USoundWave>(nullptr, *FString::Printf(TEXT("/Game/TouchdownMars/Audio/%s.%s"), *Name, *Name)))
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, Wave, BaseLocation, 0.5f, FMath::FRandRange(0.9f, 1.06f), 0.f, Falloff.Get());
+	}
 }
 
 FVector ATDCrewMember::AvoidPush(const FVector& Dir) const

@@ -66,7 +66,15 @@ def whoosh(length, volume=0.4):
     return out
 
 
+# Replaced on 15 Nov 2026 by ElevenLabs recordings (sources.csv ElevenLabsSFX): never overwrite these.
+ELEVENLABS = {"SFX_TD_Ambience_MarsWind", "SFX_TD_Ambience_BaseHum", "SFX_TD_LiftOff", "SFX_TD_Work_Drill",
+              "SFX_TD_Work_Hammer", "SFX_TD_Work_Ratchet", "SFX_TD_Work_Scoop", "SFX_TD_Work_Brush"}
+
+
 def write(name, samples):
+    if name in ELEVENLABS:
+        print(name, "kept (ElevenLabs recording)")
+        return
     os.makedirs(OUT, exist_ok=True)
     path = os.path.join(OUT, f"{name}.wav")
     peak = max(1e-6, max(abs(s) for s in samples))

@@ -276,6 +276,9 @@ private:
 	bool EscortLineBlocked(const FVector& To) const;
 	// Turn in place toward the first path leg before striding (suits turn slowly, EVA Ops 101 p.4).
 	bool bTurningToPath = false;
+	// Footsteps heard near the crew member (3D, fades out over about 15 m: thin Mars air carries little).
+	float StepTravel = 0.f;
+	void StepSound();
 	// Idle spots used recently (idle clock seconds, keyed on a 50 cm grid), so the crew vary what they do.
 	TMap<FIntPoint, float> IdleSpotUsed;
 	FVector IdleClaim = FVector::ZeroVector; // the spot this crew member claimed (nobody else walks to it)

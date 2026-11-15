@@ -30,6 +30,7 @@
 #include "InputModifiers.h"
 #include "Model/TDTypes.h"
 #include "Systems/TDMissionSubsystem.h"
+#include "Systems/TDSkySubsystem.h"
 #include "TouchdownMars.h"
 
 ATDAstronautCharacter::ATDAstronautCharacter()
@@ -343,12 +344,55 @@ void ATDAstronautCharacter::TickAmbience()
 	};
 	Ensure(WindSound, TEXT("SFX_TD_Ambience_MarsWind"));
 	Ensure(HumSound, TEXT("SFX_TD_Ambience_BaseHum"));
+	Ensure(StormSound, TEXT("SFX_TD_Ambience_Storm"));
+	Ensure(BreathSound, TEXT("SFX_TD_Ambience_Breath"));
 	const ATDPlayerController* AmbPC = Cast<ATDPlayerController>(GetController());
 	const bool bOn = Mission->IsSoundOn() && Mission->IsMissionRunning() && !(AmbPC && AmbPC->IsDesignScreenOpen());
+	// The storm takes over from the light wind as the sky fills with dust (same eased amount as the sky and VFX).
+	const UTDSkySubsystem* Sky = GetWorld()->GetSubsystem<UTDSkySubsystem>();
+	const float Dust = Sky ? Sky->GetDustAmount() : 0.f;
 	if (WindSound)
 	{
-		WindSound->SetVolumeMultiplier(bOn ? 0.35f : 0.f);
+		WindSound->SetVolumeMultiplier(bOn ? 0.35f * (1.f - 0.7f * Dust) : 0.f);
 	}
+	if (StormSound)
+	{
+		StormSound->SetVolumeMultiplier(bOn ? 0.75f * Dust : 0.f);
+	}
+	if (BreathSound)
+	{
+		// The suit's own sound: calm breathing and the oxygen flow, quiet under everything else. [DESIGNER VALUE]
+		BreathSound->SetVolumeMultiplier(bOn ? 0.22f : 0.f);
+	}
+	// Footsteps: one step per stride on the ground. Suited strides on Mars are short and deliberate (about
+	// 75 cm, [DESIGNER VALUE]); four recorded variants with a little pitch spread so no two steps match.
+	if (StepSounds.Num() == 0)
+	{
+		for (int32 Index = 1; Index <= 4; ++Index)
+		{
+			const FString Name = FString::Printf(TEXT("SFX_TD_Step_Regolith_%02d"), Index);
+			if (USoundWave* Wave = LoadObject<USoundWave>(nullptr, *FString::Printf(TEXT("/Game/TouchdownMars/Audio/%s.%s"), *Name, *Name)))
+			{
+				StepSounds.Add(Wave);
+			}
+		}
+	}
+	const FVector Here = GetActorLocation();
+	const bool bGrounded = GetCharacterMovement() && GetCharacterMovement()->IsMovingOnGround();
+	if (bOn && bGrounded && StepSounds.Num() > 0)
+	{
+		StepTravel += FVector::Dist2D(Here, LastStepLocation);
+		if (StepTravel > 75.f)
+		{
+			StepTravel = 0.f;
+			UGameplayStatics::PlaySound2D(this, StepSounds[FMath::RandRange(0, StepSounds.Num() - 1)], 0.45f, FMath::FRandRange(0.92f, 1.08f));
+		}
+	}
+	else
+	{
+		StepTravel = 0.f;
+	}
+	LastStepLocation = Here;
 	if (HumSound)
 	{
 		// Louder next to the habitat (site HabInside), fades out over about 25 m.
