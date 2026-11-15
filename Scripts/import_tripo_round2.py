@@ -11,7 +11,7 @@ import os
 
 import unreal
 
-SOURCE = r"D:/NASA/_kaynaklar/tripo/round2"
+SOURCE = globals().get("SOURCE", r"D:/NASA/_kaynaklar/tripo/round2")   # round 3: SOURCE=.../round3
 DEST = "/Game/TouchdownMars/Tripo"
 ONLY = globals().get("ONLY")   # optional list of names to (re)import
 log = []
