@@ -1,7 +1,7 @@
 // Copyright 2026 Team Touchdown. Licensed under the Apache License, Version 2.0.
 
-#include "Systems/TDSoundscapeSubsystem.h"
 #include "Systems/TDMissionSubsystem.h"
+#include "Systems/TDSoundscapeSubsystem.h"
 #include "UI/TDDesignTokens.h"
 
 #include "Engine/DataTable.h"
@@ -143,6 +143,7 @@ void UTDMissionSubsystem::BeginCurrentPhase()
 	if (!State.CurrentEventId.IsNone())
 	{
 		OnEventDrawn.Broadcast(State.CurrentEventId);
+		PlaySfxPitched(TEXT("Suit_Caution"), 1.f, 0.45f);   // a new event: the suit's soft caution tone
 	}
 	OnAllocationChanged.Broadcast(State);
 }

@@ -1,5 +1,5 @@
 # Copyright 2026 Team Touchdown. Licensed under the Apache License, Version 2.0.
-"""Import Data/Audio/SFX_TD_*.wav as Sound Waves into /Game/TouchdownMars/Audio (run inside the editor).
+"""Import Data/Audio/SFX_TD_*.wav and MUS_TD_*.wav as Sound Waves into /Game/TouchdownMars/Audio (run inside the editor).
     exec(open(r"<ProjectDir>/Scripts/import_sfx.py", encoding="utf-8").read())
 """
 
@@ -10,7 +10,7 @@ import unreal
 
 AUDIO = os.path.join(unreal.Paths.convert_relative_path_to_full(unreal.Paths.project_dir()), "Data", "Audio")
 tasks = []
-for path in sorted(glob.glob(os.path.join(AUDIO, "SFX_TD_*.wav"))):
+for path in sorted(glob.glob(os.path.join(AUDIO, "SFX_TD_*.wav")) + glob.glob(os.path.join(AUDIO, "MUS_TD_*.wav"))):
     task = unreal.AssetImportTask()
     task.filename = path
     task.destination_path = "/Game/TouchdownMars/Audio"

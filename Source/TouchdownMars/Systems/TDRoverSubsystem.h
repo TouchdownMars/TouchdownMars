@@ -40,6 +40,8 @@ private:
 		float YawOffset = 0.f;      // mesh forward relative to actor yaw
 		float Height = 0.f;         // pivot height above the ground at start
 		bool bReverse = false;      // excavator backing to the berm
+		TWeakObjectPtr<class UAudioComponent> Sound;   // motor (rover) or drums (excavator), 3D in thin air
+		float Activity = 0.f;       // eased 0..1, drives the sound
 	};
 	TArray<FMachine> Machines;
 	TArray<TWeakObjectPtr<class ALandscapeProxy>> Landscapes;

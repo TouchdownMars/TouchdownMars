@@ -12,6 +12,8 @@
 #include "Actors/TDSceneActors.h"
 #include "Systems/TDDustFXSubsystem.h"
 #include "Systems/TDMissionSubsystem.h"
+#include "Systems/TDSoundscapeSubsystem.h"
+#include "Components/AudioComponent.h"
 
 namespace TDRover
 {
@@ -215,8 +217,25 @@ void UTDRoverSubsystem::Tick(float DeltaTime)
 		const FVector Here = Actor->GetActorLocation();
 		const float Yaw = Actor->GetActorRotation().Yaw;
 		const FVector Forward = FRotator(0.f, Yaw + M.YawOffset, 0.f).Vector();
+		if (!M.Sound.IsValid())
+		{
+			M.Sound = UTDSoundscapeSubsystem::AttachLoop(Actor, M.bExcavator ? TEXT("SFX_TD_World_DiggerDrum") : TEXT("SFX_TD_World_RoverMotor"), 0.f);
+		}
+		auto Voice = [&M, DeltaTime, this](float Target)
+		{
+			M.Activity = FMath::FInterpTo(M.Activity, Target, DeltaTime, 1.5f);
+			if (UAudioComponent* Sound = M.Sound.Get())
+			{
+				const UTDMissionSubsystem* Mission = GetWorld()->GetSubsystem<UTDMissionSubsystem>();
+				const bool bOn = Mission && Mission->IsSoundOn();
+				Sound->SetVolumeMultiplier(bOn ? 0.15f + 0.85f * M.Activity : 0.f);
+				Sound->SetPitchMultiplier(0.85f + 0.2f * M.Activity);
+			}
+		};
 		if (M.Wait > 0.f)
 		{
+			// Rover parked: systems idle. Excavator stopped at the dig or the berm: drums turning.
+			Voice(M.bExcavator ? 1.f : 0.f);
 			M.Wait -= DeltaTime;
 			// Digging and dumping kick up dust at the drums.
 			M.PuffClock -= DeltaTime;
@@ -259,17 +278,11 @@ void UTDRoverSubsystem::Tick(float DeltaTime)
 		const bool bAligned = FMath::Abs(FRotator::NormalizeAxis(WantYaw - NewYaw)) < 25.f;
 		float Step = 0.f;
 		const bool bBlocked = PersonAhead(M, To, M.bExcavator ? 300.f : 600.f);
-		static float DebugClock = 0.f;
-		DebugClock += DeltaTime;
-		if (DebugClock > 5.f)
-		{
-			DebugClock = 0.f;
-			UE_LOG(LogTemp, Verbose, TEXT("Rovers: %s at %s leg %d/%d goal %s aligned %d blocked %d"), *Actor->GetName(), *Here.ToCompactString(), M.LegIndex, M.Leg.Num(), *Goal.ToCompactString(), bAligned ? 1 : 0, bBlocked ? 1 : 0);
-		}
 		if (bAligned && !bBlocked)
 		{
 			Step = FMath::Min(Distance, M.Speed * FMath::Clamp(Distance / 200.f, 0.3f, 1.f) * DeltaTime);
 		}
+		Voice(Step > 0.f || FMath::Abs(FRotator::NormalizeAxis(NewYaw - Yaw)) > 0.01f ? (M.bExcavator ? 0.5f : 1.f) : 0.1f);
 		Place(M, Here + To * Step, NewYaw, DeltaTime);
 	}
 }

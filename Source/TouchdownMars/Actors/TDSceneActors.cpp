@@ -10,6 +10,7 @@
 #include "Materials/MaterialInterface.h"
 #include "LandscapeProxy.h"
 #include "Sound/SoundAttenuation.h"
+#include "Systems/TDSoundscapeSubsystem.h"
 #include "Sound/SoundWave.h"
 
 #include "Actors/TDSystemModule.h"
@@ -732,22 +733,10 @@ void ATDCrewMember::StepSound()
 	{
 		return; // no steps in the time-lapse (they would rattle) or while hidden
 	}
-	static TWeakObjectPtr<USoundAttenuation> Falloff;
-	if (!Falloff.IsValid())
-	{
-		USoundAttenuation* Settings = NewObject<USoundAttenuation>(GetTransientPackage());
-		Settings->AddToRoot();
-		Settings->Attenuation.bAttenuate = true;
-		Settings->Attenuation.bSpatialize = true;
-		Settings->Attenuation.AttenuationShape = EAttenuationShape::Sphere;
-		Settings->Attenuation.AttenuationShapeExtents = FVector(200.f);
-		Settings->Attenuation.FalloffDistance = 1300.f;
-		Falloff = Settings;
-	}
 	const FString Name = FString::Printf(TEXT("SFX_TD_Step_Regolith_%02d"), FMath::RandRange(1, 4));
 	if (USoundWave* Wave = LoadObject<USoundWave>(nullptr, *FString::Printf(TEXT("/Game/TouchdownMars/Audio/%s.%s"), *Name, *Name)))
 	{
-		UGameplayStatics::PlaySoundAtLocation(this, Wave, BaseLocation, 0.5f, FMath::FRandRange(0.9f, 1.06f), 0.f, Falloff.Get());
+		UGameplayStatics::PlaySoundAtLocation(this, Wave, BaseLocation, 0.6f, FMath::FRandRange(0.9f, 1.06f), 0.f, UTDSoundscapeSubsystem::GetMarsAir());
 	}
 	UTDDustFXSubsystem::Puff(this, FVector(BaseLocation.X, BaseLocation.Y, GroundZ(BaseLocation)), 0.8f);
 }
@@ -953,6 +942,12 @@ void ATDCrewMember::Say(const FText& Line, float Seconds)
 {
 	Bark = Line;
 	BarkUntil = FPlatformTime::Seconds() + Seconds;
+	// Suited crew talk over the radio: squelch open and close around the line when the player can hear it.
+	const APawn* Player = UGameplayStatics::GetPlayerPawn(this, 0);
+	if (!Line.IsEmpty() && Player && WalkSpeed <= 200.f && FVector::Dist2D(Player->GetActorLocation(), GetActorLocation()) < 2500.f)
+	{
+		UTDSoundscapeSubsystem::RadioCall(this, FMath::Min(Seconds, 3.f));
+	}
 }
 
 FText ATDCrewMember::GetBark() const

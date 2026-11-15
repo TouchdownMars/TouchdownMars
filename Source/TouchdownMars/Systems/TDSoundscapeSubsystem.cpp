@@ -221,6 +221,7 @@ void UTDSoundscapeSubsystem::StartCue(EMusic State, const TCHAR* Name, float Vol
 	}
 	Wave->bLooping = bLoop;
 	Music = UGameplayStatics::CreateSound2D(GetWorld(), Wave, 1.f, 1.f, 0.f, nullptr, false, true);
+	UE_LOG(LogTemp, Display, TEXT("Soundscape: music %s"), Name);
 	if (Music)
 	{
 		Music->bIsUISound = true;   // keeps playing on the pause menu and the design screen
@@ -317,6 +318,12 @@ void UTDSoundscapeSubsystem::Tick(float DeltaTime)
 			}
 		}
 		BuildModuleHums();
+		int32 Layers = 0;
+		for (const UAudioComponent* Layer : {SuitFan.Get(), BreathCalm.Get(), BreathHeavy.Get(), Wind.Get(), StormAir.Get(), StormBuffet.Get(), VisorPatter.Get()})
+		{
+			Layers += Layer ? 1 : 0;
+		}
+		UE_LOG(LogTemp, Display, TEXT("Soundscape: %d/7 layers, %d module hums, %d visor hits, %d suit moves"), Layers, ModuleHums.Num(), VisorHits.Num(), SuitMoves.Num());
 	}
 
 	const APlayerController* PC = World->GetFirstPlayerController();
