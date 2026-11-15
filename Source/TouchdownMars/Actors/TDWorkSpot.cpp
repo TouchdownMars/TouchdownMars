@@ -760,9 +760,9 @@ ATDMissionControlStation* ATDMissionControlStation::Ensure(UWorld* World)
 	}
 	Station->ScreenWidget->RegisterComponent();
 	Station->ScreenWidget->InitWidget();
-	if (UTDScreenWidget* Face = Cast<UTDScreenWidget>(Station->ScreenWidget->GetUserWidgetObject()))
+	if (UTDScreenWidget* ConsoleFace = Cast<UTDScreenWidget>(Station->ScreenWidget->GetUserWidgetObject()))
 	{
-		Face->Mode = ETDScreenMode::Console;
+		ConsoleFace->Mode = ETDScreenMode::Console;
 	}
 	Station->ScreenLight = NewObject<UPointLightComponent>(Station);
 	Station->ScreenLight->SetupAttachment(Station->Root);

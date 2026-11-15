@@ -528,6 +528,18 @@ void ATDPlayerController::HandleTransitDone()
 	{
 		GetWorldTimerManager().SetTimer(PadTestTimer, FTimerDelegate::CreateWeakLambda(this, [this]() { RunPadTest(2); }), 3.f, false);
 	}
+	// -TDSnapEvery=<seconds>: dev visual check, one numbered screenshot per interval into Saved/Screenshots/Snap.
+	float SnapEvery = 0.f;
+	if (FParse::Value(FCommandLine::Get(), TEXT("TDSnapEvery="), SnapEvery) && SnapEvery > 0.f)
+	{
+		FTimerHandle SnapTimer;
+		GetWorldTimerManager().SetTimer(SnapTimer, FTimerDelegate::CreateWeakLambda(this, [this]()
+		{
+			static int32 SnapIndex = 0;
+			const FString Dir = FPaths::ProjectSavedDir() / TEXT("Screenshots/Snap");
+			FScreenshotRequest::RequestScreenshot(Dir / FString::Printf(TEXT("snap_%03d.png"), SnapIndex++), false, false);
+		}), SnapEvery, true, 2.f);
+	}
 	// Automated test runs (-TDAutoPlay): play the surface mission to the end to reach the debrief.
 	if (FParse::Param(FCommandLine::Get(), TEXT("TDOpsDemo")))
 	{
