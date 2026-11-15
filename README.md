@@ -6,7 +6,7 @@ A Mars mission design game with a first-person mission simulation, made for the 
 
 A crew of four will live 31 sols at Jezero crater. You design the cargo mission that lands before them: rockets and launches, surface power, radiation shelter, greenhouse, spare parts, science instruments and the link to Earth, under mass, power, budget and data limits. Then you launch it and live the mission in first person, and a debrief traces every problem back to the design decision that caused it. Then you redesign and fly the same mission again.
 
-**Scope.** The game covers cargo planning and surface operations. Crew transport and return are assumed to be provided. Transfer orbits are not computed.
+**Scope.** The game covers cargo planning and surface operations. Crew transport and return are assumed to be provided. Transfer orbits are not computed. Landing the cargo before the crew follows NASA's SAC21 human Mars architecture (Rucker et al. 2022, section "Pre-Deployed Cargo", p. 4) and the HEOMD-415 surface reference mission, in which surface power is running before the crew lands (p. 13).
 
 ## Mission definition
 
@@ -238,7 +238,7 @@ Full list with URLs, retrieval dates and licences: `Data/Source/sources.csv`.
 **Third-party assets and tools**
 - Unreal Engine 5.8 (Epic Games, Unreal Engine EULA).
 - Quixel Megascans via Fab (Fab Standard License, Personal tier, free; **not redistributed here**): Icelandic Porous Rock, Icelandic Boulder, Desert Western Cluster Rock Medium 05, Icelandic Sand Rock.
-- Sound effects: synthesized by `Scripts/make_sfx.py` (Apache 2.0, not AI-generated).
+- Sound effects, two sets. The UI, alarm, radio and remaining work sounds are synthesized by `Scripts/make_sfx.py` (Apache 2.0, not AI-generated). Fourteen sounds are AI-generated with ElevenLabs Sound Effects in the team's ElevenLabs account: Mars wind, dust storm, habitat hum, suit breathing, four regolith footsteps, lift-off and the drill, hammer, ratchet, scoop and brush work sounds (`Data/Audio`; listed in `sources.csv` as `ElevenLabsSFX` with `bIsAIGenerated=True`).
 - Tripo AI (21 AI-generated 3D models, made in the team's Tripo Studio account; listed in `sources.csv` with `bIsAIGenerated=True`): ascent vehicle, fission power unit, greenhouse dome, plant rack, cargo crates, shelter hatch and the rigged crew astronaut; across the outpost, corridor tubes, habitat modules, airlock, light masts, regolith mounds, weather mast, water wall frames, ISRU plant, storage tanks, the Mission Control console body, payload cases, junction boxes, a field tablet and a sample scoop.
 - Design-room pictures: Google Gemini illustrations in one locked style (20 option cards, 4 objective cards, the cold open). Each card shows the tag "AI illustration (Gemini)"; listed in `sources.csv` as `GeminiIllustrations` with `bIsAIGenerated=True`.
 - Fonts: Barlow Semi Condensed and IBM Plex Mono (SIL Open Font License 1.1, licence files in `Content/TouchdownMars/UI/Fonts`).
@@ -254,7 +254,8 @@ The game concept, the mission architecture, the design decisions and the choice 
 - **Anthropic Claude (Claude Code, an AI coding assistant)** wrote the C++ code, the Python editor scripts and the packaging script, built the levels, widgets and DataTables in the Unreal Editor through MCP editor tooling, and drafted the documents, the card research and the English and Turkish game text from the team's research and decisions. Every card fact was checked against its source page.
 - **Tripo AI** generated 21 3D models from text prompts run in the team's Tripo Studio account. The first seven, from prompts written by Claude Code: ascent vehicle, fission power unit, greenhouse dome, plant rack, cargo crates, shelter hatch and the rigged crew astronaut (retopologised and auto-rigged with six preset animations; its textures also dress the crew suits). Fourteen more across the outpost: corridor tubes, habitat modules, airlock, light masts, regolith mounds, weather mast, water wall frames, ISRU plant, storage tanks, the Mission Control console body, payload cases, junction boxes, a field tablet and a sample scoop. All are listed in `sources.csv` with `bIsAIGenerated=True`.
 - **Google Gemini** generated the 25 design-room illustrations (option cards, objective cards and the cold open of a fictional crew) from prompts written by Claude Code, in one locked style that matches the UI palette. The team checked every image at full size for logos, insignia, flags, mission patches, text and faces and rejected any that had them. Every card carries a visible "AI illustration (Gemini)" tag. Real NASA photos are not used for fictional scenes.
-- **Not AI-generated:** the sounds (team script), the NASA data and meshes, and the Megascans rocks. No AI-generated audio or video is used.
+- **ElevenLabs Sound Effects** generated 14 sound effects from text prompts in the team's ElevenLabs account: Mars wind, dust storm, habitat hum, suit breathing, four regolith footsteps, lift-off and the drill, hammer, ratchet, scoop and brush work sounds. They are listed in `sources.csv` as `ElevenLabsSFX` with `bIsAIGenerated=True`.
+- **Not AI-generated:** the UI, alarm, radio and remaining work sounds (team script), the NASA data and meshes, and the Megascans rocks. No AI-generated voice, music or video is used.
 
 ## License
 
