@@ -78,7 +78,7 @@ Also from the challenge text:
 
 ## For judges: three minutes
 
-1. **Download:** the Windows build, `TouchdownMars_Win64_v25.zip` (815 MB), from the release [v1.0-submission](https://github.com/TouchdownMars/TouchdownMars/releases/tag/v1.0-submission), built from commit `7469f77` (later commits only add development flags for trailer footage, which are not in the shipping build). Unzip it and run `TouchdownMars\TouchdownMars.exe`.
+1. **Download:** the Windows build, `TouchdownMars_Win64_v25.zip` (777 MB), from the release [v1.0-submission](https://github.com/TouchdownMars/TouchdownMars/releases/tag/v1.0-submission), built from commit `7469f77` (later commits add development flags for trailer footage, which are not in the shipping build, and a Mac compile fix with the same behaviour). Unzip it and run `TouchdownMars\TouchdownMars.exe`. A Mac (Apple Silicon) zip is in the same release.
 2. **First minute:** take the console, pick an instrument, poll the room and press LAUNCH; the pre-launch checklist says what is still missing.
 3. **On Mars:** follow the red marker to the Mission Control console beside the habitat (E or X), place the power cells, answer the event, run the sols. Hold E or X at a lit work spot to do a task by hand.
 
@@ -181,7 +181,7 @@ Also from the challenge text:
 | `Data/Source/` | CSV source of truth for every DataTable (mission options, objectives, phases, events, tasks, sites, constants, sources, text EN/TR, Jezero weather, DONKI archive, outcome shots) |
 | `Content/TouchdownMars/` | Unreal assets: DataTables, widgets, maps (`L_TD_Outpost`, `L_TD_Test`), materials, sounds, NASA 3D meshes |
 | `Scripts/` | Python editor scripts (data import, UI and level setup, terrain, art, cameras, base operations scene, balance check, sound synthesis) and `package.ps1` |
-| `Media/` | The 30 s submission trailer, `TouchdownMars_Trailer_30s.mp4` (narration and music: ElevenLabs, see AI use) |
+| `Media/` | The 30 s submission trailer, `TouchdownMars_Trailer_30s.mp4` (narration and music: ElevenLabs, see AI use), and the team presentation in English and Turkish (`TouchdownMars_Presentation_EN.pptx`, `TouchdownMars_Presentation_TR.pptx`) |
 
 ### Build and run
 
