@@ -78,7 +78,7 @@ Also from the challenge text:
 
 ## Status
 
-14 November 2026. The game loop is in place end to end: design room → launch → surface mission → debrief → redesign. The source defines 30 automation tests (`TD.Design.*` 10, `TD.Model.*` 12, `TD.Ops.*` 8); 30 of 30 passed on 14 November 2026. On 15 November 2026 five adult volunteers from outside the team played the game and answered a short anonymous form; the results, the method and the limits are in `Evidence/playtest/`. No learning claim is made.
+15 November 2026. The game loop is in place end to end: design room → launch → surface mission → debrief → redesign. The source defines 30 automation tests (`TD.Design.*` 10, `TD.Model.*` 12, `TD.Ops.*` 8); 30 of 30 passed on 15 November 2026 at commit `0465558` (result lines in `Evidence/tests_2026-11-15.txt`). On 15 November 2026 five adult volunteers from outside the team played the game and answered a short anonymous form; the results, the method and the limits are in `Evidence/playtest/`. No learning claim is made.
 
 ## Verified and planned
 
@@ -158,7 +158,7 @@ Also from the challenge text:
 - **Reference numbers.** Some sourced numbers (radiation dose rates and the career limit, Earth-Mars light time, Deep Space Network dish sizes) are listed in the Source Panel for context and do not drive a game rule.
 - **Time and scale.** 31 sols are played in a few minutes. Mission Control delay is shown as phases, not minutes. Crew dose is summed from real RAD days, but the habitat and shelter factors are game assumptions and no health effect is computed.
 - **Team play.** Four roles share one screen; there is no network play.
-- **Not in this build.** VR, music and voice.
+- **Not in this build.** VR and voice.
 - **SAC21 is an analysis option**, labelled "NASA plan" in the game; it is not a committed NASA mission.
 
 ## Tech
@@ -194,7 +194,7 @@ Scripts in this order (inside the editor, Play-in-Editor stopped): `setup_outpos
 
 - The terrain, rock and camera scripts call the free [VibeUE](https://github.com/kevinpbuckley/VibeUE) editor plugin (MIT). Install it into `Plugins/VibeUE/`; it is not part of this repository.
 - `setup_terrain.py` needs the NASA Mars Trek elevation file (see `Scripts/dem_to_heightmap.py`); the generated heightmap is in `Data/Terrain/`.
-- **Rocks:** the four Megascans rocks are not in this repository (licence). Without them the level opens without rocks. To restore them, add the free Fab listings named below with the Personal licence, import them as glTF (Medium) into `/Game/Fab/Free`, then run `scatter_rocks.py`.
+- **Rocks and ground:** the Megascans rocks and ground surfaces are not in this repository (licence). Without them the level opens without rocks and with the plain regolith material. To restore them, add the free Fab listings named below with the Personal licence, import them as glTF (Medium) into `/Game/Fab/Free`, then run `scatter_rocks.py`.
 
 ## Data and third-party assets
 
@@ -237,7 +237,7 @@ Full list with URLs, retrieval dates and licences: `Data/Source/sources.csv`.
 
 **Third-party assets and tools**
 - Unreal Engine 5.8 (Epic Games, Unreal Engine EULA).
-- Quixel Megascans via Fab (Fab Standard License, Personal tier, free; **not redistributed here**): Icelandic Porous Rock, Icelandic Boulder, Desert Western Cluster Rock Medium 05, Icelandic Sand Rock.
+- Quixel Megascans via Fab (Fab Standard License, Personal tier, free). The source assets are **not redistributed in this repository**; ten are cooked into the packaged Windows build as part of the game: Icelandic Porous Rock, Icelandic Boulder, Desert Western Cluster Rock Medium 05, Icelandic Sand Rock, Desert Western Pile Rock Small 01, Stones and Pebbles Pack, Gravel on Soil, Dry Soil Ground, Dry Rippled Sand and Painted Metal. Each is listed in `sources.csv`.
 - Sound effects, two sets. The UI sounds and the latch, plug, scan, switch and done work sounds are synthesized by `Scripts/make_sfx.py` (Apache 2.0, not AI-generated). Thirty-five sounds are AI-generated with ElevenLabs Sound Effects in the team's ElevenLabs account (`Data/Audio`; listed in `sources.csv` as `ElevenLabsSFX` with `bIsAIGenerated=True`): Mars wind, dust storm, habitat hum, suit breathing, regolith footsteps, lift-off and the drill, hammer, ratchet, scoop and brush work sounds, plus the in-helmet set (suit fan, heavy breathing, suit fabric, boot contact thumps, storm buffeting, sand on the visor, caution tone, radio squelch) and the rover, excavator and power-unit machine sounds.
 - Music: six instrumental cues (exploring, dust storm, design screen, lift-off) are AI-generated with ElevenLabs Music in the team's ElevenLabs account (`Data/Audio/MUS_TD_*`; listed in `sources.csv` as `ElevenLabsMusic` with `bIsAIGenerated=True`).
 - Tripo AI (27 AI-generated 3D models, made in the team's Tripo Studio account; listed in `sources.csv` with `bIsAIGenerated=True`): ascent vehicle, fission power unit, greenhouse dome, plant rack, cargo crates, shelter hatch and the rigged crew astronaut; across the outpost, corridor tubes, habitat modules, airlock, light masts, regolith mounds, weather mast, water wall frames, ISRU plant, storage tanks, the Mission Control console body, payload cases, junction boxes, a field tablet, a sample scoop, solar array tables, an insulated pipe run, an oxygen production unit, a corridor end bulkhead, the crew ascent vehicle on its lander and the cargo lander.

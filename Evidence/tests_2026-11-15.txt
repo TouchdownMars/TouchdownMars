@@ -1,0 +1,32 @@
+﻿[2026.11.15-06.48.00:704][597]LogAutomationCommandLine: Display: Found 30 automation tests based on 'TD.'
+[2026.11.15-06.48.00:726][600]LogAutomationController: Display: Test Completed. Result={Success} Name={DataWaitsInStorage} Path={TD.Design.DataWaitsInStorage}
+[2026.11.15-06.48.00:751][603]LogAutomationController: Display: Test Completed. Result={Success} Name={DefaultDesignIsBlocked} Path={TD.Design.DefaultDesignIsBlocked}
+[2026.11.15-06.48.00:777][606]LogAutomationController: Display: Test Completed. Result={Success} Name={EffectsReachTheSurface} Path={TD.Design.EffectsReachTheSurface}
+[2026.11.15-06.48.00:801][609]LogAutomationController: Display: Test Completed. Result={Success} Name={EfficiencyNeedsSuccess} Path={TD.Design.EfficiencyNeedsSuccess}
+[2026.11.15-06.48.00:827][612]LogAutomationController: Display: Test Completed. Result={Success} Name={FirstFlightIsSolvable} Path={TD.Design.FirstFlightIsSolvable}
+[2026.11.15-06.48.00:851][615]LogAutomationController: Display: Test Completed. Result={Success} Name={ModulesAreNotSplit} Path={TD.Design.ModulesAreNotSplit}
+[2026.11.15-06.48.00:876][618]LogAutomationController: Display: Test Completed. Result={Success} Name={ReferenceDesignLaunches} Path={TD.Design.ReferenceDesignLaunches}
+[2026.11.15-06.48.00:902][621]LogAutomationController: Display: Test Completed. Result={Success} Name={RelayCarriesTheData} Path={TD.Design.RelayCarriesTheData}
+[2026.11.15-06.48.00:919][623]LogAutomationController: Display: Test Completed. Result={Success} Name={ScienceWalkNeedsInstrument} Path={TD.Design.ScienceWalkNeedsInstrument}
+[2026.11.15-06.48.00:942][626]LogAutomationController: Display: Test Completed. Result={Success} Name={SolarLosesPowerInDust} Path={TD.Design.SolarLosesPowerInDust}
+[2026.11.15-06.48.00:969][629]LogAutomationController: Display: Test Completed. Result={Success} Name={Clamp} Path={TD.Model.Allocation.Clamp}
+[2026.11.15-06.48.00:993][632]LogAutomationController: Display: Test Completed. Result={Success} Name={Table} Path={TD.Model.Allocation.Table}
+[2026.11.15-06.48.01:010][634]LogAutomationController: Display: Test Completed. Result={Success} Name={AdviceRemembersTheStateAtSend} Path={TD.Model.AdviceRemembersTheStateAtSend}
+[2026.11.15-06.48.01:034][637]LogAutomationController: Display: Test Completed. Result={Success} Name={CadetBand} Path={TD.Model.CadetBand}
+[2026.11.15-06.48.01:061][640]LogAutomationController: Display: Test Completed. Result={Success} Name={DeckGuarantees} Path={TD.Model.DeckGuarantees}
+[2026.11.15-06.48.01:085][643]LogAutomationController: Display: Test Completed. Result={Success} Name={GreenhouseDelayed} Path={TD.Model.GreenhouseDelayed}
+[2026.11.15-06.48.01:109][646]LogAutomationController: Display: Test Completed. Result={Success} Name={LoseAndReport} Path={TD.Model.LoseAndReport}
+[2026.11.15-06.48.01:135][649]LogAutomationController: Display: Test Completed. Result={Success} Name={MissionControlDelay} Path={TD.Model.MissionControlDelay}
+[2026.11.15-06.48.01:159][652]LogAutomationController: Display: Test Completed. Result={Success} Name={NoFreeChoice} Path={TD.Model.NoFreeChoice}
+[2026.11.15-06.48.01:185][655]LogAutomationController: Display: Test Completed. Result={Success} Name={PhaseOneCannotBeLost} Path={TD.Model.PhaseOneCannotBeLost}
+[2026.11.15-06.48.01:202][657]LogAutomationController: Display: Test Completed. Result={Success} Name={RadiationExposure} Path={TD.Model.RadiationExposure}
+[2026.11.15-06.48.01:227][660]LogAutomationController: Display: Test Completed. Result={Success} Name={SameSeedSameGame} Path={TD.Model.SameSeedSameGame}
+[2026.11.15-06.48.01:251][663]LogAutomationController: Display: Test Completed. Result={Success} Name={BrokenRestRuleTires} Path={TD.Ops.BrokenRestRuleTires}
+[2026.11.15-06.48.01:275][666]LogAutomationController: Display: Test Completed. Result={Success} Name={NoSpacewalkInDust} Path={TD.Ops.NoSpacewalkInDust}
+[2026.11.15-06.48.01:301][669]LogAutomationController: Display: Test Completed. Result={Success} Name={NoSpacewalkOnArrival} Path={TD.Ops.NoSpacewalkOnArrival}
+[2026.11.15-06.48.01:326][672]LogAutomationController: Display: Test Completed. Result={Success} Name={RestSolBetweenSpacewalks} Path={TD.Ops.RestSolBetweenSpacewalks}
+[2026.11.15-06.48.01:351][675]LogAutomationController: Display: Test Completed. Result={Success} Name={RoverRechargesAfterTraverse} Path={TD.Ops.RoverRechargesAfterTraverse}
+[2026.11.15-06.48.01:375][678]LogAutomationController: Display: Test Completed. Result={Success} Name={SpacewalkTakesTwo} Path={TD.Ops.SpacewalkTakesTwo}
+[2026.11.15-06.48.01:401][681]LogAutomationController: Display: Test Completed. Result={Success} Name={SuitCheckFirst} Path={TD.Ops.SuitCheckFirst}
+[2026.11.15-06.48.01:427][684]LogAutomationController: Display: Test Completed. Result={Success} Name={WorkChangesTheBase} Path={TD.Ops.WorkChangesTheBase}
+[2026.11.15-06.48.01:435][685]LogAutomationCommandLine: Display: **** TEST COMPLETE. EXIT CODE: 0 ****
