@@ -2,7 +2,7 @@
 
 **Pack the cargo. Live the mission. Trace every problem.**
 
-**[Download for Windows](https://github.com/TouchdownMars/TouchdownMars/releases/download/v1.0-submission/TouchdownMars_Win64_v25.zip)** (64-bit zip, 777 MB, [release v1.0-submission](https://github.com/TouchdownMars/TouchdownMars/releases/tag/v1.0-submission)) · **[Project site](https://touchdownbeyond.earth)** · **[Space Apps project page](https://www.spaceappschallenge.org/2026/find-a-team/touchdown/)** · **[For judges: three minutes](#for-judges-three-minutes)**
+**[Download for Windows](https://github.com/TouchdownMars/TouchdownMars/releases/download/v1.0-submission/TouchdownMars_Win64_v25.zip)** (64-bit zip, 777 MB, [release v1.0-submission](https://github.com/TouchdownMars/TouchdownMars/releases/tag/v1.0-submission)) · **[Project site](https://touchdownbeyond.earth)** · **[Space Apps project page](https://www.spaceappschallenge.org/2026/find-a-team/touchdown/)** · **Presentation:** [English](https://docs.google.com/presentation/d/1EzAaglJV8fXD3hLVF12cO3WKYD2wkmgN/edit?usp=sharing), [Türkçe](https://docs.google.com/presentation/d/1QmHR3bdQ8BnWaY4VjpNQIqWlAIRcOKwy/edit?usp=sharing) · **[For judges: three minutes](#for-judges-three-minutes)**
 
 [![Touchdown Mars: The Manifest, 30-second trailer (watch on YouTube)](https://img.youtube.com/vi/Z8bS-2ZdFTc/maxresdefault.jpg)](https://www.youtube.com/watch?v=Z8bS-2ZdFTc)
 
