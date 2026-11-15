@@ -263,6 +263,30 @@ void ATDPlayerController::OpenDesignRoom()
 					Hud->SetVisibility(ESlateVisibility::Collapsed);
 				}
 				UE_LOG(LogTouchdownMars, Display, TEXT("Design: screenshot camera %s"), *CamSpec);
+				// -TDCamDrift=vx,vy,vz,yawPerSec: the fixed camera glides (cm/s, deg/s) for trailer footage.
+				FString DriftSpec;
+				TArray<FString> Drift;
+				if (FParse::Value(FCommandLine::Get(), TEXT("TDCamDrift="), DriftSpec, false) && DriftSpec.ParseIntoArray(Drift, TEXT(",")) == 4)
+				{
+					const FVector Velocity(FCString::Atof(*Drift[0]), FCString::Atof(*Drift[1]), FCString::Atof(*Drift[2]));
+					const float YawRate = FCString::Atof(*Drift[3]);
+					// -TDCamGo=<file>: the glide waits until that file exists (the recorder creates it when it starts).
+					FString GoFile;
+					FParse::Value(FCommandLine::Get(), TEXT("TDCamGo="), GoFile, false);
+					static FTimerHandle DriftTimer;
+					GetWorldTimerManager().SetTimer(DriftTimer, FTimerDelegate::CreateWeakLambda(Cam, [Cam, Velocity, YawRate, GoFile]()
+					{
+						static bool bGo = false;
+						if (!bGo)
+						{
+							bGo = GoFile.IsEmpty() || FPaths::FileExists(GoFile);
+							return;
+						}
+						const float Dt = Cam->GetWorld()->GetDeltaSeconds();
+						Cam->SetActorLocation(Cam->GetActorLocation() + Velocity * Dt);
+						Cam->SetActorRotation(Cam->GetActorRotation() + FRotator(0.f, YawRate * Dt, 0.f));
+					}), 0.001f, true);
+				}
 				// -TDOpsDemo with a fixed camera: fly the reference design and watch the crew work.
 				UTDMissionSubsystem* Mission = GetWorld()->GetSubsystem<UTDMissionSubsystem>();
 				if (FParse::Param(FCommandLine::Get(), TEXT("TDOpsDemo")) && Mission && Mission->BeginDesign(TEXT("FirstLight"), false))
